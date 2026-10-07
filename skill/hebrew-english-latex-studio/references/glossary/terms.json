@@ -1,0 +1,1695 @@
+{
+  "schema_version": 2,
+  "document": {
+    "intro_markdown": "# מילון מושגים — Hebrew–English LaTeX Studio\n\nמילון למשתמש ולמפתח של הסקיל **v{{SKILL_VERSION}}**. הוא מסביר את המנגנונים הקיימים, את קטלוג התבניות ואת תהליך הבדיקה והתחזוקה. רשומות המונחים הן מקור התיעוד; חוזי הקוד והקטלוג הם מקורות הסמכות לממשקים ולהרכבה.\n\n**איך לקרוא:** ״משתמש״ יוצר או עורך מסמך; ״מפתח״ משנה את הסקיל, המחולל או הבדיקות; ״שניהם״ מציין מושג שימושי לשני הקהלים. ״קיים בסקיל״ מתאר ממשק או מנגנון נתמך; ״מושג מקצועי״ מסביר רעיון כללי הנדרש להבנת המערכת. אין כאן הבטחה שכל צירוף חבילות או מחלקת מסמך נתמכים.\n\nלהתחלה מעשית: [קטלוג התבניות](template-catalog.md) ו[זרימת העבודה](everyday-workflow.md). למפתח: [חוזה הארכיטקטורה](architecture.md) ו[תחזוקת הקטלוג](catalog-development.md).\n",
+    "afterword_markdown": "## הבחנות שכדאי לזכור\n\n- **Template / Recipe** מצהירות על הרכבה; **Starter** מספק תוכן התחלתי; **Preset** מספק ערכים מוכנים; **Theme** מספק הצגה; **Layout extension** מספק מנגנון עימוד.\n- **Document kind** הוא ייעוד המסמך; **Document class** היא מחלקת LaTeX; **Content profile** בוחר בדיקות מייעצות. אלה בחירות נפרדות.\n- **Main language** קובעת בסיס ומעטפת; **Local language** קובעת את השפה במקטע. מסמך דו־לשוני מצריך שפה ראשית מפורשת.\n- **Capability** מתארת התנהגות זמינה; **Ownership / Role** מגדירים מי אחראי לה. הצהרה על יכולת אינה הוכחה שהופעלה במסמך מסוים.\n- **Schema** מגדירה כללים לנתונים; **Registry** מכילה רשומות לפי הכללים; **Resolver** פותר בחירות; **Resolved recipe** מתארת את התוצאה; **Manifest** מתעד יצירה או קבצים בפועל.\n- **Build**, **Render** ו־**Visual review** הם שלבים נפרדים. ראיות מכל שלב צריכות להיות קשורות למקור ולפלט הנוכחיים. הן אינן אישור לנכונות מדעית, לשלמות תוכן או לנגישות PDF.\n\n## כיצד המילון מתעדכן\n\n[רשומות המונחים](glossary/terms.json) הן מקור הסמכות להסברים. שינוי ממשק, אפשרות בחירה, בעלות או מדיניות דורש סקירה מכוונת של המונחים הרלוונטיים. המחולל מעדכן את המסמך; הוא אינו ממציא משמעות מקוד חדש.\n\nמזהה המונח נשאר יציב כאשר רק התרגום או ההסבר משתנים. `introduced_in` מתעד את גרסת הוספת הרשומה למילון המופץ, ולא בהכרח את גרסת המצאת המנגנון; `updated_in` מתעד את הבדיקה או השינוי האחרונים במשמעות. עדכון תרגום, דוגמה, חוזה או בעלות מחייב לעדכן שדה זה. שינוי גרסת הסקיל מחייב גם `skill_version`; אין צורך לשנות תאריך עדכון של כל מונח ללא סקירת משמעות. שינוי שובר בסכמת הרשומות מחייב גרסת סכמה נפרדת ומאמת מתאים.\n\nכל תבנית, פריסה, עיצוב ודוגמה בקטלוג מפנים למונחים רלוונטיים. המאמת דוחה הפניות למונחים חסרים, שדות לא תקינים, נתיבי מקור חסרים, גרסאות לא עקביות ותיעוד שנוצר ואינו תואם לרשומות. הבדיקה אינה מוכיחה שההסבר מדויק מבחינה מקצועית; לכך נדרשת ביקורת תוכן.\n\nלהפקה מחודשת ולבדיקה מתוך שורש הסקיל:\n\n```bash\npython3 scripts/generate_studio_docs.py\npython3 scripts/generate_studio_docs.py --check\npython3 scripts/test_studio_docs.py\n```\n\nמדריך [תחזוקת הקטלוג](catalog-development.md) מתאר הוספת תבנית, רכיב או Hook ואת הראיות הנדרשות לפני שחרור.\n"
+  },
+  "sections": [
+    {
+      "id": "composition",
+      "hebrew": "בחירת מסמך והרכבתו"
+    },
+    {
+      "id": "language-direction",
+      "hebrew": "שפות וכיווני קריאה"
+    },
+    {
+      "id": "latex-navigation",
+      "hebrew": "מקור LaTeX, מספור וניווט"
+    },
+    {
+      "id": "typography",
+      "hebrew": "טיפוגרפיה ומתמטיקה"
+    },
+    {
+      "id": "verification",
+      "hebrew": "בנייה, ראיות ובדיקות"
+    },
+    {
+      "id": "infrastructure",
+      "hebrew": "התשתית, החוזים ותחזוקת הסקיל"
+    }
+  ],
+  "terms": [
+    {
+      "id": "template",
+      "hebrew": "תבנית",
+      "english": "Template",
+      "definition": "מתכון מוצהר ליצירת מסמך: תוכן התחלתי, ברירות מחדל, אפשרויות ורכיבים. תבנית אינה בהכרח שכבת קוד בעלת אחריות אחת.",
+      "example": "רשומת `formula-sheet` בקטלוג מתירה פריסה רגילה או שתי פריסות עזר; הפותר מרכיב את המסלול שנבחר.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "starter",
+        "preset",
+        "registry"
+      ],
+      "source_refs": [
+        "registry/studio-catalog.json",
+        "scripts/template_registry.py",
+        "references/template-catalog.md"
+      ],
+      "section": "composition",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "starter",
+      "hebrew": "קובץ התחלה",
+      "english": "Starter",
+      "definition": "קובץ מקור לדוגמה שממנו מתחילים לערוך את התוכן. אינו מנגנון הבנייה ואינו כל העיצוב.",
+      "example": "`starter_paper.tex` מכיל תוכן התחלתי למאמר; המשתמש מחליף את הדוגמאות והמטא־נתונים.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "template",
+        "document-kind"
+      ],
+      "source_refs": [
+        "references/architecture.md",
+        "scripts/new_document.py"
+      ],
+      "section": "composition",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "document-kind",
+      "hebrew": "סוג מסמך",
+      "english": "Genre / Document kind",
+      "definition": "ייעוד המסמך כפי שבוחרים במחולל. אינו מחלקת LaTeX ואינו Theme.",
+      "example": "`--kind report` בוחר סוג דוח; `--kind paper` בוחר מאמר.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "template",
+        "document-class",
+        "content-profile"
+      ],
+      "source_refs": [
+        "references/architecture.md",
+        "scripts/new_document.py"
+      ],
+      "section": "composition",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "content-profile",
+      "hebrew": "פרופיל תוכן",
+      "english": "Content profile",
+      "definition": "בחירה עבור בדיקות עריכה מייעצות, כגון צפיפות וקצב התוכן. אינה תבנית ואינה משנה את עיצוב ה־PDF.",
+      "example": "`CONTENT_PROFILE=formula-sheet` מפעיל כללי בדיקה מתאימים לדף נוסחאות.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "document-kind",
+        "acceptance-gate"
+      ],
+      "source_refs": [
+        "references/architecture.md",
+        "scripts/new_document.py"
+      ],
+      "section": "composition",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "preset",
+      "hebrew": "מערך הגדרות",
+      "english": "Preset",
+      "definition": "קבוצה בעלת שם של ברירות מחדל לממשקים קיימים. שימוש בערך מוכן אינו יוצר מנגנון חדש.",
+      "example": "`reference-compact` בוחר שלושה טורים וגדלים מוכרזים לטקסט ולמתמטיקה.",
+      "audience": "both",
+      "status": "general",
+      "related_ids": [
+        "template",
+        "resolver",
+        "layout"
+      ],
+      "source_refs": [
+        "references/architecture.md",
+        "scripts/new_document.py"
+      ],
+      "section": "composition",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "theme",
+      "hebrew": "ערכת עיצוב",
+      "english": "Theme",
+      "definition": "שכבת הצגה: צבעים, קווים, טיפוגרפיה ועיצוב כותרות ותיבות, במסגרת החוזה שלה. אינה הבעלים של כיוון הקריאה או זרימת הטורים.",
+      "example": "`reference_theme.tex` מעצב כותרות והערות; בחירתו לבדה אינה יוצרת טורים.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "layout",
+        "ownership",
+        "hook"
+      ],
+      "source_refs": [
+        "references/architecture.md",
+        "scripts/new_document.py"
+      ],
+      "section": "composition",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "layout",
+      "hebrew": "פריסה ועימוד",
+      "english": "Layout",
+      "definition": "החלטות על דף, שוליים, ריווח, טורים והיררכיה. חלקן מוגדרות לפני טעינת הליבה וחלקן בהרחבת פריסה.",
+      "example": "A4, שני טורים, מרווח בין טורים ועומק מספור עד תת־נושא.",
+      "audience": "both",
+      "status": "general",
+      "related_ids": [
+        "layout-extension",
+        "preset",
+        "document-class"
+      ],
+      "source_refs": [
+        "references/architecture.md",
+        "scripts/new_document.py"
+      ],
+      "section": "composition",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "page-shell",
+      "hebrew": "מעטפת עמוד",
+      "english": "Page shell",
+      "definition": "רכיב המארגן שער או כותרת פתיחה, כותרות רצות ומספרי עמודים. אינו קובע את תוכן המסמך או את מדיניות השפות.",
+      "example": "`reference_shell.tex` מספק מעטפת לדף עזר; `topicrail.tex` הוא חלופה, ולא מעטפת נוספת לטעון במקביל.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "main-language",
+        "layout",
+        "theme"
+      ],
+      "source_refs": [
+        "references/architecture.md",
+        "scripts/new_document.py"
+      ],
+      "section": "composition",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "mechanism-core",
+      "hebrew": "ליבת המנגנונים",
+      "english": "Mechanism core",
+      "definition": "מקור משותף למנגנוני שפה, כיוון, מתמטיקה, הפניות ועוגנים. אין לשכפל אותו לכל שפה או סוג מסמך.",
+      "example": "`preamble.tex` נשאר משותף למאמר באנגלית ולדף נוסחאות בעברית.",
+      "audience": "developer",
+      "status": "existing",
+      "related_ids": [
+        "ownership",
+        "language-profile",
+        "semantic-extension"
+      ],
+      "source_refs": [
+        "references/architecture.md",
+        "scripts/new_document.py"
+      ],
+      "section": "composition",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "semantic-extension",
+      "hebrew": "הרחבה סמנטית",
+      "english": "Semantic extension",
+      "definition": "רכיב שמוסיף משמעות או התנהגות של מסמך, בלי לבחור עבורו עיצוב כולל או שוליים.",
+      "example": "`exam_components.tex` מספק עזרי שאלות וניקוד; `flow_tables.tex` מספק טבלאות ממשיכות.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "mechanism-core",
+        "capability",
+        "theme"
+      ],
+      "source_refs": [
+        "references/architecture.md",
+        "scripts/new_document.py"
+      ],
+      "section": "composition",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "layout-extension",
+      "hebrew": "הרחבת פריסה",
+      "english": "Layout extension",
+      "definition": "מנגנון ייעודי לזרימת תוכן ולעימוד מקומי, בעל אחריות מוגדרת. שונה מ־Preset, שרק בוחר ערכים.",
+      "example": "`reference_columns.tex` מספק את `referencecolumns` ואת המעבר ל־`referencewide`.",
+      "audience": "developer",
+      "status": "existing",
+      "related_ids": [
+        "layout",
+        "mechanism-core",
+        "scope"
+      ],
+      "source_refs": [
+        "references/architecture.md",
+        "scripts/new_document.py"
+      ],
+      "section": "composition",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "language-profile",
+      "hebrew": "פרופיל שפה",
+      "english": "Language profile",
+      "definition": "הצהרת כוונה על השפות במסמך: עברית, אנגלית, שפה מובילה עם השפה השנייה, או דו־לשוני. אינה מתרגמת תוכן ואינה אוסרת ציטוט בשפה אחרת.",
+      "example": "`--language english-with-hebrew` יוצר בסיס אנגלי עם תמיכה בטקסט עברי.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "main-language",
+        "local-language",
+        "resolver"
+      ],
+      "source_refs": [
+        "references/language-design.md",
+        "references/direction-and-math.md",
+        "scripts/architecture_contract.py"
+      ],
+      "section": "language-direction",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "main-language",
+      "hebrew": "שפה ראשית",
+      "english": "Main language",
+      "definition": "השפה היציבה של מעטפת המסמך וברירות המחדל שלו. אינה מחייבת שכל פסקה תהיה באותה שפה.",
+      "example": "`bilingual` מחייב `--main-language hebrew` או `english`; המחולל אינו מנחש לפי מספר האותיות.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "language-profile",
+        "local-language",
+        "page-shell"
+      ],
+      "source_refs": [
+        "references/language-design.md",
+        "references/direction-and-math.md",
+        "scripts/architecture_contract.py"
+      ],
+      "section": "language-direction",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "local-language",
+      "hebrew": "שפה מקומית",
+      "english": "Local language context",
+      "definition": "השפה הפעילה של פסקה או מקטע. היא עשויה להיות שונה מהשפה הראשית.",
+      "example": "בתוך `hebrewprose` במסמך אנגלי, פס הערה עברית מוצב מימין; סדר הטורים עדיין נקבע לפי השפה הראשית.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "main-language",
+        "bidi",
+        "direction-island"
+      ],
+      "source_refs": [
+        "references/language-design.md",
+        "references/direction-and-math.md",
+        "scripts/architecture_contract.py"
+      ],
+      "section": "language-direction",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "rtl",
+      "hebrew": "מימין לשמאל",
+      "english": "Right-to-left, RTL",
+      "definition": "כיוון קריאה וסדר הצגה של טקסט עברי. אינו זהה ליישור טקסט לימין.",
+      "example": "פסקה עברית מצריכה כיוון RTL גם כשהיא ממורכזת.",
+      "audience": "both",
+      "status": "general",
+      "related_ids": [
+        "ltr",
+        "bidi"
+      ],
+      "source_refs": [
+        "references/language-design.md",
+        "references/direction-and-math.md",
+        "scripts/architecture_contract.py"
+      ],
+      "section": "language-direction",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "ltr",
+      "hebrew": "משמאל לימין",
+      "english": "Left-to-right, LTR",
+      "definition": "כיוון קריאה וסדר הצגה של טקסט אנגלי ושל רצפים מסוימים בתוך עברית. אינו זהה ליישור לשמאל.",
+      "example": "כתובת אינטרנט בתוך פסקה עברית נדרשת לרצף LTR תקין.",
+      "audience": "both",
+      "status": "general",
+      "related_ids": [
+        "rtl",
+        "bidi"
+      ],
+      "source_refs": [
+        "references/language-design.md",
+        "references/direction-and-math.md",
+        "scripts/architecture_contract.py"
+      ],
+      "section": "language-direction",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "bidi",
+      "hebrew": "דו־כיווניות",
+      "english": "Bidirectional text, BiDi",
+      "definition": "מנגנון שמארגן טקסט המכיל רצפים בכיווני קריאה שונים, כולל ספרות וסימני פיסוק. דו־לשוניות עוסקת בשפות; דו־כיווניות עוסקת בכיוון.",
+      "example": "משפט עברי ובו שם אנגלי, טווח מספרים וסוגריים צריך לשמור על סדרם הלוגי.",
+      "audience": "both",
+      "status": "general",
+      "related_ids": [
+        "rtl",
+        "ltr",
+        "direction-island"
+      ],
+      "source_refs": [
+        "references/language-design.md",
+        "references/direction-and-math.md",
+        "scripts/architecture_contract.py"
+      ],
+      "section": "language-direction",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "direction-island",
+      "hebrew": "אי של כיוון קריאה",
+      "english": "Direction island",
+      "definition": "רצף קצר שמקבל כיוון ושפה מקומיים בתוך הטקסט שמסביב. אינו תחליף לסביבת פסקה ארוכה.",
+      "example": "`\\en{Fourier transform}` בתוך עברית; `\\h{עברית}` בתוך אנגלית.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "local-language",
+        "bidi",
+        "math-direction"
+      ],
+      "source_refs": [
+        "references/language-design.md",
+        "references/direction-and-math.md",
+        "scripts/architecture_contract.py"
+      ],
+      "section": "language-direction",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "math-direction",
+      "hebrew": "כיוון מתמטי",
+      "english": "Mathematical direction",
+      "definition": "סדר הסמלים והביטויים במתמטיקה, הנשמר באמצעות מנגנון הליבה גם בתוך עברית. טקסט מילולי בתוך נוסחה דורש טיפול מקומי מתאים.",
+      "example": "כותבים את כל הביטוי `a+b=c` כיחידה מתמטית; טקסט בתוך מתמטיקה נכנס דרך `\\text{...}`.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "bidi",
+        "mechanism-core"
+      ],
+      "source_refs": [
+        "references/language-design.md",
+        "references/direction-and-math.md",
+        "scripts/architecture_contract.py"
+      ],
+      "section": "language-direction",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "document-class",
+      "hebrew": "מחלקת מסמך",
+      "english": "Document class",
+      "definition": "בסיס LaTeX למבנה המסמך ולממשקים שלו. שונה מסוג המסמך במחולל. הסקיל בודק כיום `article` ו־`report`.",
+      "example": "מאמר משתמש ב־`article`; חוברת עם פרקים יכולה להשתמש ב־`report`. מחלקה נוספת מצריכה שילוב ובדיקות ייעודיים.",
+      "audience": "both",
+      "status": "general",
+      "related_ids": [
+        "document-kind",
+        "preamble",
+        "dependency"
+      ],
+      "source_refs": [
+        "SKILL.md",
+        "references/architecture.md"
+      ],
+      "section": "latex-navigation",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "latex-package",
+      "hebrew": "חבילת LaTeX",
+      "english": "LaTeX package",
+      "definition": "ספרייה שמוסיפה פונקציונליות למנוע העימוד. זמינותה במחשב אינה מוכיחה תאימות לכל שילוב.",
+      "example": "`hyperref` מספק קישורים ועוגנים; אין לטעון אותו שוב עם אפשרויות סותרות אם כבר נטען בליבה.",
+      "audience": "both",
+      "status": "general",
+      "related_ids": [
+        "dependency",
+        "load-order",
+        "conflict"
+      ],
+      "source_refs": [
+        "SKILL.md",
+        "references/architecture.md"
+      ],
+      "section": "latex-navigation",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "preamble",
+      "hebrew": "אזור ההגדרות",
+      "english": "Preamble",
+      "definition": "אזור ההגדרות שלפני `\\begin{document}`. קובץ הליבה `preamble.tex` הוא חלק מהאזור הזה, אך אינו כל המבוא של פרויקט.",
+      "example": "הגדרת מחלקה ושוליים, טעינת הליבה ואז רכיבים ו־Theme לפני גוף המסמך.",
+      "audience": "both",
+      "status": "general",
+      "related_ids": [
+        "document-class",
+        "latex-package",
+        "load-order"
+      ],
+      "source_refs": [
+        "SKILL.md",
+        "references/architecture.md"
+      ],
+      "section": "latex-navigation",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "macro",
+      "hebrew": "מקרו או פקודה",
+      "english": "Macro / Command",
+      "definition": "פקודת TeX או LaTeX שמקבלת קלט ומרחיבה אותו להתנהגות או לתוכן. פקודה ציבורית צריכה חוזה ברור.",
+      "example": "`\\h{...}` הוא ממשק קצר לשילוב עברית; `\\section{...}` מגדיר נושא.",
+      "audience": "both",
+      "status": "general",
+      "related_ids": [
+        "public-api",
+        "hook",
+        "environment"
+      ],
+      "source_refs": [
+        "SKILL.md",
+        "references/architecture.md"
+      ],
+      "section": "latex-navigation",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "environment",
+      "hebrew": "סביבה",
+      "english": "Environment",
+      "definition": "אזור תחום באמצעות `\\begin` ו־`\\end`, שמעניק לקלט התנהגות מוגדרת.",
+      "example": "`hebrewprose` לפסקאות עבריות; `referencecolumns` לתוכן בטורים.",
+      "audience": "both",
+      "status": "general",
+      "related_ids": [
+        "macro",
+        "scope"
+      ],
+      "source_refs": [
+        "SKILL.md",
+        "references/architecture.md"
+      ],
+      "section": "latex-navigation",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "scope",
+      "hebrew": "תחולת הגדרה",
+      "english": "Scope",
+      "definition": "התחום שבו שינוי הגדרה פעיל. יציאה מתחום מקומי אמורה להחזיר את המצב הקודם בהתאם לחוזה.",
+      "example": "גדלי המתמטיקה של פריסת העזר פועלים בתוך סביבות העזר; אין להדליף אותם למסמך שמסביב.",
+      "audience": "developer",
+      "status": "general",
+      "related_ids": [
+        "environment",
+        "math-size-tiers"
+      ],
+      "source_refs": [
+        "SKILL.md",
+        "references/architecture.md"
+      ],
+      "section": "latex-navigation",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "counter",
+      "hebrew": "מונה",
+      "english": "Counter",
+      "definition": "מצב מספרי המשמש למספור אובייקטים, ולעיתים מתאפס כאשר מונה אחר מתקדם. זהותו חשובה גם ליעדי ניווט.",
+      "example": "מונה סעיפים או איורים; מספור רציף של איורים שונה ממספור המתאפס בכל פרק.",
+      "audience": "both",
+      "status": "general",
+      "related_ids": [
+        "label",
+        "cross-reference"
+      ],
+      "source_refs": [
+        "SKILL.md",
+        "references/architecture.md"
+      ],
+      "section": "latex-navigation",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "label",
+      "hebrew": "תווית הפניה",
+      "english": "Label",
+      "definition": "מזהה מקור לאובייקט שניתן להפנות אליו. אינה הטקסט המודפס של הכותרת ואינה מספר ידני.",
+      "example": "`\\label{eq:energy}` צמוד לנוסחה ממוספרת.",
+      "audience": "both",
+      "status": "general",
+      "related_ids": [
+        "counter",
+        "cross-reference"
+      ],
+      "source_refs": [
+        "SKILL.md",
+        "references/architecture.md"
+      ],
+      "section": "latex-navigation",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "cross-reference",
+      "hebrew": "הפניה צולבת",
+      "english": "Cross-reference",
+      "definition": "שימוש במזהה כדי להפנות לאובייקט, בדרך כלל עם מספר וקישור שנגזרים מהמסמך.",
+      "example": "`\\eqref{eq:energy}` מפנה לנוסחה; לאחר שינוי מספור אין לעדכן את המספר ידנית.",
+      "audience": "both",
+      "status": "general",
+      "related_ids": [
+        "label",
+        "pdf-bookmark",
+        "selective-equation-numbering"
+      ],
+      "source_refs": [
+        "SKILL.md",
+        "references/architecture.md"
+      ],
+      "section": "latex-navigation",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "selective-equation-numbering",
+      "hebrew": "מספור נוסחאות סלקטיבי",
+      "english": "Selective equation numbering",
+      "definition": "מדיניות שבה מספרים נוסחאות מרכזיות או כאלה שנזכרות בהמשך, ולא כל שלב חישוב. הבחירה במרכזיות היא החלטת מחבר.",
+      "example": "`\\eqref` עבור הפניה אמיתית; `\\noeqref{eq:key}` עבור נוסחה מרכזית שצריכה מספר גם בלי הפניה מודפסת.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "counter",
+        "cross-reference"
+      ],
+      "source_refs": [
+        "SKILL.md",
+        "references/architecture.md",
+        "references/academic-articles.md"
+      ],
+      "section": "latex-navigation",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "pdf-bookmark",
+      "hebrew": "סימניית PDF",
+      "english": "PDF bookmark",
+      "definition": "פריט ניווט בחלונית המסמך, בדרך כלל נגזר מכותרת. שונה מתוכן עניינים המודפס על הדף.",
+      "example": "כותרת עם נוסחה מקבלת חלופה פשוטה באמצעות `\\texorpdfstring` עבור הסימנייה.",
+      "audience": "both",
+      "status": "general",
+      "related_ids": [
+        "cross-reference",
+        "metadata"
+      ],
+      "source_refs": [
+        "SKILL.md",
+        "references/architecture.md"
+      ],
+      "section": "latex-navigation",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "metadata",
+      "hebrew": "מטא־נתונים",
+      "english": "Metadata",
+      "definition": "מידע על המסמך, כגון כותרת, מחבר ושפה, או מידע על פרויקט שנוצר. יש להבדיל בין מידע מוכרז לבין עובדות שנבדקו.",
+      "example": "`pdftitle` הוא כותרת PDF; שפת `/Lang` אינה אישור נגישות או PDF/UA.",
+      "audience": "both",
+      "status": "general",
+      "related_ids": [
+        "manifest",
+        "main-language"
+      ],
+      "source_refs": [
+        "SKILL.md",
+        "references/architecture.md"
+      ],
+      "section": "latex-navigation",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "font-face",
+      "hebrew": "פני גופן",
+      "english": "Font face",
+      "definition": "וריאנט ממשי של גופן, כגון רגיל, מודגש או נטוי. שם משפחה לבדו אינו מזהה את קובץ הגופן המופעל.",
+      "example": "גוף רגיל וכותרת מודגשת צריכים להשתמש בפנים הנכונות, בלי להניח שמודגש תמיד מסונתז היטב.",
+      "audience": "both",
+      "status": "general",
+      "related_ids": [
+        "optical-size",
+        "font-size"
+      ],
+      "source_refs": [
+        "references/runtime-fonts.md",
+        "references/reference-sheets.md"
+      ],
+      "section": "typography",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "optical-size",
+      "hebrew": "גודל אופטי",
+      "english": "Optical size / Optical design",
+      "definition": "עיצוב צורות שנועד לעבוד היטב בטווח גדלים מסוים. שונה מגודל ההדפסה בפועל.",
+      "example": "גופן CM10 יכול להידפס באופן אחיד ב־6.25 pt; שימוש בעיצוב CM6 באותו גודל עשוי לתת פרופורציות אחרות.",
+      "audience": "both",
+      "status": "general",
+      "related_ids": [
+        "font-face",
+        "font-size"
+      ],
+      "source_refs": [
+        "references/runtime-fonts.md",
+        "references/reference-sheets.md"
+      ],
+      "section": "typography",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "font-size",
+      "hebrew": "גודל כתב",
+      "english": "Font size",
+      "definition": "הגודל המוגדר להדפסת האותיות; אינו גובה הדיו של כל אות ואינו מרווח השורות. יש לציין יחידה. מרווח בסיסי בין שורות (Baseline spacing) נמדד בין קווי הבסיס של שתי שורות, ולא בין קצות הדיו של האותיות.",
+      "example": "`6.3/7.8 pt` פירושו כתב 6.3 נקודות עם מרווח בסיסי 7.8 נקודות. TeX pt ו־PDF bp אינם אותה יחידה.",
+      "audience": "both",
+      "status": "general",
+      "related_ids": [
+        "optical-size",
+        "math-size-tiers",
+        "uniform-scaling"
+      ],
+      "source_refs": [
+        "references/runtime-fonts.md",
+        "references/reference-sheets.md"
+      ],
+      "section": "typography",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "math-size-tiers",
+      "hebrew": "דרגות גודל במתמטיקה",
+      "english": "Math size tiers",
+      "definition": "גדלים נפרדים למתמטיקה ראשית, לאינדקסים ולדרגה בתוך אינדקס: Text, Script ו־Scriptscript.",
+      "example": "בפריסה הצפופה: 6.25, 4.375 ו־3.125 TeX pt; הדרגה השלישית מאפשרת להבחין באינדקס מקונן.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "font-size",
+        "scope"
+      ],
+      "source_refs": [
+        "references/runtime-fonts.md",
+        "references/reference-sheets.md"
+      ],
+      "section": "typography",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "uniform-scaling",
+      "hebrew": "שינוי קנה מידה אחיד",
+      "english": "Uniform scaling",
+      "definition": "הקטנה או הגדלה באותו יחס אופקית ואנכית, כך שפרופורציות הגליף נשמרות. שונה מדחיסה לצורך התאמה לתיבה.",
+      "example": "התאמת גופן באמצעות גודל מוגדר; אין למעוך נוסחה אנכית כדי לחסוך מקום.",
+      "audience": "both",
+      "status": "general",
+      "related_ids": [
+        "font-size",
+        "rendering"
+      ],
+      "source_refs": [
+        "references/runtime-fonts.md",
+        "references/reference-sheets.md"
+      ],
+      "section": "typography",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "build",
+      "hebrew": "בנייה",
+      "english": "Build",
+      "definition": "תהליך הפקת ה־PDF, כולל הגדרות, קומפילציה ובדיקות לפני פרסום קובץ תקין. הצלחתו אינה אישור חזותי.",
+      "example": "`build.sh` בודק גם הפניות, גליפים וגאומטריית עמוד, ולא רק אם המנוע סיים.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "lualatex",
+        "acceptance-gate",
+        "toolchain"
+      ],
+      "source_refs": [
+        "SKILL.md",
+        "references/recipe.md"
+      ],
+      "section": "verification",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "lualatex",
+      "hebrew": "מנוע LuaLaTeX",
+      "english": "LuaLaTeX engine",
+      "definition": "מנוע העימוד המריץ LaTeX על LuaTeX. שונה מעורך קבצים או מכלי הרינדור.",
+      "example": "LuaLaTeX הופך `main.tex` ל־PDF; עדיין יש לבדוק את ה־PDF בפועל.",
+      "audience": "both",
+      "status": "general",
+      "related_ids": [
+        "build",
+        "toolchain"
+      ],
+      "source_refs": [
+        "SKILL.md",
+        "references/recipe.md"
+      ],
+      "section": "verification",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "rendering",
+      "hebrew": "רינדור",
+      "english": "Rendering / Rasterization",
+      "definition": "הפיכת עמוד PDF לתמונת פיקסלים לצורך צפייה ובדיקה. אינו יוצר מחדש את המסמך ממקור TeX.",
+      "example": "רינדור באמצעות Poppler או MuPDF ברזולוציה ידועה, בתיקייה חדשה.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "build",
+        "visual-review"
+      ],
+      "source_refs": [
+        "SKILL.md",
+        "references/recipe.md"
+      ],
+      "section": "verification",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "audit",
+      "hebrew": "אודיט או ביקורת",
+      "english": "Audit",
+      "definition": "בדיקה שיטתית של חוזים, בעלויות, כיסוי, עקביות וראיות, עם ממצאים והיקף מפורש. אינה מבטיחה לבדה איכות חזותית.",
+      "example": "להשוות בין קטלוג התבניות, קבצי המקור והדוגמאות ולזהות תבנית שאין לה בדיקה.",
+      "audience": "both",
+      "status": "general",
+      "related_ids": [
+        "acceptance-gate",
+        "visual-review",
+        "manifest"
+      ],
+      "source_refs": [
+        "SKILL.md",
+        "references/recipe.md"
+      ],
+      "section": "verification",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "visual-review",
+      "hebrew": "בדיקה חזותית",
+      "english": "Visual review",
+      "definition": "צפייה אמיתית בעמודי הפלט ובדיקת קריאות, כיוון, נוסחאות, היררכיה וגבולות. רישום צריך להיות קשור לפלט שנצפה.",
+      "example": "צפייה בכל עמוד והערות קונקרטיות; גיליון תמונות ממוזערות הוא אינדקס, לא בדיקה מלאה.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "rendering",
+        "hash",
+        "audit"
+      ],
+      "source_refs": [
+        "SKILL.md",
+        "references/recipe.md"
+      ],
+      "section": "verification",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "regression-test",
+      "hebrew": "בדיקת רגרסיה",
+      "english": "Regression test",
+      "definition": "בדיקה ששינוי חדש אינו מקלקל התנהגות שכבר נתמכה. בדיקה מהירה ובדיקה עם מנוע נותנות ראיות מסוגים שונים.",
+      "example": "לאחר שינוי המחולל, לוודא שבחירת שפה ראשית, מספור וכותרות עדיין נכונים.",
+      "audience": "developer",
+      "status": "general",
+      "related_ids": [
+        "test-fixture",
+        "acceptance-gate",
+        "backward-compatibility"
+      ],
+      "source_refs": [
+        "SKILL.md",
+        "references/recipe.md"
+      ],
+      "section": "verification",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "test-fixture",
+      "hebrew": "מסמך בדיקה",
+      "english": "Test fixture",
+      "definition": "קלט מוגדר שנועד להפעיל מקרה מסוים ולהפיק תוצאה ניתנת לבדיקה. אינו בהכרח דוגמה טובה למסירה למשתמש.",
+      "example": "מסמך עם כותרת מתמטית, פסקה בשפה השנייה וטבלה צרה, כדי לבדוק את שילובם.",
+      "audience": "developer",
+      "status": "general",
+      "related_ids": [
+        "regression-test",
+        "visual-review"
+      ],
+      "source_refs": [
+        "SKILL.md",
+        "references/recipe.md"
+      ],
+      "section": "verification",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "acceptance-gate",
+      "hebrew": "תנאי קבלה",
+      "english": "Acceptance gate",
+      "definition": "תנאי שמונע קבלת פלט או שחרור כאשר חוזה מחייב אינו מתקיים. שונה מהמלצת עריכה.",
+      "example": "הפניה חסרה או גליף חסר יכולים להכשיל בנייה; רמז לצפיפות אינו היתר לדחוס את הכתב.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "build",
+        "audit",
+        "release"
+      ],
+      "source_refs": [
+        "SKILL.md",
+        "references/recipe.md"
+      ],
+      "section": "verification",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "toolchain",
+      "hebrew": "שרשרת כלים",
+      "english": "Toolchain",
+      "definition": "המנוע, חבילות TeX, גופנים, Python ותלויותיו וכלי PDF ורינדור המשמשים יחד. גרסאותיהם משפיעות על הפלט.",
+      "example": "רישום גרסאות LuaLaTeX, חבילת הגופנים ו־MuPDF לצד ראיות השחרור.",
+      "audience": "developer",
+      "status": "general",
+      "related_ids": [
+        "dependency",
+        "build",
+        "reproducibility"
+      ],
+      "source_refs": [
+        "SKILL.md",
+        "references/recipe.md"
+      ],
+      "section": "verification",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "reproducibility",
+      "hebrew": "יכולת שחזור",
+      "english": "Reproducibility",
+      "definition": "היכולת לחזור על תהליך מוגדר בתנאים מתועדים. שחזור זהה בבייטים הוא טענה חזקה ומוגבלת יותר משחזור חזותי.",
+      "example": "`REPRO=1` מוסיף בדיקת בנייה חוזרת זהה בבייטים באותה סביבה; אינו מבטיח זהות בין כל מערכות ההפעלה.",
+      "audience": "developer",
+      "status": "existing",
+      "related_ids": [
+        "toolchain",
+        "hash"
+      ],
+      "source_refs": [
+        "SKILL.md",
+        "references/recipe.md"
+      ],
+      "section": "verification",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "manifest",
+      "hebrew": "מניפסט",
+      "english": "Manifest",
+      "definition": "רשימה מתועדת של בחירות או קבצים, לעיתים עם גיבובים. יש להבדיל בין מניפסט יצירה, מניפסט שחרור וראיות בדיקה.",
+      "example": "`project.json` מתעד בזמן היצירה את הבחירות, המתכון והרכבת הקבצים. לאחר עריכה הוא אינו אישור שהמקור עדיין זהה או תקין.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "schema",
+        "hash",
+        "release"
+      ],
+      "source_refs": [
+        "references/catalog-development.md",
+        "scripts/new_document.py"
+      ],
+      "section": "infrastructure",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "schema",
+      "hebrew": "סכמה",
+      "english": "Schema",
+      "definition": "הגדרת המבנה והכללים המותרים לנתונים. גרסת סכמה נפרדת מגרסת הסקיל; אימות סכמה אינו הוכחה שה־PDF נכון.",
+      "example": "חוזה הארכיטקטורה הוא סכמה 4; קטלוג התבניות הוא סכמה 1. לכל אחד אחריות ומאמת משלו.",
+      "audience": "developer",
+      "status": "existing",
+      "related_ids": [
+        "registry",
+        "manifest",
+        "backward-compatibility"
+      ],
+      "source_refs": [
+        "scripts/architecture_contract.py",
+        "scripts/template_registry.py"
+      ],
+      "section": "infrastructure",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "registry",
+      "hebrew": "מרשם או קטלוג",
+      "english": "Registry / Catalog",
+      "definition": "אוסף קנוני של רשומות בעלות מזהים יציבים. קטלוג התבניות מצהיר על הרכבה ומפנה לחוזים קיימים, בלי לשכפל את הבעלות על המנגנונים.",
+      "example": "`registry/studio-catalog.json` מגדיר תבניות, פריסות, עיצובים ודוגמאות; המחולל והקטלוג הקריא משתמשים באותן רשומות.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "schema",
+        "resolver",
+        "template"
+      ],
+      "source_refs": [
+        "registry/studio-catalog.json",
+        "scripts/template_registry.py",
+        "references/template-catalog.md"
+      ],
+      "section": "infrastructure",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "resolver",
+      "hebrew": "פותר בחירות",
+      "english": "Resolver",
+      "definition": "קוד שמתרגם בחירות וברירות מחדל להרכבה מוגדרת, או דוחה שילוב לא תקין. אינו מוסיף יכולת שאינה קיימת ברכיבים.",
+      "example": "`resolve` מציג הרכבה ללא יצירת פרויקט; עיצוב מפורש גובר על ברירת מחדל, ופריסת Reference עדיין מחייבת `formula-sheet`.",
+      "audience": "developer",
+      "status": "existing",
+      "related_ids": [
+        "registry",
+        "language-profile",
+        "preset"
+      ],
+      "source_refs": [
+        "scripts/template_registry.py",
+        "scripts/architecture_contract.py"
+      ],
+      "section": "infrastructure",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "capability",
+      "hebrew": "יכולת",
+      "english": "Capability",
+      "definition": "שם של התנהגות שרכיב מספק. שונה מתפקיד ארכיטקטוני: תפקיד מגדיר אחריות, ויכולת מגדירה התנהגות זמינה.",
+      "example": "`layout.reference-columns` מציין תמיכה בטורים; `language-profiles` אינו אומר איזו שפה פעילה כעת.",
+      "audience": "developer",
+      "status": "existing",
+      "related_ids": [
+        "ownership",
+        "dependency",
+        "public-api"
+      ],
+      "source_refs": [
+        "references/architecture.md",
+        "scripts/architecture_contract.py"
+      ],
+      "section": "infrastructure",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "public-api",
+      "hebrew": "ממשק ציבורי",
+      "english": "Public API",
+      "definition": "פקודות, סביבות או פונקציות שהמערכת מצהירה שניתן להשתמש בהן, עם משמעות ותנאי שימוש. מזהים פרטיים אינם חוזה למשתמש.",
+      "example": "`referenceentry` הוא ממשק לאחזקת נושא קצר יחד; אין להסתמך על שמות קופסאות פרטיים שלו.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "hook",
+        "ownership",
+        "backward-compatibility"
+      ],
+      "source_refs": [
+        "references/architecture.md",
+        "scripts/architecture_contract.py"
+      ],
+      "section": "infrastructure",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "hook",
+      "hebrew": "נקודת התאמה",
+      "english": "Hook",
+      "definition": "ממשק מפורש לשינוי ערך או התנהגות, בעל אחריות, מועד הגדרה, תחולה וסוג ערך מתועדים. אינו היתר לשנות כל מנגנון פנימי.",
+      "example": "`ReferenceMathFontSize` מוגדר לפני טעינת הפריסה ונמדד בנקודות TeX; גודל גוף הטקסט הוא Hook נפרד.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "public-api",
+        "scope",
+        "load-order"
+      ],
+      "source_refs": [
+        "scripts/architecture_contract.py",
+        "references/architecture.md",
+        "references/catalog-development.md"
+      ],
+      "section": "infrastructure",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "dependency",
+      "hebrew": "תלות",
+      "english": "Dependency",
+      "definition": "רכיב, כלי או תנאי מוקדם שנדרש לפעולה. סדר טעינה נובע מחלק מהתלויות; עצם קיום קובץ אינו מספיק.",
+      "example": "הרחבה אופציונלית דורשת ליבה מאותחלת; מסמך עם Biber דורש תהליך חיצוני שנבדק במפורש.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "conflict",
+        "load-order",
+        "capability"
+      ],
+      "source_refs": [
+        "references/architecture.md",
+        "scripts/architecture_contract.py"
+      ],
+      "section": "infrastructure",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "conflict",
+      "hebrew": "התנגשות",
+      "english": "Conflict",
+      "definition": "שילוב שהמערכת אינה מתירה משום שרכיבים מתחרים על התנהגות או משאבים. צריך לזהות אותו בשני סדרי הטעינה.",
+      "example": "שתי ערכות עיצוב מופצות אינן נטענות יחד; `reference_shell.tex` ו־`topicrail.tex` הן חלופות.",
+      "audience": "developer",
+      "status": "existing",
+      "related_ids": [
+        "dependency",
+        "theme"
+      ],
+      "source_refs": [
+        "references/architecture.md",
+        "scripts/architecture_contract.py"
+      ],
+      "section": "infrastructure",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "load-order",
+      "hebrew": "סדר טעינה",
+      "english": "Load order",
+      "definition": "הסדר שבו מגדירים התאמות וטוענים את שכבות המסמך. משפיע על תנאים מוקדמים ועל קדימות עיצוב.",
+      "example": "הגדרות שפה ופריסה, ליבה, הרחבות נחוצות, הרחבת פריסה, מעטפת, Theme, ואז תוכן.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "dependency",
+        "preamble",
+        "theme"
+      ],
+      "source_refs": [
+        "references/architecture.md",
+        "scripts/architecture_contract.py"
+      ],
+      "section": "infrastructure",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "backward-compatibility",
+      "hebrew": "תאימות לאחור",
+      "english": "Backward compatibility",
+      "definition": "שימור התנהגות נתמכת של פרויקטים וממשקים קיימים, לפי חוזה מפורש. אפשר לשמר התנהגות בלי להתחייב לפלט זהה בבייטים, ולהפך.",
+      "example": "משתני `HEBREW_LATEX_*` וממשקי יצירה ותיקים נשמרים; שינוי ברירת מחדל דורש החלטה, תיעוד ובדיקה.",
+      "audience": "developer",
+      "status": "existing",
+      "related_ids": [
+        "public-api",
+        "regression-test",
+        "release"
+      ],
+      "source_refs": [
+        "references/architecture.md",
+        "scripts/architecture_contract.py"
+      ],
+      "section": "infrastructure",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "hash",
+      "hebrew": "גיבוב",
+      "english": "Cryptographic hash",
+      "definition": "טביעת אצבע של בייטים, כגון SHA-256, לזיהוי התאמה או שינוי. אינו בדיקת איכות, אמיתות או קריאות.",
+      "example": "גיבוב PDF קושר הערות בדיקה לגרסה מסוימת; גיבוב תקין אינו מוכיח שנוסחה נכונה מדעית.",
+      "audience": "developer",
+      "status": "general",
+      "related_ids": [
+        "manifest",
+        "reproducibility",
+        "visual-review"
+      ],
+      "source_refs": [
+        "references/architecture.md",
+        "scripts/architecture_contract.py"
+      ],
+      "section": "infrastructure",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "release",
+      "hebrew": "שחרור גרסה",
+      "english": "Release",
+      "definition": "חבילה מוגדרת של מקור, גרסה ותיעוד, שנמסרת לאחר בדיקות לפי תנאי הקבלה. תוצאות בנייה זמניות נשמרות כראיות מחוץ לחבילה המותקנת.",
+      "example": "`.skill` אחד, עם דוגמאות PDF וראיות בדיקה נפרדות; מספר גרסת הסקיל אינו גרסת הסכמה.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "manifest",
+        "acceptance-gate",
+        "backward-compatibility"
+      ],
+      "source_refs": [
+        "references/architecture.md",
+        "scripts/architecture_contract.py"
+      ],
+      "section": "infrastructure",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "ownership",
+      "hebrew": "בעלות ואחריות",
+      "english": "Ownership",
+      "definition": "קביעה איזו שכבה או רשומה היא מקור הסמכות לכל מנגנון, שדה או מונח. כך נמנעים כפילות והגדרות סותרות.",
+      "example": "הליבה בעלת מנגנון הכיוון; הרחבת הפריסה בעלת זרימת הטורים; ה־Theme בעל נקודות ההצגה שהותרו לו.",
+      "audience": "developer",
+      "status": "general",
+      "related_ids": [
+        "mechanism-core",
+        "capability",
+        "public-api"
+      ],
+      "source_refs": [
+        "references/architecture.md",
+        "scripts/architecture_contract.py"
+      ],
+      "section": "infrastructure",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "recipe",
+      "hebrew": "מתכון הרכבה",
+      "english": "Recipe",
+      "definition": "תיאור מוצהר של הדרך להרכיב מסמך מתוך תבנית, בחירות שפה, פריסה, עיצוב ורכיבים. הרשומה אינה מריצה קוד או מתקינה תלות.",
+      "example": "תבנית `paper`, פריסה `standard` ועיצוב `academic` מרכיבים מתכון למאמר.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "template",
+        "resolved-recipe",
+        "registry"
+      ],
+      "source_refs": [
+        "scripts/template_registry.py",
+        "references/catalog-development.md"
+      ],
+      "section": "infrastructure",
+      "owner": "תשתית קטלוג התבניות",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "resolved-recipe",
+      "hebrew": "מתכון פתור",
+      "english": "Resolved recipe",
+      "definition": "תוצאת פענוח מוקלדת ובלתי משתנה: בקשות המשתמש, בחירות בפועל, מקור ברירות המחדל, נכסים וסדרי הרכבה. שונה מן ה־PDF שנבנה.",
+      "example": "בקשה ללא עיצוב עבור `paper` נפתרת ל־`academic`, תוך שימור העובדה שהעיצוב לא התבקש במפורש.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "recipe",
+        "resolver",
+        "provenance",
+        "copy-plan",
+        "load-plan"
+      ],
+      "source_refs": [
+        "scripts/template_registry.py",
+        "references/catalog-development.md"
+      ],
+      "section": "infrastructure",
+      "owner": "פותר הקטלוג",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "constraint",
+      "hebrew": "מגבלה",
+      "english": "Constraint",
+      "definition": "תנאי שמגדיר אילו בחירות ושילובים מותר לפתור. בחירה מפורשת אינה מבטלת מגבלה מחייבת.",
+      "example": "`reference-compact` מותרת עבור `formula-sheet`; בקשה שלה עבור `letter` נדחית לפני יצירת יעד.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "resolver",
+        "conflict",
+        "default"
+      ],
+      "source_refs": [
+        "scripts/template_registry.py",
+        "references/catalog-development.md"
+      ],
+      "section": "infrastructure",
+      "owner": "סכמת הקטלוג ופותר הבחירות",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "default",
+      "hebrew": "ברירת מחדל",
+      "english": "Default",
+      "definition": "ערך הנבחר כאשר המשתמש לא סיפק בחירה. מקורו וקדימותו מתועדים, והוא כפוף למגבלות.",
+      "example": "עיצוב מפורש גובר על ברירת מחדל של פריסה, ואחריה ברירת מחדל של תבנית ושל הקטלוג.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "constraint",
+        "provenance",
+        "preset"
+      ],
+      "source_refs": [
+        "scripts/template_registry.py",
+        "references/catalog-development.md"
+      ],
+      "section": "infrastructure",
+      "owner": "חוזה פתרון הבחירות",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "provenance",
+      "hebrew": "מקור הבחירה והראיות",
+      "english": "Provenance",
+      "definition": "תיעוד שמסביר מאין הגיעה בחירה או ראיה: בקשה מפורשת, ברירת מחדל, מקור, כלי או פלט מסוים. אינו אישור איכות בפני עצמו.",
+      "example": "המתכון מבדיל בין עיצוב שביקש המשתמש לבין עיצוב שהגיע מברירת המחדל של התבנית.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "default",
+        "manifest",
+        "fingerprint",
+        "visual-review"
+      ],
+      "source_refs": [
+        "scripts/template_registry.py",
+        "references/catalog-development.md"
+      ],
+      "section": "infrastructure",
+      "owner": "פותר הקטלוג וכלי הראיות",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "fingerprint",
+      "hebrew": "טביעת אצבע להרכבה",
+      "english": "Fingerprint",
+      "definition": "מזהה מחושב של בייטים מוגדרים. בקטלוג, SHA-256 מזהה את קובצי ה־Starter ואת בייטי הקטלוג; משמעותו מוגבלת למידע שנכלל בגיבוב.",
+      "example": "טביעת אצבע של Starter מזהה שינוי במקורו; היא אינה מחליפה גיבוב PDF, תיעוד סביבת הבנייה או סקירה חזותית.",
+      "audience": "developer",
+      "status": "existing",
+      "related_ids": [
+        "hash",
+        "resolved-recipe",
+        "provenance"
+      ],
+      "source_refs": [
+        "scripts/template_registry.py",
+        "references/catalog-development.md"
+      ],
+      "section": "infrastructure",
+      "owner": "פותר הקטלוג ומטא־נתוני הפרויקט",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "catalog-schema",
+      "hebrew": "סכמת הקטלוג",
+      "english": "Catalog schema",
+      "definition": "חוזה הנתונים של רשומות התבניות, הפריסות, העיצובים והדוגמאות. הוא מפנה לחוזי שפה, רכיבים ובנייה שבעליהם נשארים נפרדים.",
+      "example": "גרסת סכמת הקטלוג יכולה להשתנות בלי לשנות את מספר גרסת חוזה הארכיטקטורה.",
+      "audience": "developer",
+      "status": "existing",
+      "related_ids": [
+        "schema",
+        "registry",
+        "ownership"
+      ],
+      "source_refs": [
+        "scripts/template_registry.py",
+        "references/catalog-development.md"
+      ],
+      "section": "infrastructure",
+      "owner": "scripts/template_registry.py",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "copy-plan",
+      "hebrew": "תוכנית העתקת קבצים",
+      "english": "Copy plan",
+      "definition": "רשימת נכסים שהפרויקט צריך לקבל, כולל מקור ויעד. קובץ שמועתק אינו בהכרח נטען; הסדר כאן אינו סדר טעינת TeX.",
+      "example": "עיצוב `reader` עשוי להיות מועתק לפני נכסי פריסת העזר, אך סדר טעינת המקור מציב את העיצוב לאחר הרכיבים.",
+      "audience": "developer",
+      "status": "existing",
+      "related_ids": [
+        "load-plan",
+        "resolved-recipe",
+        "dependency"
+      ],
+      "source_refs": [
+        "scripts/template_registry.py",
+        "references/catalog-development.md"
+      ],
+      "section": "infrastructure",
+      "owner": "פותר הקטלוג והמחולל",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "load-plan",
+      "hebrew": "תוכנית טעינת רכיבים",
+      "english": "Load plan",
+      "definition": "הרכיבים וסדר הטעינה שלהם במקור TeX, בהתאם לבעלות, לתלויות ולהתנגשויות. שונה מתוכנית העתקת הקבצים.",
+      "example": "טוענים ליבה, הרחבות נחוצות, פריסה, מעטפת ואז עיצוב; אין לטעון שתי מעטפות מתחרות.",
+      "audience": "developer",
+      "status": "existing",
+      "related_ids": [
+        "copy-plan",
+        "load-order",
+        "dependency",
+        "conflict"
+      ],
+      "source_refs": [
+        "scripts/template_registry.py",
+        "references/catalog-development.md"
+      ],
+      "section": "infrastructure",
+      "owner": "פותר הקטלוג וחוזה הארכיטקטורה",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "recipe-revision",
+      "hebrew": "מהדורת המתכון",
+      "english": "Recipe revision",
+      "definition": "מספר התפתחות של מתכון מסוים בתוך הקטלוג. שינוי מכוון בתוכן, ברירת מחדל או הרכבה דורש נימוק וראיות, מעבר לשינוי גרסת הסקיל.",
+      "example": "מתכון המכתב עבר למהדורה 2 כאשר הבקשה בשפה השנייה הועברה לפני החתימה; המעבר התשתיתי כשלעצמו אינו שינוי זה.",
+      "audience": "developer",
+      "status": "existing",
+      "related_ids": [
+        "recipe",
+        "backward-compatibility",
+        "regression-test"
+      ],
+      "source_refs": [
+        "scripts/template_registry.py",
+        "references/catalog-development.md"
+      ],
+      "section": "infrastructure",
+      "owner": "רשומת התבנית וביקורת השחרור",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "composer",
+      "hebrew": "אסטרטגיית הרכבת תוכן",
+      "english": "Content composer",
+      "definition": "מימוש מוגדר שמרכיב גוף מסמך לפי השפות והמתכון שנבחרו. הקטלוג בוחר מזהה מתוך קבוצה סגורה; הרשומה אינה מכילה קוד לביצוע ואינה מתרגמת תוכן שרירותי.",
+      "example": "`paired-full-pages` מתחיל את הגוף המתורגם בעמוד חדש; `paper-shared-frontmatter` משתמש במבנה הפתיחה הייעודי של מאמר.",
+      "audience": "developer",
+      "status": "existing",
+      "related_ids": [
+        "recipe",
+        "starter",
+        "language-profile",
+        "resolved-recipe"
+      ],
+      "source_refs": [
+        "scripts/template_registry.py",
+        "scripts/new_document.py",
+        "references/catalog-development.md"
+      ],
+      "section": "infrastructure",
+      "owner": "מחולל הפרויקט; הקטלוג בוחר מזהה מותר",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    },
+    {
+      "id": "source-handler",
+      "hebrew": "פעולת התאמה של המקור",
+      "english": "Source handler",
+      "definition": "פעולה מוגדרת על מקור Starter כחלק מיצירת הפרויקט. מזהה בקטלוג מפנה למימוש סגור במחולל, ואינו Hook כללי לביצוע Python, Shell או TeX.",
+      "example": "`declare-note-language` מציין את שפת ההערה ב־`DeclareDocNote` בעת ההכרזה, לפני גוף המסמך; הוא אינו מחליף את מנגנון הכיוון של הליבה.",
+      "audience": "developer",
+      "status": "existing",
+      "related_ids": [
+        "composer",
+        "starter",
+        "hook",
+        "ownership"
+      ],
+      "source_refs": [
+        "scripts/template_registry.py",
+        "scripts/new_document.py",
+        "references/catalog-development.md"
+      ],
+      "section": "infrastructure",
+      "owner": "מחולל הפרויקט; הקטלוג בוחר מזהה מותר",
+      "aliases": [],
+      "introduced_in": "5.4.0",
+      "updated_in": "5.4.0"
+    }
+  ],
+  "skill_version": "5.4.4",
+  "paths": {
+    "records": "references/glossary/terms.json",
+    "markdown": "references/glossary-he-en.md"
+  }
+}

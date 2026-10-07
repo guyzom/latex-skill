@@ -1,0 +1,21 @@
+% Static fixture (v4.26.0, BLD-70): the contour forms that need no external
+% program, and places that only NAME the key, stay quiet. The comment below is
+% the fleet's own (lifting-optimization/src/figs/himmelblau-contours.tex).
+% precomputed with contourpy: pgfplots' contour lua cannot pass the build gate
+האפשרות \code{contour lua} אינה עוברת את השער, וגם \en{contour gnuplot} לא.
+\pgfplotsset{contour/number=5, contour lua/.style={contour prepared}}
+\begin{tikzpicture}
+\begin{axis}[view={0}{90}]
+\addplot3[contour prepared] table {
+1 0 1
+0 1 1
+-1 0 1
+};
+\addplot3[contour filled={number=4}, domain=-2:2, samples=11] {x^2+y^2};
+\addplot3[surf, domain=-2:2, samples=11] {x^2+y^2};
+\node at (axis cs:0,0) {contour gnuplot};
+\end{axis}
+\end{tikzpicture}
+\begin{lstlisting}
+\addplot3[contour lua={levels={1,2}}] {x^2+y^2};
+\end{lstlisting}

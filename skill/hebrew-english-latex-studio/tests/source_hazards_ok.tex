@@ -1,0 +1,42 @@
+% Static fixture: correct commands and prose-like math arguments stay quiet.
+\newcommand{\fssec}[1]{\par\textbf{#1}\par\nopagebreak[4]}
+\begin{multicols}{2}
+\fssec{כותרת}
+\[
+T=\frac{1}{2}\qquad
+R=\mathrm{ok}+\operatorname{quad}(x)+\text{qquad הוא טקסט}.
+\]
+\end{multicols}
+
+% v4.1.1 narrowing pins — both shapes were measured as FLEET false positives
+% at bundle adoption (5 files, 8 findings, all spurious):
+% (1) a \label KEY containing a command-like word sits INSIDE the scanned
+%     math environment — 'quad'/'frac' there is an identifier, not output;
+\begin{equation}
+E = mc^2 \label{eq:quad}
+\end{equation}
+\begin{align}
+F &= ma \label{eq:r06:frac}
+\end{align}
+% (2) a pgfplots \addplot EXPRESSION between two $...$ node labels — the
+%     single-$ pairing spans lines and swallows the gnuplot-syntax sqrt/exp,
+%     which is correct plot-engine input, not TeX math.
+\begin{tikzpicture}
+\begin{axis}[
+  xlabel={$x$},
+]
+% the REAL fleet poisoner (ds-rigorous part04:200): \\ abuts the $, the
+% opener lookbehind refuses it, file-global $ parity flips, and every later
+% "pair" straddles content — which is how the addplot below got swallowed.
+\node[font=\scriptsize] at (axis cs:4.4,0.05) {\h{עוצמה}\\$1-\beta$};
+\end{axis}
+\begin{axis}[
+  xlabel={$y$},
+  xticklabels={$\mu-3\sigma$,$\mu-2\sigma$,$\mu-\sigma$,$\mu$,$\mu+\sigma$,$\mu+2\sigma$,$\mu+3\sigma$},
+]
+\addplot[domain=-3:3] {1/sqrt(2*pi)*exp(-x^2/2)} \closedcycle;
+\addplot[very thick,domain=-3.9:3.9] {1/sqrt(2*pi)*exp(-x^2/2)};
+\node at (axis cs:0.5,0.07) {34.1\%};
+\end{axis}
+\node at (0,0) {$\mu$};
+\end{tikzpicture}

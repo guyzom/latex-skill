@@ -1,0 +1,222 @@
+% lint_positives.tex — one instance of each bug class. EXPECTED flags are
+% listed in expected_flags.txt; the harness fails on any missing flag.
+טקסט עם \SI{5}{\meter} בלי siunitx טעון.
+ציטוט עם \enquote{מרכאות} בלי csquotes.
+מקף כפול צמוד לעברית -- ככה, וגם משולש---צמוד.
+תווית עם חזקה בתוך טקסט: $\text{ערך^2}$ שבור.
+שלב ראשון $\to$ שלב שני בפרוזה עברית — חץ הפוך.
+רשימה לטינית שבורה: \en{BaBar}, \en{Belle} כאיים נפרדים.
+\begin{tikzpicture}
+\node at (0,0) {\h{מעבד Datapath}};
+\end{tikzpicture}
+סוגריים מחוץ לאי לטיני: \begin{equation}\alpha\quad\text{(\en{weak})}\end{equation}
+סוגריים בתוך \text מולטי-ליין: \begin{equation}\alpha\quad\text{(\en{weak})%
+}\end{equation}
+\providecommand{\ni}{n_{\mathrm i}}
+תיוג עברי בין איים: \begin{align}I &\propto V && \text{\en{(}תעלה רחבה\en{)}}\end{align}
+
+% v3.25 PAREN-ONLY-ISLAND: island holding only a bracket mirrors in RTL
+ותוכנה \en{(}טבלת עמודים\en{)}, ומטפלת בעמודים.
+
+% v3.26 HEBREW-BEFORE-OP-MATH: island starting with an operator after Hebrew
+בלוק $=4$ בתים במטמון הזה.
+
+% v3.27 COLON-TRAPPED-IN-ISLAND: island-final colon before Hebrew (":Offset")
+\item[\textbf{\en{Offset:}}] שני הביטים הנמוכים של הכתובת.
+
+% Block content and fragile footnotes remain invalid in moving headings.
+\section{הפקודה \codeline{grep} בשימוש יומיומי}
+\section{כותרת עם הערה\footnote{הערת שוליים}}
+
+\end{tikzpic}
+\vspace{1em}
+\figcap{כיתוב רחוק}
+
+% v3.30 CODE-UNSAFE-CHAR: \code is not verbatim; ~ vanishes silently, % eats the brace
+הרץ \code{cd ~/proj && make} ואז המשך.
+
+% v3.32 QUOTES (golden coverage was selftest-only — protocol-audit gap):
+% backticks are literal glyphs in every context here (no tlig)
+ציטוט עם ``מרכאות`` שבורות בעברית.
+
+% v3.34 MANUAL-FIG-CAPTION: a hand-written gray figure caption with a \label
+% inside binds the label to the ambient counter -> \ref prints the wrong number
+{\centering\small\textcolor{cGray}{איור: \label{fig:x}דיאגרמת פסים}\par}
+
+% v3.36 LATIN-BEFORE-PAREN (widened): bare Latin + "(Latin)" with no Latin
+% resumption after the paren mirrors in RTL prose — any case, any length
+הסגנון C (cstyle) צבעוני — הסוגר מתמרר.
+
+% v4.14 LATIN-BEFORE-PAREN (widened again, BIDI-79): the bracket content need
+% NOT start with a Latin letter — punctuation, a dash or a digit break exactly
+% the same way — and "[" mirrors like "(". Measured glyphs: "((" and "[[".
+הסוכן מדווח Skill(/audit) ואז ממשיך בעברית.
+ההתקנה npm(-g) גלובלית, והפונקציה f(2) מחזירה ערך.
+האיבר array[0] הוא הראשון ברשימה.
+שלושת פורמטי ההוראה של MIPS (32 סיביות) מופיעים בטבלה.
+
+% v4.14.1 LATIN-BEFORE-PAREN — the ANCHOR side: the last STRONG character before
+% the bracket decides, and a typeset wrapper's closing brace is transparent.
+\textbf{גשר PCI} (PCI bridge) ואל הזיכרון הראשי.
+
+% v4.15.0 TOKEN-PUNCT-ADRIFT (BIDI-80): a bare Latin token in Hebrew prose
+% loses its own edge punctuation to the far side of the word.
+הפקודה /audit רצה, והתיקייה .claude נמצאת תחת commands/ כאן.
+
+% v3.41.1 BREAKABLE-VALUE-ISLAND: a merged value-list island in prose has legal
+% breakpoints at internal spaces -> a fragment lands on the wrong side of the seam
+ההוראה מקודדת עם \en{rd $=2$, rs $=2$, rt $=3$} וממשיכה בעברית.
+
+% v4.16.0 BREAKABLE-QUOTED-ISLAND (BIDI-81): the same tear on a QUOTED literal —
+% the opening mark ends one line and the closing mark opens the next, with a full
+% line of Hebrew between them (measured: missing-semester p97 and p94).
+ההרצה נכשלה עם \en{“Unable to open performance counter with 'perf\_event\_open'”} כאן.
+והרוג את התהליך עם \code{pkill -f 'sleep 12345'} מתוך מעטפת אחרת.
+
+% v3.44 MATH-ENDS-IN-OP-BEFORE-ISLAND: an inline math run ending in an operator,
+% butted with NO space onto a code island, is an adjacency seam -> the operator
+% and value reorder in RTL and land reversed (r03 exercise-4 solution)
+משווים לחסם $4(2^{15}{-}1)=$\code{0x0001FFFC} בבתים.
+
+% v3.46 MATH-WRAPPED-EQREF: an \eqref wrapped in math in RTL prose bypasses the
+% preamble's display-tag flag and the tag's parens mirror -> ")17(" (qc-exams)
+הצבה במשוואה $\eqref{eq:demo}$ נותנת את התוצאה.
+
+% v3.46 BOXED-HEBREW-SEGMENTS: Hebrew \text segments inside \boxed/\finalans
+% reorder against the math (segments scramble / edge colon orphans / trailing
+% space swallowed / glued digit) — box content must be math-only or ONE \h unit
+\[ \finalans{\;\text{עבור }X:\ \text{מזהה שגיאה בודדת}\;} \]
+
+% v3.46 BARE-IDENT-NEXT-TO-MATH extension: bare word glued to math that opens
+% with \text- (controlled$\text-(Z_1Z_2)$) — the hyphen/operator cross the seam
+שקולה להפעלת שער controlled$\text-(Z_1Z_2)=$ הלאה.
+
+% v3.47 HEBREW-MATH-GLUED-OBJECT: a \text{Hebrew phrase ending in space/maqaf} in
+% math glued to its bound object (variable / (tuple) / sandwiched number) — the
+% atom lands on the WRONG side of the RTL phrase (render-proven glyph x-order)
+\[ \alpha=\Pr(\text{דחיית }H_0 \mid H_0) \]
+\[ \underbrace{15}_{\text{שונות רמת־}X} \times \text{שעות ו־}6.67\ \text{דקות} \]
+
+% v3.47 HEBREW-DOUBLE-HYPHEN extension: -- flanked by $ (between inline-math
+% islands) or inside \text{} — Frank Ruhl prints two literal hyphens, not an en-dash
+עקומת $I_D$--$V_G$ ובטווח $0.3\text{--}3$ נמדדת.
+
+% v3.47 REDUNDANT-EQREF-PARENS: (\eqref{}) renders "((N))" — \eqref adds its own parens
+היעילות עולה לפי (\eqref{eq:demo}) אך הזמן גדל.
+
+% v3.48 UNESCAPED-PERCENT: a comment '%' glued to content silently eats the rest
+% of the line (content vanishes from the PDF, no compile warning). Type \% .
+שיעור ההצלחה עומד על 30% מהמקרים שנבדקו לאחרונה.
+
+% v3.57 RANGE-SEP-BETWEEN-DIGITS: a range separator between two NUMBERS reverses
+% them under the RTL base — "2020–2023" renders "2023–2020" (measured). The
+% unspaced ASCII form 2020-2023 is correct; this en-dash form is not.
+המחקר נערך בשנים 2020–2023 ונבדקו בו 15–17 מקורות שונים.
+
+% v3.57 REF-RANGE-REORDER: the same reversal for cross-reference ranges —
+% \eqref{a}–\eqref{b} renders "(1.2)–(1.1)". Merge into ONE island: \en{...}.
+ראו את הפיתוח המלא לפי \eqref{eq:demo}–\eqref{eq:demo2} בהמשך הפרק.
+
+% v3.53 PUNCT-RAW-IN-MATH: ° … – — “ ” ‘ ’ ־ ₪ have no glyph in the math font,
+% so inside $..$ they DROP silently ($45°$ prints "45"). Use ^\circ / \dots /
+% wrap in \text{}. (The charset gate allows them — they are legal in TEXT.)
+הזווית הנמדדת היא $45°$ מעלות בדיוק לפי החישוב.
+
+% v3.56 HEBREW-IN-MONO: Hebrew in a monospace span is a FATAL build failure
+% ("there are no glyphs in the subset"), not tofu — the mono font and its
+% fallback both have zero Hebrew. Put Hebrew in normal text or \h{}.
+הפקודה \code{עברית} אינה חוקית כאן בכלל.
+
+% v3.59 ITEM-EATEN-BRACKET: an \item body opening with [ is eaten as the optional
+% label — brackets vanish, bullet destroyed. Brace it or make it math.
+\begin{itemize}
+\item [11:4] הביטים הרלוונטיים לתג הכתובת כאן.
+\end{itemize}
+
+% v3.59 LABEL-IN-EXPLICIT-ITEM: \item[..] steps no counter, so \label binds to the
+% ambient chapter/section. Use \hitem{letter}{key}.
+\begin{enumerate}
+\item[(\textbf{א})]\label{it:demo59} הסעיף הראשון כאן.
+\end{enumerate}
+
+% v3.64 LABEL-ON-UNNUMBERED-HEADING: secnumdepth=2 leaves \subsubsection and
+% below unnumbered, so they never \refstepcounter and the \label binds to the
+% last NUMBERED ancestor — \ref printed the SUBSECTION's number (measured 1.1.1).
+% Label the numbered ancestor instead, or raise secnumdepth.
+\subsubsection{תת־תת־סעיף להדגמה}\label{sss:demo64}
+
+% v3.68 CAPTION-INSIDE-LTR-ISLAND: a caption inside tikzpic/qcirc is typeset
+% under the island's LTR base — label at the visual LEFT, period flipped.
+\begin{qcirc}
+\begin{quantikz}
+\lstick{$\ket0$} & \gate{H} & \qw
+\end{quantikz}
+\figcap{מעגל לדוגמה}
+\end{qcirc}
+
+% v3.68 LANG-IN-GATE-ARG: quantikz cell args are math — \gate{\h{..}} is fatal
+% pointing at \end{quantikz}. Use \gate{\text{\h{..}}}.
+\begin{quantikz}
+\gate{\h{מדידה}} & \qw
+\end{quantikz}
+
+% v3.67 H-OPENS-WITH-LTR-GROUP: an \h{} in math opening with a nested island
+% renders the WHOLE Hebrew run in logical order (gibberish). Hebrew first.
+$P = \text{\h{$f$ קבועה}}$
+
+% v3.67 LABEL-IN-UNNUMBERED-DISPLAY: \eqref prints () or the SECTION number.
+\begin{align*}
+a &= 1 \label{lint:unnum}
+\end{align*}
+
+% v3.67 TRAILING-CR-IN-DISPLAY: trailing \\ mints a phantom numbered row.
+\begin{align}
+b &= 2 \\
+\end{align}
+
+% v3.66 LIST-IN-LTR-ISLAND: a list inside an LTR wrapper indents on the wrong
+% edge and hangs its label into (or off) the left margin. Close the island first.
+\begin{otherlanguage}{english}
+\begin{itemize}
+\item An English term.
+\end{itemize}
+\end{otherlanguage}
+
+% v3.66 ITEM-OPENS-WITH-BLOCK: a block env as the item's FIRST token strands
+% the pending label (left margin / mid-page / inside the box). Introduce it.
+\begin{enumerate}
+\item \begin{asmblock}
+\begin{lstlisting}[style=asm]
+add $t0, $t1, $t2
+\end{lstlisting}
+\end{asmblock}
+\end{enumerate}
+
+% v3.59 VERB-IN-RTL-PROSE: \verb/\lstinline are not LTR-isolated — brackets mirror
+% and the run reverses. Use \code{}.
+המערך \verb|arr[i]| אינו מבודד כאן בפרוזה.
+
+% v3.59 LISTING-OUTSIDE-LTR-ISLAND: an unwrapped lstlisting scrambles the whole
+% block (>= renders =<). Wrap in asmblock / otherlanguage{english}.
+\begin{lstlisting}
+if (n >= 2) { return arr[n-1]; }
+\end{lstlisting}
+
+% v3.60 ISLAND-PAIR-REVERSED: two adjacent islands separated by a SPACE (or by
+% nothing) reverse — the reference doc wrongly claimed only comma/slash do.
+% Merge into ONE island: \en{CSV (Comma-Separated Values)}.
+הפורמט \en{CSV} \en{(Comma-Separated Values)} נפוץ מאוד כאן.
+
+% v4.2.1 SPLIT-HEBREW-IN-DISPLAY (BIDI-75): a Hebrew list split across sibling
+% \text{} blocks in ONE display row lays out LTR — the shipped p.178 tuple read
+% opposite to the question's own RTL presentation of the same list on p.177.
+\begin{equation*}
+\correct{a}\ \Longleftarrow\ \bigl(\text{עולה},\ \text{יורדת},\ \text{לא ידוע}\bigr)
+\end{equation*}
+
+% v4.7.7 BOXED-ISLAND-EDGE-BRACKET (BIDI-77): \mbox ends the bidi run at the box
+% boundary, so the trailing ] has no strong LTR neighbour inside the box and takes
+% the paragraph's RTL base — render-proven to print "I[23:20[" on the shipped page.
+מקבל את \mbox{\en{rs $=$ I[23:20]}}; וזהו.
+% v4.19.0: BREAKABLE-QUOTED-ISLAND through the explicit island spelling
+ההרצה נכשלה: \foreignlanguage{english}{“Unable to open counter”} ולכן.

@@ -1,0 +1,96 @@
+% ============================================================================
+% example_listings.tex (v3.78.0) — GALLERY + smoke test for the four LISTING
+% STYLES (asm / cstyle / pystyle / htmlstyle). It \input{}s the REAL
+% preamble.tex, so compiling it both (a) regression-tests the styles — before
+% this file existed, NO example exercised cstyle/pystyle/htmlstyle, so a color
+% or geometry regression in them passed the whole harness silently (the v3.36
+% asm-comment-color bug shipped exactly that way) — and (b) gives you
+% copy-paste templates proven to render cleanly.
+%
+%   lualatex -interaction=nonstopmode example_listings.tex   (or via build.sh)
+%   pdftoppm -png -r 150 example_listings.pdf pg   &&   view the page IN COLOR
+%
+% THE ONE RULE: every listing goes inside \begin{asmblock}...\end{asmblock}
+% (the LTR island) regardless of language — an unwrapped listing in RTL
+% context renders its lines REVERSED (a=(b+c); -> ;(c+b)=a).
+% The style only sets colors/font; asmblock sets direction.
+%
+% STYLE -> LANGUAGE MAP (pick by language, not by looks):
+%   style=asm       assembly (MIPS/SIMP...). `#` line comments colored green
+%                   since v3.36 (before that morecomment had no delimiter and
+%                   135 shipped listings rendered flat black).
+%   style=cstyle    C / C-family. Keywords blue, comments gray italic.
+%   style=pystyle   Python (v3.36; colored like cstyle).
+%   style=htmlstyle HTML/markup (v3.36; tags and attributes colored).
+%
+% LINE NUMBERS: since v3.78 ALL FOUR styles carry numbers=left with the same
+% numberstyle/numbersep (author decision — fleet-wide consistency; the old
+% "pystyle/htmlstyle unnumbered" was an accident of the v3.36 geometry
+% freeze, not a design). The digits hang LEFT of the code via \llap, so
+% adding them moved no code glyph (measured). Inside a COLORED BOX the
+% numbers are blanked by the preamble (BLD-16: the mdframed border cuts the
+% digits) — intended, not a bug; the CLEAN exam layer renders exbox/keybox/
+% notebox frameless and therefore RESTORES the digits there (v3.78, see
+% clean_variant.tex and example_exam.tex).
+% ============================================================================
+\input{preamble.tex}
+
+\begin{document}
+\thispagestyle{empty}
+
+\noindent{\large\textbf{גלריית סגנונות רשימות־הקוד}} — סגנון לכל שפה, תמיד בתוך
+\code{asmblock}.\par\bigskip
+
+% ---------------------------------------------------------------------------
+% 1) assembly — style=asm. Green # comments (v3.36); numbers=left built in.
+% ---------------------------------------------------------------------------
+\noindent\textbf{אסמבלי — \code{style=asm}} (הערות \code{\#} בירוק; מספרי שורות מובנים):
+\begin{asmblock}
+\begin{lstlisting}[style=asm]
+loop:   lw   $t0, 0($s1)      # load current element
+        add  $t2, $t2, $t0    # sum += element
+        addi $s1, $s1, 4      # advance pointer
+        bne  $s1, $s3, loop   # until end of array
+\end{lstlisting}
+\end{asmblock}
+
+% ---------------------------------------------------------------------------
+% 2) C — style=cstyle. Blue keywords, gray italic comments, numbers=left.
+% ---------------------------------------------------------------------------
+\noindent\textbf{שפת \en{C} — \code{style=cstyle}}:
+\begin{asmblock}
+\begin{lstlisting}[style=cstyle]
+int sum(int *a, int n) {
+    int s = 0;                 /* accumulator */
+    for (int i = 0; i < n; i++)
+        s += a[i];
+    return s;
+}
+\end{lstlisting}
+\end{asmblock}
+
+% ---------------------------------------------------------------------------
+% 3) Python — style=pystyle (v3.36; numbers=left since v3.78, see header).
+% ---------------------------------------------------------------------------
+\noindent\textbf{פייתון — \code{style=pystyle}}:
+\begin{asmblock}
+\begin{lstlisting}[style=pystyle]
+def extract(products):
+    # one tuple per product
+    return [(p.h2.text, p.span.text) for p in products]
+\end{lstlisting}
+\end{asmblock}
+
+% ---------------------------------------------------------------------------
+% 4) HTML — style=htmlstyle (v3.36; numbers=left since v3.78). Tags colored.
+% ---------------------------------------------------------------------------
+\noindent\textbf{שפת \en{HTML} — \code{style=htmlstyle}}:
+\begin{asmblock}
+\begin{lstlisting}[style=htmlstyle]
+<div class="product">
+  <h2>Laptop</h2> <span>1200</span>
+</div>
+\end{lstlisting}
+\end{asmblock}
+
+\end{document}

@@ -1,0 +1,119 @@
+\def\lakitlanguageprofile{english}
+\def\lakitmainlanguage{english}
+\def\lakitdocumentclass{article}
+\def\lakitclassoptions{11pt,a4paper}
+\def\lakitgeometryoptions{margin=2.7cm,headheight=14pt}
+\def\lakitlinespread{1.08}
+\def\lakitsecnumdepth{2}
+\input{preamble.tex}
+\input{document_components.tex}
+\input{academic_theme.tex}
+\hypersetup{pdftitle={A quadratic model of regularization},pdfauthor={}}
+\title{A quadratic model of regularization}
+% Add actual authors and affiliations only when supplied. Do not invent a date.
+\author{}
+\date{}
+\theoremstyle{definition}
+\newtheorem{paperlemma}{Lemma}
+\pagestyle{plain}
+\begin{document}
+\maketitle
+\begin{abstract}
+A one-dimensional quadratic gives a transparent example of regularization.
+We derive its unique minimizer, describe the effect of a nonnegative penalty,
+and compare three illustrative parameter choices. The example is mathematical
+exposition, not an empirical study: every value in the table and figure follows
+from the stated model.
+\end{abstract}
+\section{Model and assumptions}
+Let $a$ be a fixed real target and let $x$ be a real decision variable. A
+nonnegative parameter $\lambda$ weights a quadratic penalty. The objective is
+\begin{equation}\label{eq:objective}
+Q_\lambda(x)=(x-a)^2+\lambda x^2,\qquad \lambda\geq 0.
+\end{equation}
+The first term measures deviation from the target; the second penalizes the
+size of the decision. Equation~\eqref{eq:objective} defines the model used
+throughout this note. There are no units or observational errors in this
+dimensionless example. For general background on convex optimization, see
+Boyd and Vandenberghe~\cite{boyd2004}.
+\section{Solution and interpretation}
+Differentiating and collecting terms gives an unnumbered intermediate step:
+\begin{align*}
+Q'_\lambda(x)&=2(x-a)+2\lambda x\\
+             &=2(1+\lambda)x-2a.
+\end{align*}
+The stationary point is
+\begin{equation}\label{eq:solution}
+x_\lambda^\star=\frac{a}{1+\lambda}.
+\end{equation}
+\begin{paperlemma}\label{lem:minimum}
+For every real $a$ and every $\lambda\geq 0$, the point in
+\eqref{eq:solution} is the unique global minimizer of
+\eqref{eq:objective}.
+\end{paperlemma}
+\begin{proof}
+Completing the square yields
+\[
+Q_\lambda(x)=(1+\lambda)
+ \left(x-\frac{a}{1+\lambda}\right)^2+
+ \frac{\lambda a^2}{1+\lambda}.
+\]
+The squared term is nonnegative and its coefficient is positive. It vanishes
+only at the point in \eqref{eq:solution}, proving existence and uniqueness.
+\end{proof}
+The minimum objective value is a second useful result of the model:
+\begin{equation}\label{eq:minimum-value}
+Q_\lambda(x_\lambda^\star)=\frac{\lambda a^2}{1+\lambda}.
+\end{equation}
+\noeqref{eq:minimum-value}
+When $\lambda=0$, the minimizer equals $a$. Increasing the penalty moves the
+minimizer toward zero. This is an algebraic consequence of the chosen objective,
+rather than evidence that any particular penalty is suitable for measured data.
+\section{Illustrative values}
+Take $a=2$. The entries in \autoref{tab:penalties} are obtained by substituting
+each parameter into \eqref{eq:solution} and then evaluating
+\eqref{eq:objective} at the minimizer.
+\begin{center}
+\begin{tabular}{ccc}
+\toprule
+$\lambda$ & $x_\lambda^\star$ & $Q_\lambda(x_\lambda^\star)$\\
+\midrule
+0 & 2 & 0\\
+1 & 1 & 2\\
+3 & $1/2$ & 3\\
+\bottomrule
+\end{tabular}
+\tabcap{Exact illustrative values for $a=2$.\label{tab:penalties}}
+\end{center}
+\autoref{fig:quadratic} shows the case $\lambda=1$. The axis direction and
+mathematical coordinates retain their ordinary meaning in either language.
+\begin{tikzpic}
+\begin{tikzpicture}[x=1.3cm,y=0.38cm,>=Stealth]
+\draw[->] (-0.6,0) -- (2.85,0) node[right] {$x$};
+\draw[->] (-0.5,0) -- (-0.5,7.7) node[above] {$Q_1(x)$};
+\foreach \x in {0,1,2} {
+  \draw (\x,0.12) -- (\x,-0.12) node[below] {$\x$};
+}
+\foreach \y in {2,4,6} {
+  \draw (-0.44,\y) -- (-0.56,\y) node[left] {$\y$};
+}
+\draw[thick,domain=-0.5:2.5,samples=61] plot (\x,{2*(\x-1)^2+2});
+\fill (1,2) circle[radius=1.6pt];
+\node[anchor=south] at (1,4.8) {minimum};
+\draw[->] (1,4.6) -- (1,2.14);
+\end{tikzpicture}
+\end{tikzpic}
+\figcap{The objective for $a=2$ and $\lambda=1$, with its minimum at $x=1$.\label{fig:quadratic}}
+\section{Scope}
+This calculation establishes an exact result for one specified quadratic.
+Applying regularization to a larger problem also requires a justified model,
+appropriate units, and a defensible choice of penalty. Those decisions do not
+follow from this illustrative calculation.
+\phantomsection
+\addcontentsline{toc}{section}{\refname}
+\begin{thebibliography}{9}
+\bibitem{boyd2004}
+Stephen Boyd and Lieven Vandenberghe.
+\textit{Convex Optimization}. Cambridge University Press, 2004.
+\end{thebibliography}
+\end{document}

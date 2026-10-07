@@ -1,0 +1,37 @@
+\def\lakitdocumentclass{article}
+\def\lakitclassoptions{11pt,a4paper}
+\def\lakitgeometryoptions{margin=2.1cm,headheight=14pt}
+\def\lakitlinespread{1.18}
+\input{preamble.tex}
+\input{document_components.tex}
+\input{reader_theme.tex}
+\hypersetup{pdftitle={מסמך טכני},pdfauthor={}}
+\begin{document}
+{\LARGE\sffamily\bfseries מסמך טכני}\par\medskip
+% Replace all sample content and metadata before delivery.
+\section{השאלה והנחות העבודה}
+כאן מגדירים מה רוצים לחשב, מהם הנתונים ומה מחוץ לתחום המסמך. בדוגמה זו
+נגדיר סכום משוקלל ונניח שהמשקלים נתונים.
+\section{הגדרה ופיתוח}
+\begin{equation}\label{eq:weighted}
+y=\sum_{i=1}^{n}w_i x_i.
+\end{equation}
+כל סימן ב־\eqref{eq:weighted} צריך לקבל פירוש: $x_i$ הוא האיבר, $w_i$ הוא
+המשקל ו־$n$ הוא מספר האיברים.
+\begin{exbox}[frametitle={בדיקה פשוטה}]
+עבור $n=2$, אם $w_1=w_2=1$, נקבל $y=x_1+x_2$.
+\end{exbox}
+\section{מימוש לדוגמה}
+\begin{codebox}[frametitle={\en{Python}}]
+\begin{asmblock}
+\begin{lstlisting}[style=pystyle]
+def weighted_sum(values, weights):
+    if len(values) != len(weights):
+        raise ValueError("Length mismatch")
+    return sum(w * x for w, x in zip(weights, values))
+\end{lstlisting}
+\end{asmblock}
+\end{codebox}
+\section{אימות ומגבלות}
+בדקו יחידות, סימנים ומקרי קצה. תוצאה שאפשר לקמפל אינה בהכרח תוצאה נכונה.
+\end{document}

@@ -1,0 +1,12 @@
+% render_super_ok.tex — R4 NEGATIVE fixture (v3.33.3). The math idiom
+% "(x-1)^2(x-2)" — a squared factor immediately abutting another parenthesized
+% factor — puts a SUPERSCRIPT digit between ')' and '(', which R4's geometric
+% detector must NOT mistake for a mirrored tag ')2('. A real tag digit shares
+% the parens' height + baseline; a superscript is smaller and raised. Found on
+% a real Pareto-variance page (data-science-exams p.60). Must render CLEAN.
+\input{../assets/preamble.tex}
+\begin{document}
+נוסחת השונות של פארטו: המכנה \(( \alpha-1)^2(\alpha-2)\) חיובי לכל \(\alpha>2\).
+\[ \sigma^2 = \frac{\alpha x_m^2}{(\alpha-1)^2(\alpha-2)}. \]
+ופולינום כללי: \((x-1)^2(x-2)^3(x-3)\) עם שורשים ריבויים.
+\end{document}

@@ -1,0 +1,154 @@
+% deferred_notes.tex — keyed deferred footnotes; opt-in, no presentation policy.
+% Arabic numbering is shared with ordinary footnotes. Declare -> mark -> flush.
+% Notes are inserted where \PrintDocNotes is called, not necessarily on the page
+% containing a mark. See references/deferred-notes.md for the bounded contract.
+% <hllpdf:architecture-guard>
+\ifdefined\hllpdfcoreloaded\else
+  \errmessage{hllpdf: deferred_notes.tex requires preamble.tex first}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdfdeferrednotesloaded
+  \errmessage{hllpdf: deferred_notes.tex loaded more than once}
+  \expandafter\endinput
+\fi
+\def\hllpdfdeferrednotesloaded{1}
+% </hllpdf:architecture-guard>
+\makeatletter
+\ExplSyntaxOn
+\prop_new:N \g__hllnotes_body_prop
+\prop_new:N \g__hllnotes_lang_prop
+\prop_new:N \g__hllnotes_number_prop
+\seq_new:N \g__hllnotes_pending_seq
+\bool_new:N \g__hllnotes_started_bool
+\bool_new:N \g__hllnotes_printing_bool
+\tl_new:N \l__hllnotes_number_tl
+\tl_new:N \l__hllnotes_format_tl
+\tl_new:N \l__hllnotes_lang_tl
+\msg_new:nnn { hllnotes } { invalid-key }
+  { hllnotes:~invalid~literal~note~key;~use~an~ASCII~letter~then~letters/digits/colon/dot/dash/underscore. }
+\msg_new:nnn { hllnotes } { duplicate }
+  { hllnotes:~note~'#1'~is~already~declared. }
+\msg_new:nnn { hllnotes } { unknown }
+  { hllnotes:~undeclared~note~'#1'. }
+\msg_new:nnn { hllnotes } { empty }
+  { hllnotes:~note~'#1'~has~an~empty~body. }
+\msg_new:nnn { hllnotes } { language }
+  { hllnotes:~note~language~must~be~hebrew~or~english. }
+\msg_new:nnn { hllnotes } { nested }
+  { hllnotes:~nested~notes~and~recursive~flushes~are~not~supported. }
+\msg_new:nnn { hllnotes } { preamble }
+  { hllnotes:~mark/flush~requires~the~document~body. }
+\msg_new:nnn { hllnotes } { math }
+  { hllnotes:~marks~belong~in~text,~not~math. }
+\msg_new:nnn { hllnotes } { numbering }
+  { hllnotes:~only~ordinary~Arabic~footnote~numbering~is~supported. }
+\msg_new:nnn { hllnotes } { pending }
+  { hllnotes:~unprinted~notes;~call~PrintDocNotes~before~#1. }
+\msg_new:nnn { hllnotes } { outer }
+  { hllnotes:~flush~outside~boxes/tables/floats~in~single-column~outer~text. }
+
+\cs_new_protected:Npn \__hllnotes_key:n #1
+  {
+    \regex_match:nnF { \A [A-Za-z] [A-Za-z0-9:._\-]* \Z } {#1}
+      { \msg_fatal:nn { hllnotes } { invalid-key } }
+  }
+\cs_new_protected:Npn \__hllnotes_not_printing:
+  { \bool_if:NT \g__hllnotes_printing_bool
+      { \msg_fatal:nn { hllnotes } { nested } } }
+\cs_new_protected:Npn \__hllnotes_document:
+  {
+    \__hllnotes_not_printing:
+    \bool_if:NF \g__hllnotes_started_bool
+      { \msg_fatal:nn { hllnotes } { preamble } }
+    \mode_if_math:T { \msg_fatal:nn { hllnotes } { math } }
+  }
+\cs_new_protected:Npn \__hllnotes_no_pending:n #1
+  { \seq_if_empty:NF \g__hllnotes_pending_seq
+      { \msg_fatal:nnn { hllnotes } { pending } {#1} } }
+
+% The optional language is captured at declaration, not at the later flush.
+\NewDocumentCommand \DeclareDocNote { O{\languagename} m +m }
+  {
+    \__hllnotes_not_printing:
+    \__hllnotes_key:n {#2}
+    \prop_if_in:NnT \g__hllnotes_body_prop {#2}
+      { \msg_fatal:nnn { hllnotes } { duplicate } {#2} }
+    \tl_if_blank:nT {#3} { \msg_fatal:nnn { hllnotes } { empty } {#2} }
+    \tl_set:Nx \l__hllnotes_lang_tl {#1}
+    \str_case:VnF \l__hllnotes_lang_tl
+      { {hebrew}{} {english}{} }
+      { \msg_fatal:nn { hllnotes } { language } }
+    \prop_gput:NnV \g__hllnotes_lang_prop {#2} \l__hllnotes_lang_tl
+    \prop_gput:Nnn \g__hllnotes_body_prop {#2} {#3}
+  }
+
+% Allocate once at first use, never when reusing an existing note. A group in a
+% cell/box must not roll back identity, pending status, or the shared counter.
+\NewDocumentCommand \DocNoteMark { m }
+  {
+    \__hllnotes_document:
+    \__hllnotes_key:n {#1}
+    \prop_if_in:NnF \g__hllnotes_body_prop {#1}
+      { \msg_fatal:nnn { hllnotes } { unknown } {#1} }
+    \prop_if_in:NnF \g__hllnotes_number_prop {#1}
+      {
+        \stepcounter{footnote}
+        \tl_set:Nx \l__hllnotes_number_tl { \arabic{footnote} }
+        \tl_set:Nx \l__hllnotes_format_tl { \thefootnote }
+        \tl_if_eq:NNF \l__hllnotes_number_tl \l__hllnotes_format_tl
+          { \msg_fatal:nn { hllnotes } { numbering } }
+        \prop_gput:NnV \g__hllnotes_number_prop {#1} \l__hllnotes_number_tl
+        \seq_gput_right:Nn \g__hllnotes_pending_seq {#1}
+      }
+    \leavevmode\nobreak
+    \babelsublr{\textsuperscript{\hyperlink{hllnote.#1}{%
+      \prop_item:Nn \g__hllnotes_number_prop {#1}}}}
+  }
+
+\cs_new_protected:Npn \__hllnotes_emit:nn #1#2
+  {
+    % The explicit optional form does not reuse hyperref's current native
+    % Hfootnote target. Supply a separate, stable keyed target ourselves.
+    \footnotetext[#2]{\hypertarget{hllnote.#1}{}%
+      \prop_item:Nn \g__hllnotes_body_prop {#1}}
+  }
+\cs_generate_variant:Nn \__hllnotes_emit:nn { nV }
+\cs_new_protected:Npn \__hllnotes_print_one:n #1
+  {
+    \group_begin:
+      \prop_get:NnN \g__hllnotes_lang_prop {#1} \l__hllnotes_lang_tl
+      \prop_get:NnN \g__hllnotes_number_prop {#1} \l__hllnotes_number_tl
+      \exp_args:NV \selectlanguage \l__hllnotes_lang_tl
+      % Restore the reserved numeric mark even when the running counter has
+      % advanced. The optional footnotetext assignment is local to its call.
+      \cs_set:Npx \thefootnote { \l__hllnotes_number_tl }
+      \__hllnotes_emit:nV {#1} \l__hllnotes_number_tl
+    \group_end:
+  }
+\NewDocumentCommand \PrintDocNotes { }
+  {
+    \__hllnotes_document:
+    % Finish a paragraph first: TeX's inner-mode test is false while in an
+    % ordinary horizontal paragraph *inside* a vbox/minipage.
+    \par
+    \mode_if_inner:T { \msg_fatal:nn { hllnotes } { outer } }
+    \if@twocolumn \msg_fatal:nn { hllnotes } { outer } \fi
+    \cs_if_exist:NT \col@number
+      { \int_compare:nNnT {\col@number} > {1}
+          { \msg_fatal:nn { hllnotes } { outer } } }
+    \bool_gset_true:N \g__hllnotes_printing_bool
+    \seq_map_function:NN \g__hllnotes_pending_seq \__hllnotes_print_one:n
+    \seq_gclear:N \g__hllnotes_pending_seq
+    \bool_gset_false:N \g__hllnotes_printing_bool
+  }
+\AtBeginDocument { \bool_gset_true:N \g__hllnotes_started_bool }
+\AtEndDocument { \__hllnotes_no_pending:n {the~end~of~the~document} }
+% These hooks are dormant without pending notes. Do not silently print body
+% footnotes out of number order, or move pending notes through a chapter reset.
+\AddToHook{cmd/footnote/before}{%
+  \__hllnotes_not_printing:
+  \__hllnotes_no_pending:n {an~ordinary~footnote}}
+\cs_if_exist:NT \chapter
+  { \AddToHook{cmd/chapter/before}{\__hllnotes_no_pending:n {a~chapter}} }
+\ExplSyntaxOff
+\makeatother

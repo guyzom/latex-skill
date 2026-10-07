@@ -1,0 +1,12 @@
+% Static fixture (v4.26.0, BLD-70): pgfplots contour families computed at
+% COMPILE time. Three uses where pgfkeys reads the key, three hard findings:
+% a style defined in \pgfplotsset (line 6), an axis-wide style in the axis
+% options (line 8) and a plot option (line 9). The plot on line 10 only
+% applies the style, so it is not a use of its own.
+\pgfplotsset{levelset/.style={contour gnuplot={levels={1,2}}}}
+\begin{tikzpicture}
+\begin{axis}[view={0}{90}, every axis plot/.append style={contour external={cmd={true}}}]
+\addplot3[contour lua={levels={1,2}}, domain=-2:2, samples=21] {x^2+y^2};
+\addplot3[levelset, domain=-2:2] {x^2+4*y^2};
+\end{axis}
+\end{tikzpicture}

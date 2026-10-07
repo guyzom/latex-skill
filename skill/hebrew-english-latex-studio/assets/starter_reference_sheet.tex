@@ -1,0 +1,298 @@
+\def\lakitlanguageprofile{hebrew}
+\def\lakitmainlanguage{hebrew}
+\def\lakitdocumentclass{article}
+\def\lakitclassoptions{10pt,a4paper}
+\def\lakitgeometryoptions{left=8mm,right=8mm,top=12mm,bottom=16mm,headheight=10pt,headsep=3mm,footskip=7mm}
+\def\lakitlinespread{1}
+\def\lakitsecnumdepth{2}
+\def\lakittocdepth{2}
+\def\ReferenceColumnCount{3}
+\def\ReferenceColumnGap{5mm}
+\def\ReferenceColumnRule{0.3pt}
+\def\ReferenceBodyFontSize{6.3}
+\def\ReferenceBodyBaseline{7.8}
+\def\ReferenceMathFontSize{6.25}
+\def\ReferenceMathScriptSize{4.375}
+\def\ReferenceMathScriptScriptSize{3.125}
+\def\ReferenceTitle{דף עזר למתמטיקה ולפיזיקה}
+\def\ReferenceShortTitle{מתמטיקה ופיזיקה}
+\input{preamble.tex}
+\usepackage{colortbl} % Local shaded table headers; no change to the core.
+\input{document_components.tex}
+\input{reference_components.tex}
+\input{reference_columns.tex}
+\input{reference_shell.tex}
+\input{reference_theme.tex}
+\hypersetup{pdftitle={דף עזר למתמטיקה ולפיזיקה},pdfauthor={}}
+\begin{document}
+% יש להחליף את תחום הדוגמה, התוכן והמטא־נתונים בחומר המקור בפועל.
+\makereferencetitle
+\begin{referencecolumns}
+\begin{referenceentry}
+\section{וקטורים ומספרים מרוכבים}
+לווקטורים ממשיים, $\mathbf a\cdot\mathbf b=\sum_i a_i b_i$; לווקטורים מרוכבים,
+$\langle u,v\rangle=u^\dagger v$.
+\[
+\|v\|=\sqrt{v^\dagger v},\qquad
+P_u v=u\frac{u^\dagger v}{u^\dagger u},\quad u\neq0.
+\]
+השארית $r=v-P_u v$ מאונכת ל־$u$: מתקיים $u^\dagger r=0$.
+\subsection{הצגה מרוכבת}
+עבור $z=x+\mathrm i y$, כאשר $\mathrm i^2=-1$,
+\[
+|z|^2=x^2+y^2,\qquad z^*=x-\mathrm i y,
+\]
+\[
+\mathrm e^{\mathrm i\theta}=\cos\theta+\mathrm i\sin\theta.
+\]
+בכתיב $z=r\mathrm e^{\mathrm i\theta}$ מתקיים $r\geq0$; הפאזה מוגדרת
+מודולו $2\pi$ ואינה מוגדרת כאשר $r=0$.
+\end{referenceentry}
+
+\begin{referenceentry}
+\section{מטריצות וערכים עצמיים}
+\[
+(AB)^\dagger=B^\dagger A^\dagger,\qquad
+\operatorname{tr}(AB)=\operatorname{tr}(BA).
+\]
+זהות העקבה דורשת ממדים מתאימים. זוג עצמי מקיים
+$Av=\lambda v$, $v\neq0$. למטריצה הרמיטית,
+\[
+A=U\Lambda U^\dagger,\qquad U^\dagger U=I,
+\]
+כאשר $\Lambda$ אלכסונית וממשית. מטריצה ריבועית הפיכה אם ורק אם
+$\det A\neq0$; אז $A^{-1}A=I$ ו־$\det(A^{-1})=1/\det A$.
+\end{referenceentry}
+
+\begin{referenceentry}
+\section{גזירה ואינטגרציה}
+\[
+\frac{\mathrm d}{\mathrm dx}f(g(x))=f'(g(x))\,g'(x),
+\]
+\[
+\int u\,\mathrm dv=uv-\int v\,\mathrm du.
+\]
+כלל השרשרת דורש גזירות. באינטגרל מסוים יש לחשב
+את $uv$ בשני קצות הקטע.
+\begin{referencetable}
+\centering
+\setlength{\arrayrulewidth}{0.4pt}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.05}
+\begin{tabular}{|c|c|}
+\hline
+\rowcolor{black!10}
+$\boldsymbol{f(x)}$ & $\boldsymbol{f'(x)}$\\\hline
+$x^n$ & $nx^{n-1}$\\\hline
+$\mathrm e^{ax}$ & $a\mathrm e^{ax}$\\\hline
+$\sin(ax)$ & $a\cos(ax)$\\\hline
+$\log x$ & $1/x,\ x>0$\\\hline
+\end{tabular}
+\end{referencetable}
+\subsection{קירוב מקומי}
+לפונקציה חלקה $f$ ליד $x_0$, נסמן $h=x-x_0$:
+\[
+f(x_0+h)=f(x_0)+f'(x_0)h+O(h^2).
+\]
+השגיאה מקומית כאשר $h\to0$; סדרים גבוהים דורשים חלקות מתאימה.
+\end{referenceentry}
+
+\begin{referenceentry}
+\section{חשבון וקטורי}
+לשדה סקלרי $f$ ולשדה וקטורי $\mathbf F$,
+\[
+\nabla f=(\partial_x f,\partial_y f,\partial_z f),
+\]
+\[
+\nabla\cdot\mathbf F=\partial_x F_x+\partial_y F_y+\partial_z F_z.
+\]
+הגרדיאנט מתאר עלייה מהירה ביותר; הדיברגנץ מודד זרימה מקומית החוצה.
+לשדה בעל סדירות מספקת בתחום חסום,
+\[
+\int_V\nabla\cdot\mathbf F\,\mathrm dV
+=\oint_{\partial V}\mathbf F\cdot\mathbf n\,\mathrm dS,
+\]
+כאשר $\mathbf n$ הוא הנורמל היחידה החיצוני.
+\end{referenceentry}
+
+\begin{referenceentry}
+\section{הסתברות ואי־ודאות}
+לערכים בדידים $x_i$ ולהסתברויות $p_i$,
+\[
+p_i\geq0,\quad\sum_i p_i=1,\quad\mu=\sum_i p_i x_i,
+\]
+\[
+\sigma^2=\sum_i p_i(x_i-\mu)^2.
+\]
+עבור $X,Y$ ממשיים בעלי שונויות סופיות ו־$a,b$ ממשיים,
+\[
+\begin{aligned}
+\operatorname{Var}(aX+bY)
+={}&a^2\operatorname{Var}(X)\\
+ &+b^2\operatorname{Var}(Y)\\
+ &+2ab\operatorname{Cov}(X,Y).
+\end{aligned}
+\]
+אי־תלות גוררת $\operatorname{Cov}(X,Y)=0$. כאשר $a=b=1$, שונויות
+של משתנים בלתי תלויים מתחברות.
+\end{referenceentry}
+
+\begin{referenceentry}
+\section{ממדים ויחידות}
+משוואות חייבות לאזן ממדים; יש לשמור על היחידה לצד הערך המספרי.
+\begin{referencetable}
+\centering
+\setlength{\arrayrulewidth}{0.4pt}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.05}
+\begin{tabular}{|l|c|c|}
+\hline
+\rowcolor{black!10}
+\textbf{גודל} & \textbf{יחידה} & \textbf{ממדים}\\\hline
+כוח & $\mathrm N$ & $\mathrm{kg\,m\,s^{-2}}$\\\hline
+אנרגיה & $\mathrm J$ & $\mathrm{kg\,m^2\,s^{-2}}$\\\hline
+תדירות & $\mathrm{Hz}$ & $\mathrm{s^{-1}}$\\\hline
+\end{tabular}
+\end{referencetable}
+זוויות בנוסחאות אנליטיות נמדדות ברדיאנים. יחידות עקביות הן תנאי
+הכרחי, אך אינן מוכיחות שמודל נכון.
+\end{referenceentry}
+
+\begin{referenceentry}
+\section{תנועה וכוח}
+\[
+\mathbf v=\frac{\mathrm d\mathbf r}{\mathrm dt},\qquad
+\mathbf a=\frac{\mathrm d\mathbf v}{\mathrm dt}.
+\]
+לתאוצה קבועה בממד אחד,
+\[
+v=v_0+at,\qquad x=x_0+v_0t+\tfrac12 at^2.
+\]
+\begin{referenceformula}
+\begin{equation}\label{eq:force}
+\mathbf F_{\mathrm{net}}=m\mathbf a.
+\end{equation}
+מערכת ייחוס אינרציאלית; חלקיק שמסתו קבועה.
+\end{referenceformula}
+במשוואה~\eqref{eq:force} יש לספור כל אינטראקציה חיצונית פעם אחת.
+כוח שקול אפס מאפשר מהירות קבועה שאינה אפס.
+\subsection{קפיץ בממד אחד}
+לקפיץ אידיאלי עם $k>0$, מודדים את $x$ משיווי המשקל; הכוח מחזיר
+את המסה לעבר שיווי המשקל.
+\[
+F_x=-kx,\qquad U(x)=\tfrac12 kx^2.
+\]
+\begin{referencefigure}
+\begin{tikzpic}
+\begin{tikzpicture}[x=0.9cm,y=0.8cm,>=Stealth]
+\draw[thick] (0,0)--(0,1.1);
+\foreach \y in {0.1,0.3,0.5,0.7,0.9} {\draw (-0.12,\y-0.12)--(0,\y);}
+\draw[thick] (0,0.55)--(0.25,0.55)--(0.4,0.75)--(0.6,0.35)--(0.8,0.75)--(1,0.35)--(1.2,0.75)--(1.35,0.55)--(1.6,0.55);
+\draw[thick,fill=black!5] (1.6,0.25) rectangle (2.2,0.85);
+\node at (1.9,0.55) {$m$};
+\draw[->] (1.2,-0.1)--(2.8,-0.1) node[right] {$x$};
+\draw[->] (1.9,1)--(1,1) node[midway,above] {$F_x$};
+\end{tikzpicture}
+\end{tikzpic}
+\referencefigcap{\label{fig:spring}כוח מחזיר עבור העתק חיובי.}
+\end{referencefigure}
+כאשר $x>0$, הכוח ב־\autoref{fig:spring} מצביע לעבר שיווי המשקל.
+\end{referenceentry}
+
+\begin{referenceentry}
+\section{עבודה, אנרגיה ותנע}
+\[
+W=\int_C\mathbf F\cdot\mathrm d\mathbf r,\qquad K=\tfrac12 mv^2,
+\]
+\[
+\mathbf p=m\mathbf v,\qquad
+\frac{\mathrm d\mathbf p}{\mathrm dt}=\mathbf F_{\mathrm{net}}.
+\]
+משפט העבודה והאנרגיה נותן $W_{\mathrm{net}}=\Delta K$. בכוחות משמרים,
+$\mathbf F=-\nabla U$; הסכום $K+U$ קבוע אם כוחות לא משמרים אינם מבצעים עבודה.
+\begin{referencenote}[שימור]
+יש לבחור את גבול המערכת: מתקף חיצוני שקול אפס משמר תנע.
+שימור האנרגיה הכוללת אינו מחייב שימור אנרגיה מכנית.
+\end{referencenote}
+\end{referenceentry}
+
+\begin{referenceentry}
+\section{תנועה הרמונית}
+לקפיץ אידיאלי ללא ריסון, $m,k>0$,
+\[
+\ddot x+\omega^2x=0,\qquad \omega=\sqrt{k/m},
+\]
+\[
+x(t)=A\cos(\omega t+\phi),\qquad T=\frac{2\pi}{\omega}.
+\]
+\begin{referenceqa}
+\referencequestion{$m=1\,\mathrm{kg}$, $k=4\,\mathrm{N/m}$: מצאו את $\omega$ ואת $T$.}
+\referencesolution{$\omega=2\,\mathrm{s^{-1}}$, $T=\pi\,\mathrm s$.}
+\end{referenceqa}
+\end{referenceentry}
+
+\begin{referenceentry}
+\section{גלים ופאזה}
+\[
+y(x,t)=A\cos(kx-\omega t+\phi),
+\]
+\[
+k=\frac{2\pi}{\lambda},\qquad f=\frac{\omega}{2\pi},\qquad
+v_{\mathrm{ph}}=\frac{\omega}{k}.
+\]
+הסימן $kx-\omega t$ מתאר התקדמות לעבר $x$ גדל.
+בתווך נפיץ, $v_{\mathrm g}=\mathrm d\omega/\mathrm dk$, כאשר הנגזרת מוגדרת,
+עשויה להיות שונה ממהירות הפאזה.
+\end{referenceentry}
+
+\begin{referenceentry}
+\section{מצב קוונטי ומדידה}
+מצב טהור מייחס אמפליטודות מרוכבות לבסיס אורתונורמלי דו־מצבי נתון.
+\begin{referenceformula}
+\begin{equation}\label{eq:qubit}
+\ket{\psi}=\alpha\ket0+\beta\ket1,
+\end{equation}
+\[
+|\alpha|^2+|\beta|^2=1.
+\]
+פאזה כוללת משותפת אינה ניתנת לצפייה.
+\end{referenceformula}
+מדידת~\eqref{eq:qubit} נותנת תוצאות $0$ ו־$1$ בהסתברויות
+$|\alpha|^2$ ו־$|\beta|^2$, בהתאמה.
+\subsection{אופרטורים ותוחלת}
+לאופרטור הרמיטי $A$ ולמצב מנורמל $\ket\psi$,
+\[
+\langle A\rangle=\bra\psi A\ket\psi,
+\]
+\[
+(\Delta A)^2=\langle A^2\rangle-\langle A\rangle^2.
+\]
+במצב עצמי של $A$ מתקיים $(\Delta A)^2=0$.
+\end{referenceentry}
+
+\begin{referenceentry}
+\section{שערי פאולי ומעגל}
+\[
+X=\begin{pmatrix}0&1\\1&0\end{pmatrix},\qquad
+Z=\begin{pmatrix}1&0\\0&-1\end{pmatrix},
+\]
+\[
+H=\frac1{\sqrt2}\begin{pmatrix}1&1\\1&-1\end{pmatrix}.
+\]
+שער הדמר נותן $H\ket0=(\ket0+\ket1)/\sqrt2$.
+\begin{referencefigure}
+\begin{tikzpic}
+\begin{quantikz}[column sep=0.3cm]
+\lstick{$\ket0$} & \gate{H} & \meter{} & \cw
+\end{quantikz}
+\end{tikzpic}
+\referencefigcap{\label{fig:qubit}סופרפוזיציה שווה ואחריה מדידה.}
+\end{referencefigure}
+ב־\autoref{fig:qubit}, השער $H$ פועל לפני המדידה בבסיס החישובי.
+\begin{referenceqa}
+\referencequestion{אילו הסתברויות מתקבלות במעגל הזה?}
+\referencesolution{לכל תוצאה הסתברות $1/2$.}
+\end{referenceqa}
+\end{referenceentry}
+\end{referencecolumns}
+\end{document}

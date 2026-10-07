@@ -1,0 +1,93 @@
+\def\lakitdocumentclass{article}
+\def\lakitclassoptions{11pt,a4paper}
+\def\lakitgeometryoptions{margin=2.1cm,headheight=14pt}
+\def\lakitlinespread{1.18}
+\input{preamble.tex}
+\input{document_components.tex}
+\input{reader_theme.tex}
+\hypersetup{pdftitle={סקיל עברי — הדגמת גרסה 4.8.0},pdfauthor={},pdfsubject={הדגמה חזותית של רכיבי מסמך}}
+\begin{document}
+{\small\sffamily גרסה \en{4.8.0} \quad מסמך הדגמה}\par\medskip
+{\LARGE\sffamily\bfseries עברית, מתמטיקה וקוד}\par\smallskip
+{\large רכיבים מקצועיים לשימוש יומיומי}\par\bigskip
+מסמך זה מדגים את שכבת הקריאה החדשה. גוף הטקסט נשאר המרכז; קופסה מסמנת
+הגדרה, דוגמה או הערה ולא מחליפה את המבנה של המסמך. תפקידו של קישור נכתב
+במפורש, כך שאפשר להבחין בינו לבין הטענה או ההסבר.
+\section{מושג, הגדרה ופירוש}
+נשתמש בדוגמה מתמטית פשוטה. עבור פונקציה ריבועית נגדיר את הכמות הבאה:
+\begin{equation}\label{eq:energy}
+E(x)=\frac{1}{2}kx^2,\qquad k>0.
+\end{equation}
+הביטוי ב־\eqref{eq:energy} הוא יחידה עצמאית: ההסבר בעברית נקרא מימין לשמאל,
+ואילו הנוסחה נשמרת משמאל לימין.
+\begin{defbox}[frametitle={הגדרה שנשארת גלויה}]
+הפרמטר $k$ קובע את מידת העקמומיות. כאשר $x=0$, הכמות המוגדרת מתאפסת.
+פס ההדגשה נמצא בצד ימין, בתחילת הקריאה העברית.
+\end{defbox}
+\section{דוגמה אינה תמיד שאלה במבחן}
+\begin{exbox}[frametitle={דוגמה קצרה}]
+נציב $k=2$ ונקבל $E(x)=x^2$. עבור $x=3$ מתקבלת התוצאה $E=9$.
+\end{exbox}
+הדוגמה מסתיימת כאן. הכותרת נשמרת, ולא נוסף אחריה טקסט של פתרון שאינו חלק
+מהתוכן. מספור הסעיפים והמשוואות נשאר בשליטת המסמך.
+\begin{notebox}[frametitle={הערה לקורא}]
+הסגנון החדש הוא אפשרות נוספת. מסמכים ותיקים יכולים להמשיך להשתמש בסגנון
+הקנוני או בסגנון המבחנים בלי שינוי מכוון במראה שלהם.
+\end{notebox}
+\newpage
+{\LARGE\sffamily\bfseries המתמטיקה נשארת יציבה}\par\medskip
+\section{קוד בתחילת תא מתמטי}
+הבדיקה הבאה משתמשת ישירות ב־\code{code} וב־\code{texttt} בתחילת תאים,
+ללא עטיפת עזר. שמות ההוראות הם טקסט; האופרציות המתמטיות נותרות מתמטיקה.
+\begin{align}
+\code{load} &= 1,\\
+\texttt{store} &= 2.
+\end{align}
+\[
+f(x)=\begin{cases}\code{positive} & x>0,\\\texttt{other} & x\leq0.\end{cases}
+\]
+\section{סוגריים, כתובות ומספרים}
+בדיקת כיווניות: \code{I[23:20]}, ואז \code{arr[i]}. מספר שלילי נכתב
+כך: $-5.2$. טווח נכתב באי אחד: \en{2020–2023}. גם רצף לטיני שלם נשמר
+כיחידה: \en{input, process, output}.
+\begin{keybox}[frametitle={קריאה משולבת}]
+העברית, הקוד והנוסחאות משתמשים באותו דף, אך אינם חולקים את אותו כיוון
+קריאה. הבידוד נועד לשמור על המשמעות, לא רק על המראה.
+\end{keybox}
+\section{קוד שמספרי השורות שלו נשארים בתוך המסגרת}
+\begin{codebox}[frametitle={\en{Python}}]
+\begin{asmblock}
+\begin{lstlisting}[style=pystyle]
+def energy(x, k=2):
+    return 0.5 * k * x ** 2
+
+print(energy(3))
+\end{lstlisting}
+\end{asmblock}
+\end{codebox}
+\newpage
+{\LARGE\sffamily\bfseries מקורות ומבנה עקבי}\par\medskip
+\section{קישור עם תפקיד ברור}
+הפסקה הזו היא תוכן המסמך. המקור שמתחתיה מוצג בנפרד, עם תווית מפורשת
+והסבר מדוע הוא מופיע. הכתובת היא כתובת דוגמה, ולא מקור עובד לטענה מדעית.
+\sourcelink{https://example.org/reference}{עמוד מקור לדוגמה}{כתובת הדגמה בלבד — כאן ייכתב מה אפשר למצוא במקור ומדוע כדאי לפתוח אותו.}
+\section{קופסה מקוננת בלי שכפול כותרת}
+\begin{exbox}[frametitle={הכותרת החיצונית}]
+ההקשר נשאר מחוץ להערה. הכותרת הפנימית נכתבת רק כאשר בוחרים בה במפורש.
+\begin{notebox}
+זו הערה פנימית ללא כותרת. הכותרת החיצונית אינה מועתקת לכאן.
+\end{notebox}
+כאן חוזרים לרצף ההסבר של הדוגמה.
+\end{exbox}
+\section{גם פסקה באנגלית}
+\begin{englishprose}
+This paragraph uses a left-to-right base. A reader can follow ordinary English
+prose without turning every phrase into a separate inline language island.
+\begin{notebox}[frametitle={English note}]
+For an English-only callout, the leading accent follows the language context and appears on the left.
+\end{notebox}
+\end{englishprose}
+\section{גבול הבדיקה}
+הדגמה חזותית ובדיקות אוטומטיות אינן אישור נגישות, ואינן מוכיחות נכונות
+מדעית. לפני מסירה יש לבדוק כל עמוד מול המקור, לרבות תוכן, סדר וסימנים.
+\end{document}

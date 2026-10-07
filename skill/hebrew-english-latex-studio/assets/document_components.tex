@@ -1,0 +1,23 @@
+% document_components.tex — semantic document helpers, independent of any theme.
+% <hllpdf:architecture-guard>
+\ifdefined\hllpdfcoreloaded\else
+  \errmessage{hllpdf: document_components.tex requires preamble.tex first}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdfdocumentcomponentsloaded
+  \errmessage{hllpdf: document_components.tex loaded more than once}
+  \expandafter\endinput
+\fi
+\def\hllpdfdocumentcomponentsloaded{1}
+% </hllpdf:architecture-guard>
+% \sourcelink{URL}{descriptive label}{why this source is here}
+% Put English labels in \en{...}; the destination is not printed as raw prose.
+% The role follows the surrounding language, not the link title.
+% The source role is textual (not conveyed by color alone). Long labels can wrap.
+% This is a SOURCE ANNOTATION, not a substitute for claim-level scientific citations.
+\newcommand{\sourcelink}[3]{%
+  \par\addvspace{6pt}\begingroup
+  \small\noindent\textbf{\iflanguage{english}{Source:}{מקור:}}\enspace
+  \href{#1}{\textcolor{cBlue}{\textbf{#2}}}\par\nobreak
+  \noindent #3\par
+  \endgroup\addvspace{6pt}}

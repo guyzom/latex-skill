@@ -1,0 +1,75 @@
+\def\lakitdocumentclass{article}
+\def\lakitclassoptions{11pt,a4paper}
+\def\lakitgeometryoptions{margin=2.2cm,headheight=14pt}
+\def\lakitlinespread{1.18}
+\input{preamble.tex}
+\input{document_components.tex}
+\input{deferred_notes.tex}
+\input{reader_theme.tex}
+\hypersetup{pdftitle={הערות שוליים בלי לאבד את הקשר},pdfauthor={Hebrew LuaLaTeX PDF}}
+\DeclareDocNote{model}{המודל והערכים במסמך הם דוגמה סינתטית. מטרת ההערה היא להפריד את ההסתייגות מן ההסבר הראשי, בלי לאבד את ההפניה אליה.}
+\DeclareDocNote{units}{הסימון $f$ מייצג תדירות, ואילו $\omega=2\pi f$ מייצג תדירות זוויתית. הסימונים מוגדרים כאן לצורך הדוגמה.}
+\DeclareDocNote[english]{trace}{The label \code{run[12]} is a synthetic identifier. This English note keeps its reading direction even when it is printed after Hebrew text.}
+\begin{document}
+{\LARGE\sffamily\bfseries הערות שוליים בלי לאבד את הקשר}\par\smallskip
+{\color{cGray}\sffamily קופסאות, טבלאות והפניה חוזרת \enspace | \enspace הדגמת יכולות}\par\medskip
+מסמך טכני טוב מאפשר לקרוא את הטענה ברצף ולפנות לפירוט רק כשצריך אותו.
+הדוגמה משלבת הערות רגילות עם הערות מתוך רכיבים, באותו רצף מספרים\footnote{כל התוכן בעמודים אלה נועד להדגמת עימוד וניווט. אין כאן תוצאת מדידה או המלצה מדעית.}.
+\section{הסבר בגוף המסמך; הסתייגות בהערה}
+נניח שבודקים תגובה של מערכת ליניארית לאות מחזורי. כדי לשמור על רצף הקריאה,
+אפשר להציג את ההנחה המרכזית בקופסה ואת גבולותיה בהערה נפרדת.
+\begin{notebox}[frametitle={הנחת העבודה}]
+המערכת מתוארת באמצעות מודל ליניארי, עם פרמטרים קבועים בזמן\DocNoteMark{model}.
+זו גם ההבהרה שאליה נפנה שוב בעמוד הבא.
+\end{notebox}
+\PrintDocNotes
+\section{הערה מתוך טבלה קצרה}
+ערכי הטבלה הם נתוני הדגמה בלבד. ההסבר ליחידה אינו נדחס לתוך כותרת העמודה,
+אלא נשאר זמין דרך סימון ממוספר.
+\begin{tablebox}\centering
+\begin{tabular}{@{}p{4.3cm}p{4.2cm}p{4.2cm}@{}}
+\toprule
+פירוש & ערך הדגמה & פרמטר\\\midrule
+פרמטר המודל & $f_0=500\punit{Hz}$ & תדירות\DocNoteMark{units}\\
+גודל חסר יחידות & $\xi=0.20$ & מקדם ריסון\\
+סימון לצורך מעקב & \code{run[12]} & מזהה רשומה\DocNoteMark{trace}\\
+\bottomrule
+\end{tabular}
+\tabcap[פרמטרים להדגמה]{\label{tab:notes-demo}דוגמה קצרה שמפרידה נתון, יחידה והסבר.}
+\end{tablebox}
+\PrintDocNotes
+הערה רגילה שנוספת כעת מקבלת את המספר הבא\footnote{הערה זו באה אחרי שתי הערות הטבלה; היא אינה חוזרת בטעות על המספרים שלהן.}.
+\clearpage
+\section{אותה הערה, גם מעמוד אחר}
+המודל עדיין כפוף לאותה הנחה\DocNoteMark{model}. זהו אותו מספר ואותו יעד,
+ולא עותק נוסף של גוף ההערה. גם הערת המזהה זמינה מחדש\DocNoteMark{trace}.
+\begin{equation}\label{eq:response}
+H(\omega)=\frac{1}{\omega_0^2-\omega^2+i\,2\xi\omega_0\omega},
+\qquad \omega_0=2\pi f_0.
+\end{equation}
+כאן הנוסחה משמשת דוגמה לשילוב מתמטיקה עם הפניה לטבלה: הפרמטרים שלה מופיעים
+ב\autoref{tab:notes-demo}. המספור של הנוסחה נשאר עצמאי ממספור ההערות.
+\section{שלוש פעולות במקור}
+מגדירים את גוף ההערה פעם אחת, מסמנים אותה במקום המתאים, ומדפיסים את ההערות
+הממתינות אחרי סגירת הקופסה או הטבלה. המפתח נשאר קבוע גם כשהמספר משתנה.
+\begin{asmblock}
+\lstset{language={[LaTeX]TeX}}
+\begin{lstlisting}[basicstyle=\small\ttfamily,numbers=none]
+\DeclareDocNote[english]{scope}{A short explanation.}
+
+\begin{notebox}
+A statement\DocNoteMark{scope}.
+\end{notebox}
+\PrintDocNotes
+\end{lstlisting}
+\end{asmblock}
+\begin{keybox}[frametitle={בדיקה לפני מסירה}]
+סימון ממוספר אינו מספיק: צריך לוודא שההערה מודפסת, שהמספר תואם,
+ושהקישור מוביל לגוף הנכון. תוכן שלא הודפס גורם לשגיאת בנייה, לא לאישור שקט.
+\end{keybox}
+\section{גבול עימוד שחשוב להכיר}
+גוף ההערה נכנס לאזור הערות השוליים במקום שבו נקראת פקודת ההדפסה.
+אין הבטחה אוטומטית שהוא יישאר בעמוד של הסימון כאשר רכיב נשבר בין עמודים.
+בטבלה ארוכה יש לבדוק את עמוד ההמשך וההערות בפועל, או להציג הסברים רגילים
+אחרי הטבלה במקום להשתמש בהערות שוליים.
+\end{document}

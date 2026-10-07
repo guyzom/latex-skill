@@ -1,0 +1,12 @@
+% tex_errors_dump.log — error-discriminator NEGATIVE control (v4.1.4).
+% Overfull-box content dumps only. Every "!" here is a cmsy slot-33 glyph
+% (\to) that a line wrap pushed to the start of a line. NONE is an error.
+% Both observed widths appear: the ~79-char wrapped form from a 425-page
+% build, and the unwrapped single-line form from a one-page fixture.
+Overfull \hbox (18.51863pt too wide) detected at line 7662
+[] \OT1/cmr/m/n/12 :  +0\OML/cmm/m/it/12 :\OT1/cmr/m/n/12 009 \OMS/cmsy/m/n/12 
+! ^^@\OT1/cmr/m/n/12 0\OML/cmm/m/it/12 :\OT1/cmr/m/n/12 016\OML/cmm/m/it/12 ;  []
+! \OT1/cmr/m/n/12 10 \OMS/cmsy/m/n/12 ! \OT1/cmr/m/n/12 20\OML/cmm/m/it/12 :
+Overfull \hbox (65.57811pt too wide) detected at line 20
+! \TU/FrankRuhlLibre-Regular.ttf(0)/m/n/10.95 x \OMS/cmsy/m/n/12 ! y
+! ^^@\TU/FrankRuhlLibre(0)/m/n/10.95 ^^@^^@\OML/cmm/m/it/10.95 n [] 

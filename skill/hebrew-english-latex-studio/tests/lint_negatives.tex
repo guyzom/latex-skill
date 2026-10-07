@@ -1,0 +1,147 @@
+% lint_negatives.tex — CORRECT patterns. Every linter must stay SILENT here.
+% Golden negative fixture for the regression harness (test_all.sh).
+\providecommand{\SI}[2]{#1\,#2}
+טקסט עברי רגיל עם \en{Datapath} מבודד נכון, ורשימה \en{BaBar, Belle} כאיבר אחד.
+מקף ארוך ישיר — כמו כאן, בלי מקפים כפולים. טווח מספרי 3-5 תקין.
+שם לטיני עם מקפים Hong-Ou-Mandel בין מילים לטיניות תקין.
+המאקרו \SI{5}{m} מוגדר למעלה ולכן תקין.
+נוסחה עם תווית: $E = mc^2 \quad \text{אנרגיית מנוחה}$ תקינה.
+גבול במתמטיקה טהורה: $\lambda \to \infty$ ומיפוי $f\colon A \to B$ תקינים.
+ציטוט עם גרשיים ״נכונים״ ולא מרכאות כפולות.
+צנרת (pipelining) — עברית לפני סוגריים לטיניים תקינה.
+% v4.14 — the same family, in the shapes MEASURED correct on the page: the
+% island carries the whole token or just the Latin anchor; a strong-R character
+% first inside the bracket; and no Latin anchor at all.
+האי נושא את כל האסימון: \en{Skill(/audit)} תקין, וכך גם \code{Skill(/audit)}.
+האי על העוגן בלבד: פורמט ההוראה של \en{MIPS} (32 סיביות) תקין.
+גרשיים או מקף ראשונים: dirty bit (״Modified״) תקין, וכך bit (־Modified).
+בלי עוגן לטיני: הכלי (Claude Code) והמהדורה (2024) תקינים.
+% v4.14.1 — the anchor side, in the shapes measured correct: an island on the
+% anchor or on the aside, and a Hebrew anchor.
+עוגן מבודד: \textbf{גשר \en{PCI}} (PCI bridge) תקין, וכך \textbf{גשר PCI} \en{(PCI bridge)}.
+עוגן עברי: \textbf{גשר} (PCI bridge) תקין.
+% v4.15.0 — the same family in the shapes measured correct on the page: the
+% island carries the token, the Hebrew connective keeps its hyphen or slash,
+% and punctuation inside a Latin token never moves.
+אסימון באי: \code{/audit} ו־\en{commands/} תקינים.
+מחבר עברי: הפרוטונים ב-LHC וב־LHC, ושגיאת מבחן/CV והערך CV/מבחן.
+בתוך אסימון: הקובץ CLAUDE.md, הניסוי Hong-Ou-Mandel, הערך 0.5 והביטוי and/or.
+אחרי מתמטיקה או אי: הרגישות ב-$k$-NN והרובד \en{n}-type תקינים.
+\begin{tikzpicture}
+\node at (0,0) {\h{מעבד \en{(CPU)}}};
+\node at (0,-1) {\en{Datapath}};
+\end{tikzpicture}
+סוגריים בתוך האי (תקין): \begin{equation}\alpha\quad\text{\en{(weak)}}\end{equation}
+סוגריים סביב עברית+לטינית (תקין): \begin{equation}P\quad\text{(הספק ב־\en{CMOS})}\end{equation}
+\renewcommand{\ni}{n_{\mathrm i}}
+תיוג עברי כיחידה אחת (תקין): \begin{align}I &\propto V && \text{\h{(תעלה רחבה)}}\end{align}
+עברית סביב אי בודד (תקין): \begin{equation}\text{רוחב \en{W} גדול}\end{equation}
+
+% v3.25 negatives: plain parens around Hebrew; merged arrow island; ref range.
+% v3.57 CORRECTION: this line used to end `לפי \eqref{eq:a}–\eqref{eq:b} כאן.`
+% — i.e. it asserted that a BARE en-dash ref range must NOT be flagged. That was
+% wrong: the bare form renders "(1.2)–(1.1)", the numbers REVERSED (measured by
+% glyph geometry), and 15/15 such pairs shipped reversed across the fleet. This
+% fixture was actively protecting the bug. The MERGED island below is the correct
+% form and is what belongs in the negatives; the bare form now lives in
+% lint_positives.tex under REF-RANGE-REORDER.
+ותוכנה (טבלת עמודים) בפרוזה, וגם \en{(TLB)} שלם.
+העברה \en{\code{Rt}$\to$\code{ForwardB}} תקינה, לפי \en{\eqref{eq:a}–\eqref{eq:b}} כאן.
+% v3.57 negatives for the range family — every one of these RENDERS CORRECTLY
+% (measured), so all must stay silent: unspaced ASCII range, unspaced comma
+% between refs, a bare slash between refs, \autoref (its Hebrew name anchors each
+% unit), the Hebrew maqaf idioms, and a dash with a digit on only ONE side.
+טווח 5-10 מילים ובשנים 2020-2023 היו, וגם \ref{eq:a},\ref{eq:b} ו־\ref{eq:a}/\ref{eq:b}.
+ראו \autoref{eq:a}–\autoref{eq:b}, המאה ה־21, כ־12 תאים, בית־ספר, ובשנת 2020 — היה טוב.
+
+% v3.26 negatives: operator as plain text / Hebrew approx-idiom / bare symbol island
+בלוק = $4$ בתים, מוסיף כ־$85$ מעלות; הסימן $=$ מציין שוויון.
+
+% v3.27 negatives: colon OUTSIDE the island; internal colon; math \text form
+\item[\textbf{\en{Offset}:}] שני הביטים הנמוכים, ראו \en{Note: caching} בהמשך.
+תווית באיזון (תקין): \begin{align}x &= y && \text{\en{rate:}} \end{align}
+
+% v3.30 negatives: starred/texorpdfstring/optional-arg headings; escaped \code
+% specials + the balanced math-in-code idiom; curly quotes in English context
+\section{הפקודה \code{grep} בשימוש}
+\subsection*{הפקודה \code{grep} בשימוש}
+\section{הפקודה \texorpdfstring{\code{grep}}{grep} בשימוש}
+\section[grep]{הפקודה \code{grep} בשימוש}
+הרץ \code{cd \textasciitilde/proj \&\& make \$5 a\_b 100\%} והקיוביט \code{Q$_0$} מוכן.
+\begin{otherlanguage}{english}
+See “Quantum Computer Science” (2007) for the standard treatment.
+\end{otherlanguage}
+
+% v3.34 negatives: the \figcap macro (auto-numbered, \ref-able) is the correct
+% form and must stay silent; the preamble's own \textbf{איור~\thefig} def is a
+% \textbf group before איור, so it too is not the manual idiom
+\end{tikzpic}
+\figcap{\label{fig:ok}דיאגרמת פסים של חתך לרוחב הערוץ}
+{\centering\small\textcolor{cGray}{\textbf{איור~\thefig.}}\enspace תיאור}
+
+% v3.36 negatives: Latin resumes after the paren group (one LTR run, renders
+% correctly — proven); \en-wrapped form; code-island form
+המודל Model (v2) update ממשיך בעברית כרגיל.
+פייתון ו-web scraping (BeautifulSoup), AUC, ובהמשך עברית.
+הסגנון \en{C (cstyle)} צבעוני, והבנייה \code{pd.DataFrame(data)} תקינה.
+
+% v3.41.1 negatives: a short single-pair island is fine; the same value list
+% inside a centered display is the CORRECT fix and must stay silent
+ולכן \en{tag $=25$} ביטים בדיוק, וממשיכים.
+\begin{center}
+\en{rd $=2$, rs $=2$, rt $=3$}
+\end{center}
+
+% v3.44 negatives: the FIXED form (code first, math opens on a value) and the
+% CORRECT merged form (operator inside an outer \en island) must stay silent
+משווים לחסם \code{0x0001FFFC}, שהוא $4(2^{15}{-}1)$ בבתים.
+הסיכון \en{\code{sub}$\to$\code{and}} שאינה קיימת.
+
+% v3.46 negatives: a BARE prose \eqref is the documented-correct form; a boxed
+% answer that is ONE \text{\h{...}} unit (nested $math$ inside is fine), a
+% math-only box, and a spaced parenthesized annotation are all render-proven
+הצבה במשוואה \eqref{eq:demo} נותנת את התוצאה.
+\[ \finalans{\text{\h{מזהה שגיאה בודדת, מתקן אפס שגיאות}}} \]
+\[ \finalans{\text{\h{מספר ההפעלות של $f$: אחת}}} \]
+\[ \finalans{\;P(n,t)=P(n,0)\quad\text{(קבוע בזמן)}\;} \]
+
+% v3.47 negatives: a NEW-clause subject (atom then =) is not a glued object; the
+% sanctioned single \text{\h{...$x$...}} unit; a maqaf+terminal number and a
+% number-before-text render correctly; a single $-$ between islands and a bare
+% {--} colour cell are not the en-dash class; a bare \eqref and (\ref{}) single
+% parens are the correct idioms.
+\[ \text{ובאותו אופן }\ \bar\psi_{R}=\bar\psi\,P_L \]
+\[ \Pr(\text{\h{דחיית $H_0$}} \mid H_0) \]
+מדד $x=\text{ב־}3$ וגם $3\ \text{מילים}$ ועקומת $I_D$-$V_G$.
+\texttt{and} & \textcolor{cRed}{--} & IF
+ראה \eqref{eq:demo} וגם (\ref{fig:demo}) לעיל.
+
+% v3.48 negatives: an escaped \% is a real percent sign; a real trailing comment
+% (space before %), a line-start comment, and a % inside \code all stay silent.
+שיעור ההצלחה עומד על 30\% מהמקרים שנבדקו לאחרונה. % הערה אמיתית עם רווח
+% v3.60 negatives for ISLAND-PAIR-REVERSED — all three render CORRECTLY (measured):
+% the merged island, the derivation-arrow idiom (islands hold only math, so they are
+% separate items in the Hebrew flow), and a PERIOD between islands (sentence boundary).
+הפורמט \en{CSV (Comma-Separated Values)} נפוץ, ונקבל \en{$x$} \en{$\Leftarrow$} כאן.
+תרגמו לאסמבלי \en{MIPS}. \code{\$s0} מחזיק את המצביע כאן.
+
+% v4.2.1 SPLIT-HEBREW-IN-DISPLAY negatives: the colon chain register is the
+% sanctioned quickmaps shape (render-reviewed), and ONE \text{} block holding
+% the whole statement is the doctrine fix itself — both must stay silent.
+\[
+k\ \text{\h{קטן}}:\ \ \text{\h{גמישות}}\uparrow\ \to\ \Bias\downarrow
+\]
+\[
+\text{עולה, יורדת, לא ידוע (בהתאמה)}
+\]
+
+% v4.16.0 BREAKABLE-QUOTED-ISLAND negatives — every form measured silent:
+% the cure in all three nesting shapes, a quotation with no internal space,
+% a possessive apostrophe, a math prime, and a plain multi-word term
+% (BIDI-29 is guidance, deliberately not this flag).
+ההרצה נכשלה עם \en{\mbox{“Unable to open performance counter”}} ותו לא.
+מבוסס על \en{Patterson, \mbox{“Computer Organization”} (5th ed.)} בלבד.
+הקובץ מכיל \mbox{\en{“hello world”}} ולא \en{“always”} אחר.
+הכלל \en{Amdahl's Law} והנגזרות \en{$f'(x)$ and $g'(y)$} עם \en{Direct Mapped}.
+% v4.19.0: the same island with the quotation boxed stays silent
+מבוסס על \foreignlanguage{english}{N. D. Mermin, \mbox{“Quantum Computer Science”} (2007)} בלבד.

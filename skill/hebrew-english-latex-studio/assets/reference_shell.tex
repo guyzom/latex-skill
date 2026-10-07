@@ -1,0 +1,78 @@
+% reference_shell.tex — compact article title and uniform reference furniture.
+% Load after preamble.tex. Class, paper, geometry and body font size are declared
+% by the document before the core; this shell never changes those declarations.
+% <hllpdf:architecture-guard>
+\ifdefined\hllpdfcoreloaded\else
+  \errmessage{hllpdf: reference_shell.tex requires preamble.tex first}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdftopicrailloaded
+  \errmessage{hllpdf: reference_shell.tex conflicts with topicrail.tex}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdfreferenceshellloaded
+  \errmessage{hllpdf: reference_shell.tex loaded more than once}
+  \expandafter\endinput
+\fi
+\def\hllpdfreferenceshellloaded{1}
+% </hllpdf:architecture-guard>
+\providecommand{\ReferenceTitle}{}
+\providecommand{\ReferenceShortTitle}{\ReferenceTitle}
+\providecommand{\ReferenceSubtitle}{}
+\providecommand{\ReferenceAuthor}{}
+\providecommand{\ReferenceDate}{}
+\makeatletter
+\@ifclassloaded{article}{}{%
+  \PackageError{hebrew-english-latex-studio}{reference_shell requires the article class}%
+    {Declare lakitdocumentclass as article before loading preamble.tex.}}
+% Fancyhdr slots follow the page direction under Babel. Slot L is the reading
+% edge in both native languages (physical left in English, right in Hebrew).
+% doclang fixes the text locale to the declared base independently of whichever
+% minority-language paragraph caused this page to be shipped.
+\fancypagestyle{hllpdfreference}{%
+  \fancyhf{}%
+  \fancyhead[L]{\normalfont\color{black!50}\fontsize{8}{10}\selectfont\doclang{\ReferenceShortTitle}}%
+  \fancyfoot[C]{\normalfont\color{black}\fontsize{8}{10}\selectfont\en{\thepage}}%
+  \renewcommand{\headrulewidth}{0pt}%
+  \renewcommand{\footrulewidth}{0pt}}
+\pagestyle{hllpdfreference}
+\newif\ifhllpdf@referencetitlemade
+\newcommand{\makereferencetitle}{%
+  \par
+  \ifhllpdf@referencetitlemade
+    \PackageError{hebrew-english-latex-studio}{makereferencetitle may be used only once}%
+      {Use the running short title on later pages; the compact title belongs to the first page.}%
+  \fi
+  \@ifundefined{ifhllpdf@referencecolumnsactive}{}{%
+    \ifhllpdf@referencecolumnsactive
+      \PackageError{hebrew-english-latex-studio}{makereferencetitle cannot be used inside referencecolumns}%
+        {Place the compact document title before the first column run.}%
+    \fi
+  }%
+  \ifinner
+    \PackageError{hebrew-english-latex-studio}{makereferencetitle requires outer text mode}%
+      {Do not put the document title in a box, minipage or float.}%
+  \fi
+  \global\hllpdf@referencetitlemadetrue
+  \thispagestyle{hllpdfreference}%
+  \begingroup
+    \parindent=0pt
+    \centering
+    \ifdefempty{\ReferenceTitle}{}{%
+      {\normalfont\rmfamily\bfseries\color{black}\fontsize{11}{13}\selectfont\doclang{\ReferenceTitle}\par}%
+    }%
+    \ifdefempty{\ReferenceSubtitle}{}{%
+      \vskip 3pt
+      {\normalfont\fontsize{9}{11}\selectfont\doclang{\ReferenceSubtitle}\par}%
+    }%
+    \ifdefempty{\ReferenceAuthor}{}{%
+      \vskip 3pt
+      {\normalfont\fontsize{8}{10}\selectfont\doclang{\ReferenceAuthor}\par}%
+    }%
+    \ifdefempty{\ReferenceDate}{}{%
+      \vskip 2pt
+      {\normalfont\fontsize{8}{10}\selectfont\doclang{\ReferenceDate}\par}%
+    }%
+  \endgroup
+  \par\addvspace{3pt}\ignorespaces}
+\makeatother

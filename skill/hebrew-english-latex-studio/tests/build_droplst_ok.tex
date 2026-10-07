@@ -1,0 +1,14 @@
+% build_droplst_ok.tex — droplst-gate NEGATIVE control (v3.76). Byte-identical
+% to build_droplst_broken.tex except the code starts on the line AFTER
+% \begin{lstlisting}[style=asm] — the canonical form. Zero "Text dropped"
+% warnings; build.sh must pass this build end-to-end (incl. the render gate).
+\input{../assets/preamble.tex}
+\begin{document}
+קטע קוד תקין שבו שורת הקוד הראשונה מתחילה אחרי שורת הפתיחה:
+\begin{asmblock}
+\begin{lstlisting}[style=asm]
+li   $t0, 5
+add  $t1, $t0, $t0
+\end{lstlisting}
+\end{asmblock}
+\end{document}

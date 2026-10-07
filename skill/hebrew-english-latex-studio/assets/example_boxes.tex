@@ -1,0 +1,140 @@
+% ============================================================================
+% example_boxes.tex (v3.30) — GALLERY + smoke test for the six colored BOXES.
+% It \input{}s the REAL preamble.tex, so compiling it both (a) tests the actual
+% environment and (b) gives you copy-paste templates proven to render cleanly.
+%
+%   lualatex -interaction=nonstopmode example_boxes.tex   (or via build.sh)
+%   pdftoppm -png -r 150 example_boxes.pdf pg   &&   view EVERY page
+%
+% This is a LIBRARY, not a mandate: grab the box you need and swap the content.
+% Content is deliberately cross-domain (calculus / physics / CS) to show the
+% boxes suit any subject the skill serves.
+%
+% RESTRAINT FIRST — boxes are semantic exceptions, not the default. Most of a
+% good document is free prose, standalone numbered equations, and neutral tables.
+% There is no universal quota: profile and content decide. Reach for a box only
+% when it has a clear role; keep discussion in prose and key formulas standalone.
+% Titles and \small are OPTIONAL, never defaults. Untitled boxes use the document's
+% normal body size; add a title only when it improves navigation, and reduce type
+% locally only for a genuinely compact reference card that remains readable.
+%
+% HOW TO CHOOSE A BOX — by SEMANTIC ROLE, never by colour:
+%   defbox  (blue)   -> a definition of a term / quantity
+%   thmbox  (green)  -> a theorem / claim / law statement
+%   notebox (amber)  -> a note, caveat, or tip
+%   exbox   (purple) -> a worked example
+%   warnbox (red)    -> a common mistake / pitfall
+%   keybox  (teal)   -> a key idea / summary / procedure
+% All six are \newmdenv with NO default title. A title is optional per instance:
+%   \begin{<box>}[frametitle={...}].  \code{...} works inside a frametitle.
+%
+% TWO REUSABLE PATTERNS (both proven to prevent real friction):
+%   * multi-item content  -> ONE item per line with \\  (keeps wide code/math
+%     islands from being shoved off the margin; also more scannable).
+%   * short reference box  -> add nobreak=true  (moves the whole box instead of
+%     orphaning its last row across a page break).
+% ============================================================================
+\input{preamble.tex}
+\begin{document}
+
+{\LARGE\bfseries מאגר תבניות קופסאות}\par\medskip
+\noindent בחר קופסה לפי \emph{תפקיד} (לא צבע), העתק והחלף תוכן. קופסה היא
+ללא כותרת ובגודל הגוף כברירת מחדל; כשכותרת מועילה, הוסף
+\code{[frametitle=\{...\}]}. לתוכן רב-פריטי — שורה לכל פריט (\code{\textbackslash\textbackslash});
+לקופסת-ייחוס קצרה — \code{nobreak=true}.
+\bigskip
+
+% +--- defbox (blue) — DEFINITIONS --------------------------------
+% | USE FOR: definitions of a term / quantity.
+% +----------------------------------------------------------------
+\begin{defbox}
+פונקציה \en{$f$} רציפה בנקודה \en{$x_0$} אם לכל \en{$\varepsilon>0$} קיים \en{$\delta>0$}
+כך שמכל \en{$|x-x_0|<\delta$} נובע \en{$|f(x)-f(x_0)|<\varepsilon$}.
+\end{defbox}
+
+% +--- thmbox (green) — THEOREMS / CLAIMS -------------------------
+% | USE FOR: a theorem, lemma, or law statement.
+% +----------------------------------------------------------------
+\begin{thmbox}[frametitle={משפט הערך הממוצע}]
+אם \en{$f$} רציפה ב-\en{$[a,b]$} וגזירה ב-\en{$(a,b)$}, אז קיימת נקודה \en{$c\in(a,b)$}
+שבה \en{$f'(c) = \dfrac{f(b)-f(a)}{b-a}$}.
+\end{thmbox}
+
+% +--- notebox (amber) — NOTES / CAVEATS --------------------------
+% | USE FOR: a clarifying note, caveat, or tip.
+% +----------------------------------------------------------------
+\begin{notebox}
+רציפות היא תנאי הכרחי לגזירוּת אך לא מספיק: \en{$f(x)=|x|$} רציפה בכל מקום אך אינה
+גזירה ב-\en{$x=0$}.
+\end{notebox}
+
+% +--- exbox (purple) — WORKED EXAMPLES (with a code block) -------
+% | USE FOR: a worked example. A code block inside a box uses the
+% | SAME otherlanguage wrapper as a code table (LTR, left-aligned).
+% | Note \code{...} in the frametitle (underscore escaped).
+% | End the intro sentence with \par\smallskip BEFORE otherlanguage —
+% | otherwise the code block glues to the sentence baseline (v3.30).
+% +----------------------------------------------------------------
+\begin{exbox}[frametitle={דוגמה — \code{binary\_search}}]
+חיפוש בינארי מצמצם את הטווח בחצי בכל צעד — \en{$O(\log n)$}:\par\smallskip
+\begin{otherlanguage}{english}\small\ttfamily
+\begin{tabular}{@{}l@{}}
+while lo <= hi:\\
+\ \ \ \ mid = (lo + hi) // 2\\
+\ \ \ \ if a[mid] == target:\\
+\ \ \ \ \ \ \ \ return mid
+\end{tabular}
+\end{otherlanguage}
+\end{exbox}
+
+% +--- warnbox (red) — COMMON MISTAKES ----------------------------
+% | USE FOR: a pitfall / frequent error to flag.
+% +----------------------------------------------------------------
+\begin{warnbox}
+כלל לופיטל תקף רק לצורות אי-ודאות (\en{$0/0$} או \en{$\infty/\infty$}). החלתו על ביטוי
+מוגדר היטב תיתן תוצאה שגויה — בדקו את הצורה \emph{לפני} שמגזירים.
+\end{warnbox}
+
+% +--- keybox (teal) — KEY IDEA / PROCEDURE (stepped list) --------
+% | USE FOR: a key idea, summary, or step-by-step procedure.
+% | PATTERN: one step per line via \\ — the single most effective
+% | guard against a box overflowing when steps hold code/math.
+% +----------------------------------------------------------------
+\begin{keybox}[frametitle={ארבעה צעדים לחישוב גבול}]
+\textbf{(1)} הציבו את הערך ישירות; אם קיבלתם מספר — סיימתם.\\
+\textbf{(2)} אם קיבלתם \en{$0/0$} או \en{$\infty/\infty$}, נסו לופיטל.\\
+\textbf{(3)} אחרת, פשטו אלגברית (צמצום, כפל בצמוד) ונסו שוב.\\
+\textbf{(4)} בדקו גבולות חד-צדדיים אם יש חשד לאי-רציפות.
+\end{keybox}
+
+% +--- nobreak=true — SHORT REFERENCE BOX -------------------------
+% | USE FOR: a short box you never want split across a page break
+% | (a formula card, an identity). Add nobreak=true to any box.
+% +----------------------------------------------------------------
+\begin{notebox}[nobreak=true,frametitle={זהות שימושית}]
+{\small \en{$\sin^2\theta + \cos^2\theta = 1$}, ומחלוקה ב-\en{$\cos^2\theta$} נובע
+\en{$1 + \tan^2\theta = \sec^2\theta$}.
+}
+\end{notebox}
+
+% +--- codebox — THE OPTIONAL CODE CONTAINER (v4.4.0) --------------
+% | USE FOR: a listing that deserves its own labelled container —
+% | a file name, a function under discussion. NOT a requirement:
+% | asmblock unboxed stays canonical.
+% | Line numbers: v4.4.0 shipped this box WITHOUT them, on v3.37's
+% | "a framed box always slices them". v4.5.0 measured that back and
+% | found it false — resetmargins=false + xrightmargin carries the
+% | digit column clear of the rule, so codebox is the ONE framed box
+% | that keeps its numbers. The six semantic boxes still blank them.
+% +----------------------------------------------------------------
+% This two-line function is atomic; long listings retain the splittable default.
+\begin{codebox}[nobreak=true,frametitle={\code{parser.py}}]
+\begin{asmblock}
+\begin{lstlisting}[style=pystyle]
+def parse(line):
+    return line.split(",")
+\end{lstlisting}
+\end{asmblock}
+\end{codebox}
+
+\end{document}

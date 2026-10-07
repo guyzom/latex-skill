@@ -1,0 +1,117 @@
+\def\lakitlanguageprofile{hebrew}
+\def\lakitmainlanguage{hebrew}
+\def\lakitdocumentclass{article}
+\def\lakitclassoptions{11pt,a4paper}
+\def\lakitgeometryoptions{margin=2.7cm,headheight=14pt}
+\def\lakitlinespread{1.08}
+\def\lakitsecnumdepth{2}
+\input{preamble.tex}
+\input{document_components.tex}
+\input{academic_theme.tex}
+\hypersetup{pdftitle={מודל ריבועי של רגולריזציה},pdfauthor={}}
+\title{מודל ריבועי של רגולריזציה}
+% Add actual authors and affiliations only when supplied. Do not invent a date.
+\author{}
+\date{}
+\theoremstyle{definition}
+\newtheorem{paperlemma}{למה}
+\pagestyle{plain}
+\begin{document}
+\maketitle
+\begin{abstract}
+פונקציה ריבועית במשתנה אחד מדגימה באופן שקוף את רעיון הרגולריזציה.
+נמצא את נקודת המינימום היחידה, נסביר את השפעתו של מקדם ענישה שאינו שלילי
+ונשווה שלוש בחירות של פרמטרים. זוהי הדגמה מתמטית ולא מחקר אמפירי:
+כל הערכים בטבלה ובאיור מחושבים ישירות מן המודל המוגדר.
+\end{abstract}
+\section{המודל והנחותיו}
+יהי $a$ יעד ממשי קבוע, ויהי $x$ משתנה החלטה ממשי. הפרמטר $\lambda$,
+שאינו שלילי, קובע את משקלה של ענישה ריבועית. פונקציית המטרה היא
+\begin{equation}\label{eq:objective}
+Q_\lambda(x)=(x-a)^2+\lambda x^2,\qquad \lambda\geq 0.
+\end{equation}
+האיבר הראשון מודד סטייה מן היעד; האיבר השני מטיל ענישה על גודל ההחלטה.
+משוואה~\eqref{eq:objective} מגדירה את המודל המשמש לאורך המסמך.
+בדוגמה חסרת ממדים זו אין יחידות מדידה או שגיאות תצפית.
+לרקע כללי באופטימיזציה קמורה אפשר לעיין אצל
+\en{Boyd and Vandenberghe}~\cite{boyd2004}.
+\section{פתרון ומשמעות}
+נגזור את פונקציית המטרה ונאסוף איברים. שלב הביניים אינו זקוק למספר:
+\begin{align*}
+Q'_\lambda(x)&=2(x-a)+2\lambda x\\
+             &=2(1+\lambda)x-2a.
+\end{align*}
+נקודת האפס של הנגזרת היא
+\begin{equation}\label{eq:solution}
+x_\lambda^\star=\frac{a}{1+\lambda}.
+\end{equation}
+\begin{paperlemma}\label{lem:minimum}
+לכל $a$ ממשי ולכל $\lambda\geq 0$, הנקודה שבמשוואה~\eqref{eq:solution}
+היא נקודת המינימום הגלובלי היחידה של פונקציית המטרה
+שבמשוואה~\eqref{eq:objective}.
+\end{paperlemma}
+\begin{proof}
+השלמה לריבוע נותנת
+\[
+Q_\lambda(x)=(1+\lambda)
+ \left(x-\frac{a}{1+\lambda}\right)^2+
+ \frac{\lambda a^2}{1+\lambda}.
+\]
+האיבר הריבועי אינו שלילי, ומקדם הריבוע חיובי. הוא מתאפס רק בנקודה
+שבמשוואה~\eqref{eq:solution}; מכאן קיום המינימום ויחידותו.
+\end{proof}
+ערך המינימום של פונקציית המטרה הוא תוצאה שימושית נוספת של המודל:
+\begin{equation}\label{eq:minimum-value}
+Q_\lambda(x_\lambda^\star)=\frac{\lambda a^2}{1+\lambda}.
+\end{equation}
+\noeqref{eq:minimum-value}
+כאשר $\lambda=0$, נקודת המינימום היא $a$. הגדלת מקדם הענישה מקרבת אותה
+לאפס. זוהי מסקנה אלגברית מן המודל שבחרנו, ולא ראיה לכך שמקדם ענישה
+מסוים מתאים לנתוני מדידה.
+\section{ערכים להמחשה}
+נבחר $a=2$. את הערכים שב\autoref{tab:penalties} מקבלים מהצבת כל פרמטר
+במשוואה~\eqref{eq:solution}, ולאחר מכן מחישוב ערכה של
+פונקציית המטרה~\eqref{eq:objective} בנקודת המינימום.
+\begin{center}
+\begin{tabular}{ccc}
+\toprule
+$\lambda$ & $x_\lambda^\star$ & $Q_\lambda(x_\lambda^\star)$\\
+\midrule
+0 & 2 & 0\\
+1 & 1 & 2\\
+3 & $1/2$ & 3\\
+\bottomrule
+\end{tabular}
+\tabcap{ערכים מדויקים להמחשה עבור $a=2$.\label{tab:penalties}}
+\end{center}
+\autoref{fig:quadratic} מציג את המקרה $\lambda=1$. כיווני הצירים
+והקואורדינטות המתמטיות שומרים על משמעותם הרגילה בשתי השפות.
+\begin{tikzpic}
+\begin{tikzpicture}[x=1.3cm,y=0.38cm,>=Stealth]
+\draw[->] (-0.6,0) -- (2.85,0) node[right] {$x$};
+\draw[->] (-0.5,0) -- (-0.5,7.7) node[above] {$Q_1(x)$};
+\foreach \x in {0,1,2} {
+  \draw (\x,0.12) -- (\x,-0.12) node[below] {$\x$};
+}
+\foreach \y in {2,4,6} {
+  \draw (-0.44,\y) -- (-0.56,\y) node[left] {$\y$};
+}
+\draw[thick,domain=-0.5:2.5,samples=61] plot (\x,{2*(\x-1)^2+2});
+\fill (1,2) circle[radius=1.6pt];
+\node[anchor=south] at (1,4.8) {\h{מינימום}};
+\draw[->] (1,4.6) -- (1,2.14);
+\end{tikzpicture}
+\end{tikzpic}
+\figcap{פונקציית המטרה עבור $a=2$ ו־$\lambda=1$, עם מינימום ב־$x=1$.\label{fig:quadratic}}
+\section{תחום התוקף}
+החישוב מוכיח תוצאה מדויקת עבור פונקציה ריבועית מוגדרת אחת.
+יישום רגולריזציה בבעיה רחבה יותר מחייב גם הצדקה של המודל, יחידות מתאימות
+ובחירה מנומקת של מקדם הענישה. החלטות אלה אינן נובעות מן הדוגמה לבדה.
+\phantomsection
+\addcontentsline{toc}{section}{\refname}
+\begin{thebibliography}{9}
+\bibitem{boyd2004}
+\en{Stephen Boyd and Lieven Vandenberghe.
+\textit{Convex Optimization}. Cambridge University Press, 2004.}
+\end{thebibliography}
+\end{document}

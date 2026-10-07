@@ -1,0 +1,144 @@
+% ============================================================================
+% example_figures.tex — smoke test for the FIGURE / LISTING / QUOTE setup (since v3.4).
+% Inputs the REAL preamble.tex, so compiling it tests the actual environment.
+%
+%   lualatex -interaction=nonstopmode example_figures.tex   (run via build.sh)
+%   python3 ../scripts/check_bidi_figures.py example_figures.tex   # must be clean
+%
+% By design it exercises every mixed-direction edge that hides a bug, so a regression is
+% VISIBLE on the page rather than silent:
+%   - a TikZ node mixing Hebrew + Latin + parens (must read forward, not UPC)
+%   - bare-Latin TikZ nodes inside the LTR island (Datapath, Control)
+%   - a code listing INSIDE a box (must sit inside the border, not spill left)
+%   - a \code{} frametitle with a trailing ';' (must stay at the end)
+%   - gershayim ״ quotes (must be symmetric, not “ ”)
+%   - a Hebrew label under a brace via \text{\h{...}} (math-mode escape)
+% ============================================================================
+\input{preamble.tex}
+
+\begin{document}
+
+\begin{center}\Large\textbf{\h{בדיקת דיאגרמות, קוד וגרשיים}}\end{center}
+
+\noindent
+זוהי בדיקת עשן ל\textbf{כיוון מעורב}. אם תווית לטינית בדיאגרמה יוצאת הפוכה
+(למשל ״\en{Datapath}״ כ-\en{htapataD}), או שסוגריים שוקפו, או שהקוד חורג מהמסגרת —
+משהו בפרמבל נשבר. גרשיים כאן צריכים להיראות סימטריים: ״כך״, לא בסגנון אנגלי.
+
+% ---- (1) mixed-label TikZ diagram: Hebrew + \en-isolated Latin + bare Latin --
+\subsection*{\h{דיאגרמת רכיבים — תוויות מעורבות}}
+\begin{tikzpic}
+\begin{tikzpicture}[font=\small,>={Latex[length=2.5mm]}]
+  \node[draw,thick,rounded corners,fill=cBlueBg,minimum width=4.4cm,minimum height=2.4cm] (cpu) {};
+  \node[anchor=north,font=\small\bfseries] at (cpu.north) {\h{מעבד \en{(CPU)}}};   % \en isolates (CPU)
+  \node[draw,fill=cPurpleBg,rounded corners,minimum width=1.7cm,minimum height=0.8cm] (dp) at ($(cpu.center)+(-0.95,-0.2)$) {\en{Datapath}};  % bare Latin in LTR island
+  \node[draw,fill=cAmberBg,rounded corners,minimum width=1.5cm,minimum height=0.8cm] (ct) at ($(cpu.center)+(1.0,-0.2)$) {\en{Control}};
+  \node[draw,thick,rounded corners,fill=cGreenBg,minimum width=2.4cm,minimum height=1.1cm,right=2.2cm of cpu] (mem) {\h{זיכרון}};
+  \draw[<->,thick] (cpu.east) -- (mem.west);
+\end{tikzpicture}
+\end{tikzpic}
+
+% ---- (2) multi-line node needs align=center -------------------------------
+\subsection*{\h{צומת רב-שורתי}}
+\begin{tikzpic}
+\begin{tikzpicture}[font=\footnotesize,node distance=8mm,>={Latex[length=2mm]}]
+  \node[draw,thick,rounded corners,fill=cBlueBg,align=center] (a) {Instruction\\Memory};
+  \node[draw,thick,rounded corners,fill=cGreenBg,align=center,right=of a] (b) {Register\\File};
+  \draw[->] (a) -- (b);
+\end{tikzpicture}
+\end{tikzpic}
+
+% ---- (3) code listing INSIDE a box, with a \code{} frametitle --------------
+\subsection*{\h{רשימת קוד בתוך קופסה}}
+\begin{exbox}[frametitle={\h{דוגמה} — \code{if (i==j) f=g+h; else f=g-h;}}]
+\h{המשתנים} \en{\code{f}, \code{g}} \h{שמורים ברגיסטרים} \en{\code{\$s0}, \code{\$s1}}:
+\begin{asmblock}
+\begin{lstlisting}[style=asm]
+      bne  $s3, $s4, Else   # if (i != j) skip the then-part
+      add  $s0, $s1, $s2    # f = g + h
+      j    Exit             # skip the else-part
+Else: sub  $s0, $s1, $s2    # f = g - h
+Exit:
+\end{lstlisting}
+\end{asmblock}
+\h{הפס הכחול נשאר בתוך המסגרת; מספרי שורות מושבתים כאן בכוונה כדי שלא ייחתכו.}
+\end{exbox}
+
+% ---- (3b) keybox: per-step lines + assignments as clean \code{} units ------
+\subsection*{\h{הצבות בקרה כיחידות} \code{name=val}}
+\begin{keybox}[frametitle={\code{add \$rd,\$rs,\$rt}}]
+\textbf{\en{ID}:} \h{קרא} \en{\code{\$rs}, \code{\$rt}}.\\
+\textbf{\en{EX}:} \h{ה-ALU מחשב} \code{\$rs + \$rt}.\\[3pt]
+% v3.42.0: a 2+ name=value list is STRUCTURE, not a prose island (it would
+% tear at an internal space -> BREAKABLE-VALUE-ISLAND). Own \codeline:
+\textbf{\h{אותות בקרה:}}
+\codeline{RegDst=1, ALUOp=10, RegWrite=1}
+\end{keybox}
+\noindent\h{רשימת רגיסטרים כיחידה:} \code{\$imm1/\$imm2}.\\
+\h{ביטוי בסוגריים שכולו לטיני:} \en{(R-type, funct = 34, \texttt{\$t0}=8)}.\\
+% Latin token before "(" in Hebrew mirrors the parens -> \en{} the paren:
+\h{ראשי-תיבות לפני סוגר:} \textbf{CPI} \en{(Cycles Per Instruction)};\quad
+\h{כותרת:} \en{R (Register)}.\quad
+% Hebrew before "(" is already fine -- do NOT wrap:
+\h{עברית לפני סוגר תקין:} \h{צנרת} (pipelining).\\
+% multi-item code list in parens prints reversed unless wrapped as one LTR run:
+\h{רשימת קוד:} \en{(\texttt{addi}, \texttt{lw}, \texttt{sw})}.\\
+% MIPS addressing: in v3.7 \texttt is LTR-isolated, so parens inside it are safe
+% even with plain \texttt{}. \code{} (shown here) is the explicit alias.
+\h{מיעון \en{MIPS} עם סוגריים (\en{\textbackslash texttt} בטוח מ-3.7):}
+\code{lw \$t0,0(\$s0)} \h{ובכתיבה בסוגריים} (\code{lw \$2,20(\$1)}) \h{— תקין.}
+
+% ---- (4) the six boxes + gershayim in prose -------------------------------
+\begin{defbox}[frametitle={\h{הגדרה — בדיקת קופסה}}]
+\h{קופסת הגדרה. מונח לטיני בתוך עברית כמו} \en{cache} \h{לא אמור לצאת tofu.}
+\end{defbox}
+\begin{notebox}[frametitle={\h{הערה}}]
+\h{גרשיים עבריים: ״מקרה שכיח״ צריך להיראות סימטרי.}
+\end{notebox}
+
+% ---- (5) math-mode escape: Hebrew label under a brace ---------------------
+\subsection*{\h{תווית עברית במתמטיקה}}
+\[ T \;=\; \underbrace{T_{\mathrm{seek}}}_{\text{\h{הזזת ראש}}}
+        \;+\; \underbrace{T_{\mathrm{rot}}}_{\text{\h{סיבוב}}}. \]
+% ---- (6) pgfplots: a CORRECT axis — note the mandatory \end{axis} ----------
+% (If you omit \end{axis}, you get "Extra }" cascading to a far-away
+% \end{otherlanguage}; check_bidi_figures.py flags the unclosed line.)
+\subsection*{\h{גרף pgfplots — תבנית תקינה}}
+\begin{tikzpic}
+\begin{tikzpicture}
+\begin{axis}[width=9cm,height=5cm,xlabel={$n$},ylabel={$T(n)$},
+  domain=1:8,samples=60,axis lines=left,
+  legend style={font=\footnotesize,at={(0.03,0.97)},anchor=north west}]
+  \addplot[thick]{ x^2 };          \addlegendentry{$n^2$}
+  \addplot[thick,dashed]{ 2^x };   \addlegendentry{$2^n$}
+\end{axis}                         % ← mandatory; the #1 figure-compile bug if missing
+\end{tikzpicture}
+\end{tikzpic}
+% \figcap = the \tabcap twin: a numbered, \ref-able caption BELOW the figure.
+% Put \label FIRST, inside the argument, so it binds to the fig counter (a
+% manual gray "איור:" line with a \label inside binds to the last equation
+% instead — the v3.34 MANUAL-FIG-CAPTION defect).
+\figcap{\label{fig:growth}\h{קצב גדילה:} $n^2$ \h{מול} $2^n$ \h{בסקאלה לינארית.}}
+\noindent\h{הגרף שלמעלה (איור~\ref{fig:growth}) ממחיש את הפער האקספוננציאלי.}
+
+% ---- (7) decision tree: per-LEVEL sibling distance (or nodes overlap) ------
+% A `child` tree uses ONE sibling distance for all levels by default, so a deep
+% node and a shallow leaf collide. Set `level N/.style={sibling distance=…}`
+% per level (wider near the root). Hebrew node text in \h{}, math is fine; the
+% yes/no edge labels are bare Latin in the LTR `tikzpic` island.
+\subsection*{\h{עץ החלטה — מרווח אחים לפי רמה}}
+\begin{tikzpic}
+\begin{tikzpicture}[every node/.style={font=\small},level distance=15mm,
+  level 1/.style={sibling distance=46mm},
+  level 2/.style={sibling distance=26mm},
+  edge from parent/.style={draw,-{Latex[length=2mm]}}]
+\node[draw,rounded corners,fill=cBlueBg] {\h{גיל מעל $50$?}}
+  child {node[draw,rounded corners,fill=cGreenBg] {\h{לחץ־דם מעל $140$?}}
+    child {node[draw,fill=cRedBg]   {\h{סיכון}} edge from parent node[left,xshift=-1mm]{yes}}
+    child {node[draw,fill=cGreenBg] {\h{תקין}}  edge from parent node[right,xshift=1mm]{no}}
+    edge from parent node[left,xshift=-1mm]{yes}}
+  child {node[draw,fill=cGreenBg] {\h{תקין}} edge from parent node[right,xshift=1mm]{no}};
+\end{tikzpicture}
+\end{tikzpic}
+
+\end{document}

@@ -1,0 +1,40 @@
+\def\lakitlanguageprofile{english}
+\def\lakitmainlanguage{english}
+\def\lakitdocumentclass{article}
+\def\lakitclassoptions{11pt,a4paper}
+\def\lakitgeometryoptions{margin=2.2cm,headheight=14pt}
+\def\lakitlinespread{1.18}
+\input{preamble.tex}
+\input{document_components.tex}
+\input{reader_theme.tex}
+\hypersetup{pdftitle={Technical document},pdfauthor={}}
+\begin{document}
+% Replace sample content, title, and metadata before delivery.
+{\LARGE\sffamily\bfseries Technical document}\par\medskip
+\section{Question and assumptions}
+Define what is being calculated, which inputs are given, and the scope of the
+analysis. This example uses a weighted sum with known weights.
+\section{Definition and derivation}
+\begin{equation}\label{eq:weighted}
+y=\sum_{i=1}^{n}w_i x_i.
+\end{equation}
+In \eqref{eq:weighted}, $x_i$ is an input value, $w_i$ its weight, and $n$ the
+number of values.
+\begin{exbox}[frametitle={A simple check}]
+For $n=2$ and $w_1=w_2=1$, the result is $y=x_1+x_2$.
+\end{exbox}
+\section{Example implementation}
+\begin{codebox}[frametitle={Python}]
+\begin{asmblock}
+\begin{lstlisting}[style=pystyle]
+def weighted_sum(values, weights):
+    if len(values) != len(weights):
+        raise ValueError("Length mismatch")
+    return sum(w * x for w, x in zip(weights, values))
+\end{lstlisting}
+\end{asmblock}
+\end{codebox}
+\section{Validation and limitations}
+Check dimensions, signs, and edge cases. Successful compilation does not validate
+the mathematical or scientific content.
+\end{document}

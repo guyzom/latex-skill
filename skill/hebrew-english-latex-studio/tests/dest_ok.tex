@@ -1,0 +1,59 @@
+% NEGATIVE twin of tests/dest_broken.tex — R6 must be SILENT on this file.
+%
+% The two TABLE shapes are character-for-character the ones the broken twin
+% carries (a tabular 3pt over \linewidth, and three tabulars stacked in one
+% tablebox).  The ONLY difference is that here the v3.79 \end{tablebox}
+% corrector is armed instead of neutered.  So this file is not just a
+% false-positive control: it is the REGRESSION PIN for the v3.79 mechanism.
+% Remove \lakintabboxclose (or its startinnercode/endinnercode wiring, or the
+% lakintab Lua) from the preamble and this fixture starts failing R6a with two
+% DEST-INSIDE-TABLEBOX lines.
+%
+% The FIGURE shape is the canonical island form (tikzpic), the one the
+% preamble measures — as against the broken twin's bare \begin{center}.
+\input{../assets/preamble.tex}
+\begin{document}
+\chapter{שער היעדים}
+
+\section{טבלה רחבה מדי — מתוקנת בסגירת הקופסה}
+טקסט לפני.
+
+\begin{tablebox}\centering\small
+\begin{tabular}{@{}p{\dimexpr\linewidth+3pt\relax}@{}}
+\toprule
+\h{שורה ראשונה} \\
+\h{שורה שנייה} \\
+\h{שורה שלישית} \\
+\h{שורה רביעית} \\
+\h{שורה חמישית} \\
+\bottomrule
+\end{tabular}
+\tabcap{\label{tbl:wide}טבלה רחבה מ־\en{linewidth} — היעד מעל המסגרת}
+\end{tablebox}
+
+\section{שלוש טבלאות בקופסה אחת — מתוקנות בסגירת הקופסה}
+\begin{tablebox}\centering\small
+\begin{otherlanguage}{english}
+\begin{tabular}{|c|c|}\hline A & B \\ \hline 1 & 2 \\ \hline\end{tabular}
+
+\smallskip
+\begin{tabular}{|c|c|}\hline C & D \\ \hline 3 & 4 \\ \hline\end{tabular}
+
+\smallskip
+\begin{tabular}{|c|c|}\hline E & F \\ \hline 5 & 6 \\ \hline\end{tabular}
+\end{otherlanguage}
+\tabcap{\label{tbl:three}שלוש טבלאות — היעד מעל המסגרת}
+\end{tablebox}
+
+\section{איור בתוך אי}
+\begin{tikzpic}
+\begin{tikzpicture}
+\draw[fill=black] (0,0) rectangle (7,5.6);
+\end{tikzpicture}
+\end{tikzpic}
+\figcap{\label{fig:island}איור בתוך \en{tikzpic} — היעד מעל האיור}
+
+ראו טבלה \ref{tbl:wide}.
+ראו טבלה \ref{tbl:three}.
+ראו איור \ref{fig:island}.
+\end{document}

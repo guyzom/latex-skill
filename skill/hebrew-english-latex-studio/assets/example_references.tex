@@ -1,0 +1,53 @@
+% Synthetic demonstration of paragraph boundaries, reference identity and locale.
+\def\lakitdocumentclass{article}
+\def\lakitclassoptions{11pt,a4paper}
+\def\lakitgeometryoptions{margin=2.15cm,headheight=14pt}
+\def\lakitlinespread{1.16}
+\input{preamble.tex}
+\input{reader_theme.tex}
+\input{document_components.tex}
+\hypersetup{pdftitle={אותה הפניה בכל הקשר},pdfauthor={},pdfsubject={הדגמת כיווניות והפניות לגרסה 4.11.0}}
+\begin{document}
+{\small\sffamily גרסה \en{4.11.0}\quad מסמך הדגמה סינתטי}\par\medskip
+{\LARGE\sffamily\bfseries אותה הפניה, בכל הקשר}\par\smallskip
+{\large עברית ואנגלית, נוסחאות וקישורים פנימיים}\par\bigskip
+מסמך טכני צריך לשמור על אותה משמעות גם כאשר עוברים בין שפות. מספר של
+משוואה אינו אמור להתהפך בתוך נוסחה אחרת, והשם של טבלה צריך להתאים לשפה שבה
+נכתבת ההפניה. הנתונים כאן נועדו להדגמה בלבד.
+\section{מקור אחד להפניה}
+נגדיר פונקציה פשוטה. המספר הדו־ספרתי נבחר בכוונה כדי שניתן יהיה להבחין בין
+המספר הנכון \en{12} לבין היפוך הספרות \en{21}.
+\setcounter{equation}{11}
+\begin{equation}\label{eq:rule}
+f(x)=2x+1.
+\end{equation}
+הפניה רגילה: לפי \eqref{eq:rule}, הצבת \en{2} נותנת \en{5}. גם כשההפניה
+מופיעה בתוך יישור מתמטי, היא נשארת אותו מספר וקישורה מוביל לאותה משוואה:
+\begin{align*}
+f(2)&=2\cdot2+1=5 &&\text{\eqref{eq:rule}},\\
+f(3)&=2\cdot3+1=7 &&\text{\eqref{eq:rule}}.
+\end{align*}
+\section{מעבר שפה בלי תלות בשורה ריקה}
+הפסקה העברית הזאת מסתיימת ממש לפני פתיחת הסביבה האנגלית במקור.
+\begin{englishprose}
+\noindent Equation \eqref{eq:rule} defines the same rule in both languages. The paragraph
+starts at the left margin. The data appear in \autoref{tab:values}, on
+\autopageref{tab:values}; the link still points to the original table.
+\end{englishprose}
+כשחוזרים לעברית, חוזרים גם כיוון הקריאה ושמות ההפניות. התוצאות מופיעות
+ב־\autoref{tab:values}, ב־\autopageref{tab:values}.
+\begin{tablebox}\centering
+\begin{tabular}{@{}cc@{}}\toprule
+\en{$f(x)$}&\en{$x$}\\\midrule
+\en{5}&\en{2}\\
+\en{7}&\en{3}\\
+\en{9}&\en{4}\\\bottomrule
+\end{tabular}
+\tabcap{\label{tab:values}ערכי הדגמה של הפונקציה}
+\end{tablebox}
+\begin{notebox}[frametitle={מה נבדק כאן}]
+המספר המודפס, סדר הספרות, הסוגריים, שפת ההפניה ויעד הקישור נבדקים בנפרד.
+קישור שמוביל לעמוד קיים עדיין יכול להוביל לאובייקט הלא נכון. הצלחת הבנייה
+אינה תחליף לקריאת התוכן ולסקירה חזותית.
+\end{notebox}
+\end{document}

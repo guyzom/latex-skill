@@ -1,0 +1,27 @@
+% tex_errors_ctx_latelua.log.txt — context POSITIVE control (v4.26.0).
+% Real log tail: a \latelua error at shipout. The Lua message is glued to the
+% end of the shipout output line, right after "{.../pdftex.map}".
+(Font)              scaled to size 10.26929pt on input line 5.
+[1
+
+{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}[\latelua]:1: late boom
+stack traceback:
+	[C]: in function 'error'
+	[\latelua]:1: in main chunk.
+<argument> ...not:N \tex_shipout:D \box_use:N \l_shipout_box 
+                                                  \__shipout_drop_firstpage_...
+l.5 \end{document}
+                
+
+Here is how much of LuaTeX's memory you used:
+ 42744 strings out of 476553
+ 125167,1977958 words of node,token memory allocated
+ 2361 words of node memory still in use:
+   38 hlist, 22 vlist, 2 rule, 3 local_par, 7 dir, 64 glue, 36 kern, 7 penalty, 
+19 glyph, 84 attribute, 104 glue_spec, 32 attribute_list, 1 temp, 2 if_stack, 6 
+write, 3 late_lua, 6 pdf_dest, 15 pdf_colorstack nodes
+   avail lists: 1:1,2:5,5:2,8:1,10:1
+ 63634 multiletter control sequences out of 65536+600000
+ 57 fonts using 7667183 bytes
+ 107i,5n,139p,1978b,647s stack positions out of 10000i,1000n,20000p,200000b,200000s
+!  ==> Fatal error occurred, no output PDF file produced!

@@ -1,0 +1,20 @@
+% render_eqref_broken.tex — pins the v3.24.1→v3.28.0 regression: an
+% UNCONDITIONAL english-wrap in \maketag@@@ mirrors the parens of every
+% inline \eqref in RTL prose — ")1(" instead of "(1)" — while compiling
+% clean and passing every source-level linter. The render gate's R4
+% (MIRRORED-PAREN-DIGITS) must FAIL this PDF; the fixed preamble (v3.28.1,
+% display-env-conditional wrap) renders the same source correctly and R4
+% stays quiet on it (exercised by T3 on example_math).
+\input{../assets/preamble.tex}
+\makeatletter
+% Restore the historical reference path as well: v4.11 isolates public eqref
+% from ambient makers. A negative control must remove that protection before
+% reapplying the historical unconditional tag patch. Never weaken R4 instead.
+\protected\def\eqref#1{\HEB@nativeeqref{#1}}
+% re-apply the regressed (pre-v3.28.1) patch verbatim:
+\def\maketag@@@#1{\ORIGmaketag@@@{\foreignlanguage{english}{#1}}}
+\makeatother
+\begin{document}
+\begin{equation}\label{eq:rb:one} a = b + c \end{equation}
+הפיתוח נובע ממשוואה \eqref{eq:rb:one} בהצבה ישירה, כמפורט בהמשך הפרק.
+\end{document}

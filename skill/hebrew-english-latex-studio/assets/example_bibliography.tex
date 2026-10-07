@@ -1,0 +1,45 @@
+\def\lakitdocumentclass{article}
+\def\lakitclassoptions{11pt,a4paper}
+\def\lakitgeometryoptions{margin=2.1cm,headheight=14pt}
+\def\lakitlinespread{1.16}
+\input{preamble.tex}
+\input{document_components.tex}
+\input{reader_theme.tex}
+\hypersetup{pdftitle={מקורות שקוראים נכון},pdfauthor={},pdfsubject={הדגמה דו־לשונית לגרסה 4.9.1}}
+\begin{document}
+{\small\sffamily גרסה \en{4.9.1} \quad דוגמה לשימוש יומיומי}\par\medskip
+{\LARGE\sffamily\bfseries מקורות שקוראים נכון}\par\smallskip
+{\large הפניה קצרה, רשומה ברורה וקישור למקום הנכון}\par\bigskip
+המספר שבסוגריים מפנה לרשומה ברשימת המקורות. שם המקור מסביר מהו המסמך,
+והקישור מאפשר להגיע אליו. בדוגמה זו משתמשים בשלושה עמודי תיעוד רשמיים;
+אין כאן מקורות מדעיים מומצאים או מספרי עמודים שלא נבדקו.
+\section{הפניה צמודה לטענה}
+חבילת \en{Babel} מספקת תשתית רב־לשונית למסמכי \en{LaTeX}, ובה גם תמיכה
+בכתיבה מימין לשמאל \cite{babel}. חבילת \en{hyperref} מוסיפה קישורים
+להפניות במסמך \cite{hyperref}.
+
+שני המקורות ניתנים לציטוט יחד \cite{babel,hyperref}. אפשר לציין גם את
+ההקשר במילים: \cite[\h{תיאור החבילה}]{babel}. ההפניה החוזרת נשארת קשורה
+לאותו מקור, בלי להחליף את המפתח או להפוך את סדר המספרים.
+\section{קישור שמסביר למה הוא כאן}
+תיעוד הליבה של \en{LaTeX} מרכז מדריכים למחברים ולכותבי חבילות \cite{latex}.
+ההערה שמתחת לפסקה מציגה את הקישור כמקור ולא כהמשך מקרי של ההסבר.
+\sourcelink{https://www.latex-project.org/help/documentation/}{תיעוד הליבה של \en{LaTeX}}{נקודת פתיחה למדריכי מחברים, למתמטיקה ולתיעוד של המנגנון.}
+\begin{englishprose}
+A source annotation follows the surrounding language. Its role remains explicit,
+including in monochrome printing.
+\sourcelink{https://ctan.org/pkg/babel}{Babel package documentation}{Package overview and links to the user guide and source repository.}
+\end{englishprose}
+\begin{notebox}[frametitle={מה עדיין צריך לבדוק}]
+הפניה תקינה מבחינה טכנית אינה מוכיחה שהמקור תומך בטענה. יש לקרוא את המקור,
+לבדוק את פרטי הרשומה ולוודא שהקישור מוביל לעמוד שהתכוונו לצטט.
+\end{notebox}
+\begin{thebibliography}{9}
+\bibitem{babel}\en{Babel. Multilingual support for LaTeX. CTAN package page.
+\href{https://ctan.org/pkg/babel}{Open package documentation}.}
+\bibitem{hyperref}\en{Hyperref. Extensive support for hypertext in LaTeX. CTAN package page.
+\href{https://ctan.org/pkg/hyperref}{Open package documentation}.}
+\bibitem{latex}\en{The LaTeX Project. Core Documentation.
+\href{https://www.latex-project.org/help/documentation/}{Open author and developer guides}.}
+\end{thebibliography}
+\end{document}

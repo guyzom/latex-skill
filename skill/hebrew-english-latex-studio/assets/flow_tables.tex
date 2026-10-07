@@ -1,0 +1,93 @@
+% flow_tables.tex — opt-in, single-column Hebrew or English multipage tables.
+% Source columns follow the surrounding language (first right in Hebrew, left in English).
+% H{width}: Hebrew prose; E{width}: English text; N{width}: LTR numeric/token cell.
+% Width fractions apply to \flowtablewidth, which excludes intercolumn padding.
+% <hllpdf:architecture-guard>
+\ifdefined\hllpdfcoreloaded\else
+  \errmessage{hllpdf: flow_tables.tex requires preamble.tex first}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdfflowtablesloaded
+  \errmessage{hllpdf: flow_tables.tex loaded more than once}
+  \expandafter\endinput
+\fi
+\def\hllpdfflowtablesloaded{1}
+% </hllpdf:architecture-guard>
+\usepackage{longtable}
+\usepackage{collcell}
+% Babel's normal output routine starts with bodydir=pagedir. longtable installs
+% its own output routine and drops that normalization. If the current table
+% language differs from the document base, its FIRST page then packs off canvas
+% (later pages may look correct). Restore the same narrowly scoped normalization;
+% row/cell direction and the source column order remain unchanged.
+% <hllpdf:flow-output-direction>
+\makeatletter
+\pretocmd{\LT@output}{\bodydir\pagedir}{}{%
+  \PackageError{hebrew-lualatex-pdf}{Cannot normalize longtable output direction}%
+    {Unsupported longtable output routine.}}
+\makeatother
+% </hllpdf:flow-output-direction>
+\newlength{\flowtablewidth}
+% Collecting the cell before applying \en avoids raw hbox digit reversal.
+% \selectlanguage in a p-cell was rejected: it created an extra empty paragraph.
+\makeatletter
+\@for\hllpdfcol:=H,E,N\do{%
+  \ifcsname NC@find@\hllpdfcol\endcsname
+    \PackageError{hebrew-lualatex-pdf}{flow_tables column name \hllpdfcol\space is already defined}{Rename the existing column type before loading flow_tables.tex.}%
+  \fi}
+\makeatother
+\newcolumntype{H}[1]{>{\iflanguage{hebrew}{\raggedright}{\raggedleft}\arraybackslash\collectcell\h}p{#1}<{\endcollectcell}}
+\newcolumntype{E}[1]{>{\iflanguage{hebrew}{\raggedleft}{\raggedright}\arraybackslash\collectcell\en}p{#1}<{\endcollectcell}}
+\newcolumntype{N}[1]{>{\iflanguage{hebrew}{\raggedright}{\raggedleft}\arraybackslash\collectcell\en}p{#1}<{\endcollectcell}}
+\makeatletter
+% flowtable{column count}{column specification}{caption}{label}{heading row}
+% The heading argument excludes its trailing \\; the environment owns rules,
+% repeated heads/feet and one caption/list entry. Body rows end with \\.
+\newenvironment{flowtable}[5]{%
+  \par
+  \ifinner
+    \PackageError{hebrew-lualatex-pdf}{flowtable requires outer one-column mode}{Do not place flowtable in a box, minipage or float.}%
+  \fi
+  \if@twocolumn
+    \PackageError{hebrew-lualatex-pdf}{flowtable requires one-column mode}{Use one-column outer text.}%
+  \fi
+  \ifnum\@listdepth>0
+    \PackageError{hebrew-lualatex-pdf}{flowtable cannot be nested in a list}{Place the table after the list.}%
+  \fi
+  \ifnum#1<1
+    \PackageError{hebrew-lualatex-pdf}{flowtable column count must be positive}{Use the real number of columns.}%
+  \fi
+  % Native longtable has TOP captions: use native table destinations, not the
+  % core's bottom-caption tbl.* geometry contract. Share the actual tbl counter.
+  \let\c@table\c@tbl
+  \let\thetable\thetbl
+  % tbl was declared before hyperref and its destination formatter may still
+  % be lazy. Resolve it BEFORE aliasing: aliasing an undefined formatter loses
+  % the section/chapter prefix and gives every section's first table table.1.
+  \HyCnt@ProvideTheHCounter{tbl}%
+  \let\theHtable\theHtbl
+  \def\LTcaptype{table}%
+  \def\fnum@table{\mbox{\tablename~\en{\thetable}}}%
+  \setlength{\flowtablewidth}{\dimexpr\linewidth-2\tabcolsep*(#1-1)\relax}%
+  \setlength{\LTcapwidth}{\linewidth}%
+  \setlength{\LTleft}{0pt}%
+  \setlength{\LTright}{0pt}%
+  \renewcommand{\arraystretch}{1.15}%
+  \longtable{@{}#2@{}}%
+  \caption[#3]{#3}\label{#4}\\
+  \toprule
+  #5\\
+  \midrule
+  \endfirsthead
+  \multicolumn{#1}{c}{\iflanguage{english}{Table \en{\thetable} — continued}{\h{טבלה \en{\thetable} — המשך}}}\\
+  \toprule
+  #5\\
+  \midrule
+  \endhead
+  \midrule
+  \multicolumn{#1}{c}{\iflanguage{english}{Continued on next page}{\h{המשך בעמוד הבא}}}\\
+  \endfoot
+  \bottomrule
+  \endlastfoot
+}{\endlongtable}
+\makeatother

@@ -1,0 +1,34 @@
+\def\lakitdocumentclass{article}
+\def\lakitclassoptions{11pt,a4paper}
+\def\lakitgeometryoptions{margin=2.2cm,headheight=14pt}
+\def\lakitlinespread{1.16}
+\input{preamble.tex}
+\input{document_components.tex}
+\input{flow_tables.tex}
+\input{reader_theme.tex}
+\hypersetup{pdftitle={דוח נתונים},pdfauthor={}}
+\begin{document}
+{\LARGE\sffamily\bfseries דוח נתונים}\par\medskip
+% Replace sample values and metadata before delivery. These are synthetic values.
+המסמך מציג נתוני דוגמה בלבד. לפני הסקת מסקנות יש לתעד את מקור הנתונים,
+להגדיר את היחידות ולוודא שכל רשומה נכללה פעם אחת.
+\section{הגדרת המשתנים}
+$x_i$ הוא ערך הרשומה ה־$i$, ו־$n$ הוא מספר הרשומות. לצורך הדוגמה בלבד
+נחשב ממוצע לא משוקלל:
+\begin{equation}\label{eq:mean}
+\bar{x}=\frac{1}{n}\sum_{i=1}^{n}x_i.
+\end{equation}
+\section{נתונים}
+\begin{flowtable}{3}{N{.12\flowtablewidth} N{.18\flowtablewidth} H{.70\flowtablewidth}}
+{רשומות לדוגמה}{tab:measurements}{\h{מזהה} & \h{ערך} & הערה}
+001 & -12.50 & ערך שלילי נשמר כיחידת טקסט משמאל לימין.\\
+002 & 0.00 & אפס הוא ערך נתון ולא סימון לערך חסר.\\
+003 & 4.25 & כאן מתעדים תנאי מדידה או הסבר על הרשומה.\\
+004 & 8.00 & תיאור ארוך יכול לרדת שורה בתוך התא בלי להקטין את הגופן.\\
+005 & 13.75 & הוספת רשומות מאפשרת לטבלה להמשיך אוטומטית לעמוד הבא.\\
+006 & 16.50 & הכותרות חוזרות בכל עמוד, אך הרישום ברשימת הטבלאות נשאר יחיד.\\
+\end{flowtable}
+\section{בדיקה ומסקנות}
+ב־\autoref{tab:measurements} יש שש רשומות. הצבתן ב־\eqref{eq:mean} נותנת
+$\bar{x}=5$. במסמך אמיתי יש לבדוק גם ערכים חסרים, יחידות ומקור הנתונים.
+\end{document}

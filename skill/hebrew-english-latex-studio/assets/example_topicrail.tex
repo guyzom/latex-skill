@@ -1,0 +1,41 @@
+% example_topicrail.tex — minimal demo of the "you are here" progress header.
+% Compile (twice) with lualatex AFTER copying preamble.tex + topicrail.tex here:
+%   cp ../assets/preamble.tex ../assets/topicrail.tex .
+%   lualatex example_topicrail.tex && lualatex example_topicrail.tex
+% Expect: no rail on title/TOC/dividers; a 12-dot rail (current dot enlarged +
+% its label bold-blue) on every chapter-opening and body page.
+\input{preamble.tex}
+\input{topicrail.tex}
+\STnames{יסודות,נתונים,חשיבה,ממד,הסקה,מידול,עצים,רשתות,הכללה,תרגילים,התמונה,נספחים}
+% knobs you can try:  \STrailangle{30}  \STrailwidth{14}  \STdirLTR
+
+\newcommand{\demofill}{מדע הנתונים הוא תהליך של איסוף, ארגון, חקירה ומידול נתונים כדי לענות על שאלות מהעולם. כל פרק הוא יחידת מידע סגורה הבנויה מרעיון, הגדרה ונוסחה ממוספרת. }
+
+\begin{document}
+\pagestyle{empty}                 % front matter: no rail
+\begin{titlepage}\centering\vspace*{4cm}
+  {\sffamily\bfseries\Huge דמו — ציר נושאים\par}\end{titlepage}
+\tableofcontents\clearpage
+\chapter*{מבוא}\addcontentsline{toc}{chapter}{מבוא}
+עמוד מבוא (ללא ציר, כי עוד לא נכנסנו לחלק). \demofill \demofill
+
+\clearpage
+\pagestyle{STtopic}               % turn the rail on; \part as usual from here
+
+\newcommand{\demopart}[2]{\part{#1}\chapter{#2}\demofill \demofill
+  \begin{equation}E=\textstyle\sum_i p_i x_i.\end{equation}\demofill \demofill \demofill}
+
+\demopart{יסודות הסתברותיים}{תוחלת ושונות}
+\demopart{נתונים: איסוף וחקירה}{חקירת נתונים}
+\demopart{חשיבה הסתברותית ומלכודותיה}{משפט בייס}
+\demopart{הקטנת ממד}{ניתוח רכיבים ראשיים}
+\demopart{הסקה סטטיסטית}{בדיקת השערות}
+\demopart{מידול חיזוי}{רגרסיה ליניארית}
+\demopart{שיטות מבוססות שכנים ועצים}{עצי החלטה}
+\demopart{רשתות נוירונים ולמידה עמוקה}{ירידת גרדיאנט}
+\demopart{הכללה ולמידה לא־מפוקחת}{הטיה־שונות}
+\demopart{תרגילים פתורים}{תרגיל לדוגמה}
+\demopart{התמונה הגדולה}{מה מחבר את הכל}
+\appendix
+\demopart{נספחים}{דף נוסחאות}
+\end{document}

@@ -1,0 +1,124 @@
+% ============================================================================
+% topicrail.tex — "you are here" progress rail in the running header (RTL-aware).
+% One dot per TOPIC (= \part). EVERY dot is labelled (small); the current topic
+% is enlarged + its label emphasised. Identical across all pages of a topic.
+% Shown on body AND chapter-opening pages; hidden on front matter & dividers.
+%
+% Setup:
+%   \input{topicrail.tex}
+%   \STnames{יסודות,נתונים,חשיבה,ממד,הסקה,מידול,עצים,רשתות,הכללה,תרגילים,התמונה,נספחים}
+%   \begin{document}
+%   \pagestyle{empty}  ...front matter...   % title / toc / intro: no rail
+%   \pagestyle{STtopic}                      % turn the rail on, then \part{...} as usual
+%
+% Order defaults to the resolved document/base language, not the language of
+% the last body paragraph. \STdirRTL/\STdirLTR override ORDER only. Labels use
+% the document language; wrap minority terms in the core's \en{} / \h{} APIs.
+% Knobs: \STdirRTL/\STdirLTR ; \STrailwidth{15} ; \STrailangle{40}
+% Drives off \value{part} (correct timing). \part is patched so dividers are
+% blank while \chapter openings (style 'plain') keep the rail.
+% ============================================================================
+% Runtime architecture guard: generated from scripts/architecture_contract.py.
+% <hllpdf:architecture-guard>
+\ifdefined\hllpdfcoreloaded\else
+  \errmessage{hllpdf: topicrail.tex requires preamble.tex first}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdfreferenceshellloaded
+  \errmessage{hllpdf: topicrail.tex conflicts with reference_shell.tex}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdftopicrailloaded
+  \errmessage{hllpdf: topicrail.tex loaded more than once}
+  \expandafter\endinput
+\fi
+\def\hllpdftopicrailloaded{1}
+% </hllpdf:architecture-guard>
+\usepackage{fancyhdr}
+\usepackage{etoolbox}
+\newif\ifSTrtl
+% preamble.tex resolves \lakitmainlanguage (including legacy Hebrew defaults)
+% before this shell is loaded. Read it once: local prose must not reorder a
+% page's navigation, and explicit overrides must remain authoritative.
+\ifdefstring{\lakitmainlanguage}{english}{\STrtlfalse}{\STrtltrue}
+\newcommand{\STdirRTL}{\STrtltrue}
+\newcommand{\STdirLTR}{\STrtlfalse}
+\newcounter{STtot}\setcounter{STtot}{1}
+\def\STRW{15}     \newcommand{\STrailwidth}[1]{\def\STRW{#1}}
+\def\STang{40}    \newcommand{\STrailangle}[1]{\def\STang{#1}}
+\definecolor{STon}{HTML}{1F4E79}
+\definecolor{SToff}{HTML}{B9C4D2}
+\definecolor{STtxt}{HTML}{8893A4}
+% register all topic names (comma list, no spaces after commas) and set the total
+\newcounter{STsetc}
+\newcommand{\STnames}[1]{\setcounter{STsetc}{0}%
+  % v3.73: ONE-step expansion, not \xdef. \xdef fully expands the stored name
+  % outside any picture/font/language context, so an argument-taking macro in a
+  % topic name — including the skill's own MANDATORY \en{}/\code{} — was FATAL
+  % with "! Argument of \XKV@d@fine@k@y has an extra }": xkeyval internals the
+  % author never invoked. Doctrine bind: BIDI-1..13 requires \en{} around Latin
+  % in Hebrew prose, so the correct-looking name was exactly the fatal one —
+  % while bare Latin in a rail node is render-correct (measured, correct LTR
+  % order). Names are now stored VERBATIM; plain \gdef was tested and REJECTED
+  % (it stores the loop variable itself: "! Undefined control sequence \STnm").
+  \foreach \STnm in {#1}{\stepcounter{STsetc}%
+    \expandafter\global\expandafter\def
+      \csname STn@\arabic{STsetc}\expandafter\endcsname\expandafter{\STnm}}%
+  \setcounter{STtot}{\value{STsetc}}}
+\newcommand{\STgetname}[1]{\ifcsname STn@#1\endcsname\csname STn@#1\endcsname\fi}
+\newcommand{\STdrawrail}{%
+  \ifnum\value{part}>0
+  \makebox[\headwidth][c]{\foreignlanguage{english}{%
+  \begin{tikzpicture}
+    \edef\STcur{\arabic{part}}%
+    % v3.73: guard the two silent/fatal edges. (1) Fewer than two topics —
+    % including \STnames never called at all (STtot defaults to 1) — was a
+    % FATAL "PGF Math Error: you asked me to divide 15 by 0.0" naming the
+    % user's own \STrailwidth value and neither the rail nor \STnames.
+    % (2) More \part's than names: the current-topic branch was never taken
+    % and the "you are here" marker silently VANISHED (every dot the small
+    % grey off-dot, every label grey Regular — measured), with all gates green.
+    \ifcsname STn@1\endcsname\else
+      \PackageError{topicrail}{\string\STnames\space was never called (or was
+        called with an empty list) - the rail has no topic names}{Call
+        \string\STnames{name1,name2,...} before \string\begin{document}.}\fi
+    \ifnum\value{part}>\value{STtot}
+      \PackageWarning{topicrail}{part \arabic{part} has no \string\STnames\space
+        entry (only \arabic{STtot} declared) - the "you are here" marker is
+        MISSING}\fi
+    \pgfmathsetmacro{\Ntot}{\value{STtot}}%
+    \ifnum\value{STtot}<2
+      \pgfmathsetmacro{\stepx}{0}%
+    \else
+      \pgfmathsetmacro{\stepx}{\STRW/(\Ntot-1)}%
+    \fi
+    \draw[SToff,line width=0.5pt] (0,0) -- (\STRW,0);
+    \foreach \i in {1,...,\Ntot}{%
+      \ifSTrtl \pgfmathsetmacro{\xx}{\STRW-(\i-1)*\stepx}%
+      \else    \pgfmathsetmacro{\xx}{(\i-1)*\stepx}\fi
+      \ifnum\i=\STcur\relax
+        \fill[STon] (\xx,0) circle (2.4pt);
+        \draw[STon,line width=0.6pt] (\xx,0) circle (3.6pt);
+        \node[rotate=\STang,anchor=west,font=\scriptsize\sffamily\bfseries,
+              text=STon,inner sep=2pt] at (\xx,0.16) {\doclang{\STgetname{\i}}};
+      \else
+        \fill[SToff] (\xx,0) circle (1.0pt);
+        \node[rotate=\STang,anchor=west,font=\tiny\sffamily,
+              text=STtxt,inner sep=2pt] at (\xx,0.10) {\doclang{\STgetname{\i}}};
+      \fi
+    }%
+  \end{tikzpicture}}}%
+  \fi}
+\fancypagestyle{STtopic}{%
+  \fancyhf{}\renewcommand{\headrulewidth}{0pt}%
+  \fancyhead[C]{\STdrawrail}\fancyfoot[C]{\thepage}}
+\fancypagestyle{plain}{%                 % chapter-opening pages -> keep the rail
+  \fancyhf{}\renewcommand{\headrulewidth}{0pt}%
+  \fancyhead[C]{\STdrawrail}\fancyfoot[C]{\thepage}}
+\fancypagestyle{STblank}{%               % part-divider pages -> no rail
+  \fancyhf{}\renewcommand{\headrulewidth}{0pt}\fancyfoot[C]{\thepage}}
+\makeatletter
+\patchcmd{\part}{\thispagestyle{plain}}{\thispagestyle{STblank}}{}{%
+  \PackageWarning{topicrail}{could not patch \string\part}}
+\makeatother
+\setlength{\headheight}{50pt}\setlength{\headsep}{14pt}

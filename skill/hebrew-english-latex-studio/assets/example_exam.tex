@@ -1,0 +1,116 @@
+% ============================================================================
+% example_exam.tex — gallery + smoke test for the PURE exam composition.
+% It loads the mechanism core, semantic exam helpers, and clean presentation
+% as separate architecture layers. The legacy clean_variant.tex bundle remains
+% supported, but new examples exercise the ownership boundaries directly.
+%
+%   lualatex -interaction=nonstopmode example_exam.tex   (or via build.sh)
+%   pdftoppm -png -r 150 example_exam.pdf pg   &&   verify: NO colored boxes,
+%   NO "פרק 1" prefix, NO equation numbers except the referenced one.
+%
+% WHAT A CLEAN-VARIANT EXAM DOCUMENT LOOKS LIKE (this file demonstrates all):
+%   * \chapter carries the FULL question title incl. \pts — no "פרק N".
+%   * exbox = the question verbatim; the layer closes it with a rule +
+%     "פתרון:" header automatically. Same exbox interface as the color look.
+%   * equations are UNNUMBERED unless \eqref'd (showonlyrefs) — write
+%     \label + \eqref only where you actually reference.
+%   * \finalans{...} boxes the final value: MATH mode — a text answer must
+%     be \finalans{\text{\en{...}}} (see exam_components.tex).
+%   * units at a centered equation's end: English, inside math — \punit{V}.
+%   * keybox/notebox become monochrome paragraphs; [frametitle={...}] still
+%     works and overrides the default lead-in word.
+%   * a LISTING INSIDE exbox keeps its line numbers (v3.78, BLD-16
+%     postscript): the preamble blanks \thelstnumber only because the
+%     mdframed border cuts the digits, and this layer's exbox has no frame —
+%     clean_theme re-registers a later hook restoring the digits. The
+%     exemplar below pins that: question 2's in-exbox listing must render
+%     1..3 in the margin (it shipped numberless before v3.78).
+%   * \srcfig{0.5}{file.png}{caption} loads from figures/ by default;
+%     renew \srcfigdir for another project folder (not exercised here).
+% ============================================================================
+\input{preamble.tex}
+\input{exam_components.tex}
+\input{clean_theme.tex}
+
+\begin{document}
+\thispagestyle{empty}
+
+\chapter{שאלה 1 — מחלק מתח ותשובה סופית \pts{40\%}}
+
+\begin{exbox}
+נתון מעגל מחלק־מתח: מקור $V_{in}=9\punit{V}$ ושני נגדים בטור,
+$R_1=10\punit{k\Omega}$ ו־$R_2=20\punit{k\Omega}$.
+(שים לב: \code{\textbackslash punit} הוא מתמטיקה־בלבד בכוונה — מחוץ ל־\code{\$}
+הקומפילציה נכשלת בקול, ראה \en{BIDI-22}.)
+\begin{enumerate}
+\item[(\textbf{א})] מהו המתח על $R_2$?
+\item[(\textbf{ב})] באיזה מצב עבודה נמצא רכיב שמתחו נמדד מעל סף של
+      $5\punit{V}$?
+\end{enumerate}
+\end{exbox}
+
+\noindent\textbf{(א)} לפי כלל מחלק המתח, ומכיוון שהזרם בטור משותף:
+\begin{equation}\label{eq:divider}
+V_{R_2} = V_{in}\cdot\frac{R_2}{R_1+R_2}
+\end{equation}
+הצבה במשוואה \eqref{eq:divider} נותנת (המשוואה ממוספרת — יש אליה הפניה;
+המשוואה הממורכזת הבאה איננה — אין):
+\begin{center}
+$V_{R_2} = 9\cdot\dfrac{20}{30} = \finalans{6}\punit{V}.$
+\end{center}
+
+\medskip\noindent\textbf{(ב)} המתח $6>5$, ולכן הרכיב במצב הולכה. תשובה
+טקסטואלית נארזת עם \code{\textbackslash text}:
+\begin{center}
+$\finalans{\text{\en{ON}}}$
+\end{center}
+
+\begin{keybox}
+מחלק מתח = יחס הנגד לסכום; תשובה סופית תמיד ב־\code{\textbackslash finalans},
+ויחידות בסוף משוואה — באנגלית, בתוך המתמטיקה (\code{\textbackslash punit}).
+\end{keybox}
+
+\begin{notebox}[frametitle={הערת מקור}]
+בפתרון הרשמי הערך מעוגל; כאן חושב במדויק. הכותרת של ההערה הזו הגיעה
+מ־\code{frametitle} — אותו ממשק כמו בסגנון הצבעוני.
+\end{notebox}
+
+\medskip
+\begin{tablebox}\centering\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{ערך} & \textbf{גודל}\\
+\midrule
+\en{$6$V} & $V_{R_2}$\\
+\en{$0.3$mA} & זרם בטור\\
+\bottomrule
+\end{tabular}
+\tabcap{סיכום ערכים — הכיתוב ״טבלה 1״ רציף, בלי קידומת פרק.}
+\end{tablebox}
+
+\chapter{שאלה 2 — רשימת קוד בתוך השאלה \pts{10\%}}
+
+% v3.78 exemplar (BLD-16 postscript): a listing INSIDE exbox under the clean
+% layer keeps its line numbers — exbox here is frameless, so the preamble's
+% border-blanking rationale does not apply, and clean_theme's later hook
+% restores the digits. Before v3.78 this exact shape shipped numberless
+% (computer-architecture-exams p.7). Digits expected at the unboxed-listing x.
+\begin{exbox}
+נתונה הפונקציה הבאה. מה היא מחזירה עבור רשימה ריקה? (מספרי־השורות
+1-3 חייבים להופיע בשוליים — רשימה בתוך \code{exbox} בשכבה הנקייה
+שומרת מספור.)
+\begin{asmblock}
+\begin{lstlisting}[style=pystyle]
+def probe(products):
+    # numbered inside exbox under the clean layer
+    return [p.text for p in products]
+\end{lstlisting}
+\end{asmblock}
+\end{exbox}
+
+עבור רשימה ריקה הלולאה אינה מבצעת אף איטרציה, ולכן מוחזרת רשימה ריקה:
+\begin{center}
+$\finalans{\text{\en{[]}}}$
+\end{center}
+
+\end{document}

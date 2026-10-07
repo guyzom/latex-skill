@@ -1,0 +1,311 @@
+% reference_columns.tex — opt-in flowing two/three-column reference layout.
+% Load after preamble.tex. Font sizes are explicit layout declarations, never
+% inferred from content length. Ordinary multicol balancing/warnings remain live.
+% Declare body font size/baseline before this file. For an authored topic break,
+% end the paragraph before the native \columnbreak (\par\columnbreak); a
+% columnbreak inserted into a paragraph marks its line end, not a word boundary.
+% <hllpdf:architecture-guard>
+\ifdefined\hllpdfcoreloaded\else
+  \errmessage{hllpdf: reference_columns.tex requires preamble.tex first}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdfreferencecolumnsloaded
+  \errmessage{hllpdf: reference_columns.tex loaded more than once}
+  \expandafter\endinput
+\fi
+\def\hllpdfreferencecolumnsloaded{1}
+% </hllpdf:architecture-guard>
+\usepackage{multicol}
+\providecommand{\ReferenceColumnCount}{2}
+\providecommand{\ReferenceColumnGap}{5mm}
+\providecommand{\ReferenceColumnRule}{.3pt}
+\providecommand{\ReferenceColumnSkip}{6pt}
+\providecommand{\ReferenceBodyFontSize}{9}
+\providecommand{\ReferenceBodyBaseline}{11}
+\providecommand{\ReferenceMathFontSize}{\ReferenceBodyFontSize}
+\makeatletter
+% Authored sizes are independent of the prose baseline. TeX-distribution
+% Computer Modern outlines are genuinely scalable: retain the standard
+% ten-point design for main mathematics and the seven/five-point optical
+% designs for the declared script tiers. Scaling is uniform font scaling;
+% no PDF box, matrix, glyph outline or direction primitive is altered.
+\@tempdima=\dimexpr\ReferenceMathFontSize pt*7/10\relax
+\edef\hllpdf@referenceusualscript{\strip@pt\@tempdima}
+\@tempdima=\dimexpr\ReferenceMathFontSize pt/2\relax
+\edef\hllpdf@referenceusualscriptscript{\strip@pt\@tempdima}
+\providecommand{\ReferenceMathScriptSize}{\hllpdf@referenceusualscript}
+\providecommand{\ReferenceMathScriptScriptSize}{\hllpdf@referenceusualscriptscript}
+\newcommand{\hllpdf@referencecheckmathsizes}{%
+  \ifdim\ReferenceMathScriptScriptSize pt>\z@\else
+    \PackageError{hebrew-english-latex-studio}{Reference math sizes must be positive}%
+      {Declare positive main, script and scriptscript sizes before reference_columns.tex.}%
+  \fi
+  \ifdim\ReferenceMathScriptSize pt<\ReferenceMathScriptScriptSize pt
+    \PackageError{hebrew-english-latex-studio}{Reference math script sizes must be ordered}%
+      {The script size must be at least the scriptscript size.}%
+  \fi
+  \ifdim\ReferenceMathFontSize pt<\ReferenceMathScriptSize pt
+    \PackageError{hebrew-english-latex-studio}{Reference math sizes must be ordered}%
+      {The main math size must be at least the script size.}%
+  \fi}
+\hllpdf@referencecheckmathsizes
+% Each configured tier receives its intended optical design. At larger local
+% heading sizes these same deterministic ranges naturally select a larger
+% design. These named families never replace the core's normal/bold families.
+\@tempdima=\dimexpr(\ReferenceMathFontSize pt+\ReferenceMathScriptSize pt)/2\relax
+\edef\hllpdf@referencemathupper{\strip@pt\@tempdima}
+\@tempdima=\dimexpr(\ReferenceMathScriptSize pt+\ReferenceMathScriptScriptSize pt)/2\relax
+\edef\hllpdf@referencemathlower{\strip@pt\@tempdima}
+\newcommand{\hllpdf@referencescalableshape}[7]{%
+  \edef\hllpdf@referencefaces{%
+    <-\hllpdf@referencemathlower>#5 %
+    <\hllpdf@referencemathlower-\hllpdf@referencemathupper>#6 %
+    <\hllpdf@referencemathupper->#7}%
+  \DeclareFontShape{#1}{#2}{#3}{#4}{\hllpdf@referencefaces}{}}
+\DeclareFontFamily{OT1}{hllrefr}{}
+\hllpdf@referencescalableshape{OT1}{hllrefr}{m}{n}{cmr5}{cmr7}{cmr10}
+\hllpdf@referencescalableshape{OT1}{hllrefr}{bx}{n}{cmbx5}{cmbx7}{cmbx10}
+\DeclareFontShape{OT1}{hllrefr}{m}{it}{<->cmti10}{}
+\DeclareFontShape{OT1}{hllrefr}{bx}{it}{<->cmbxti10}{}
+\DeclareFontFamily{OML}{hllrefmi}{\skewchar\font127}
+\hllpdf@referencescalableshape{OML}{hllrefmi}{m}{it}{cmmi5}{cmmi7}{cmmi10}
+\hllpdf@referencescalableshape{OML}{hllrefmi}{b}{it}{cmmib5}{cmmib7}{cmmib10}
+\DeclareFontFamily{OMS}{hllrefsy}{\skewchar\font48}
+\hllpdf@referencescalableshape{OMS}{hllrefsy}{m}{n}{cmsy5}{cmsy7}{cmsy10}
+\hllpdf@referencescalableshape{OMS}{hllrefsy}{b}{n}{cmbsy5}{cmbsy7}{cmbsy10}
+\DeclareFontFamily{OMX}{hllrefex}{}
+\DeclareFontShape{OMX}{hllrefex}{m}{n}{<->cmex10}{}
+\DeclareFontFamily{OT1}{hllrefsf}{}
+\DeclareFontShape{OT1}{hllrefsf}{m}{n}{<->cmss10}{}
+\DeclareFontShape{OT1}{hllrefsf}{bx}{n}{<->cmssbx10}{}
+\DeclareFontFamily{OT1}{hllreftt}{}
+\DeclareFontShape{OT1}{hllreftt}{m}{n}{<->cmtt10}{}
+\DeclareFontFamily{U}{hllrefmsa}{}
+\hllpdf@referencescalableshape{U}{hllrefmsa}{m}{n}{msam5}{msam7}{msam10}
+\DeclareFontFamily{U}{hllrefmsb}{}
+\hllpdf@referencescalableshape{U}{hllrefmsb}{m}{n}{msbm5}{msbm7}{msbm10}
+\DeclareMathVersion{hllreference}
+\DeclareMathVersion{hllreferencebold}
+\SetSymbolFont{operators}{hllreference}{OT1}{hllrefr}{m}{n}
+\SetSymbolFont{letters}{hllreference}{OML}{hllrefmi}{m}{it}
+\SetSymbolFont{symbols}{hllreference}{OMS}{hllrefsy}{m}{n}
+\SetSymbolFont{largesymbols}{hllreference}{OMX}{hllrefex}{m}{n}
+\SetSymbolFont{operators}{hllreferencebold}{OT1}{hllrefr}{bx}{n}
+\SetSymbolFont{letters}{hllreferencebold}{OML}{hllrefmi}{b}{it}
+\SetSymbolFont{symbols}{hllreferencebold}{OMS}{hllrefsy}{b}{n}
+\SetSymbolFont{largesymbols}{hllreferencebold}{OMX}{hllrefex}{m}{n}
+\newcommand{\hllpdf@referencealphabets}[1]{%
+  \SetSymbolFont{AMSa}{#1}{U}{hllrefmsa}{m}{n}%
+  \SetSymbolFont{AMSb}{#1}{U}{hllrefmsb}{m}{n}%
+  \SetMathAlphabet{\mathbf}{#1}{OT1}{hllrefr}{bx}{n}%
+  \SetMathAlphabet{\mathsf}{#1}{OT1}{hllrefsf}{m}{n}%
+  \SetMathAlphabet{\mathit}{#1}{OT1}{hllrefr}{m}{it}%
+  \SetMathAlphabet{\mathtt}{#1}{OT1}{hllreftt}{m}{n}}
+\forcsvlist{\hllpdf@referencealphabets}{hllreference,hllreferencebold}
+\SetMathAlphabet{\mathsf}{hllreferencebold}{OT1}{hllrefsf}{bx}{n}
+\SetMathAlphabet{\mathit}{hllreferencebold}{OT1}{hllrefr}{bx}{it}
+\def\hllpdf@referencenormalversion{normal}
+\def\hllpdf@referenceboldversion{bold}
+\def\hllpdf@referencemathversion{hllreference}
+\def\hllpdf@referenceboldmathversion{hllreferencebold}
+% NFSS math-size declarations are otherwise global and shared by versions.
+% Install only a LOCAL S@<selected text size> binding, then let native NFSS
+% load the configured version. Ratios follow actual local sizes, so heading
+% mathematics and amsmath's smaller text use the same authored hierarchy.
+\newcommand{\hllpdf@referencelocalmathsizes}{%
+  \ifcsdef{hllpdf@referenceoriginalS@\f@size @captured}{}{%
+    \csdef{hllpdf@referenceoriginalS@\f@size @captured}{1}%
+    \csletcs{hllpdf@referenceoriginalS@\f@size}{S@\f@size}}%
+  \dimen@=\f@size pt\relax
+  \dimen@ii=\ReferenceBodyFontSize pt\relax
+  \@tempdima=\dimexpr\ReferenceMathFontSize pt*\number\dimen@/\number\dimen@ii\relax
+  \edef\hllpdf@referenceactualmath{\strip@pt\@tempdima}%
+  \@tempdima=\dimexpr\ReferenceMathScriptSize pt*\number\dimen@/\number\dimen@ii\relax
+  \edef\hllpdf@referenceactualscript{\strip@pt\@tempdima}%
+  \@tempdima=\dimexpr\ReferenceMathScriptScriptSize pt*\number\dimen@/\number\dimen@ii\relax
+  \edef\hllpdf@referenceactualscriptscript{\strip@pt\@tempdima}%
+  \expandafter\edef\csname S@\f@size\endcsname{%
+    \gdef\noexpand\tf@size{\hllpdf@referenceactualmath}%
+    \gdef\noexpand\sf@size{\hllpdf@referenceactualscript}%
+    \gdef\noexpand\ssf@size{\hllpdf@referenceactualscriptscript}%
+    \noexpand\math@fontstrue}}
+\newif\ifhllpdf@referencemathactive
+\newcommand{\hllpdf@referenceactivatemath}{%
+  \ifhllpdf@referencemathactive\else
+    \hllpdf@referencemathactivetrue
+    \let\hllpdf@referenceoriginalmathversion\mathversion
+    % Native boldmath, unboldmath and amsmath's boldsymbol request the normal
+    % and bold names. Route only these requests to the matching reference
+    % versions; independently authored custom versions pass through intact.
+    \protected\def\mathversion##1{%
+      \edef\hllpdf@referencerequestedversion{##1}%
+      \ifx\hllpdf@referencerequestedversion\hllpdf@referencenormalversion
+        \hllpdf@referenceoriginalmathversion{hllreference}%
+      \else\ifx\hllpdf@referencerequestedversion\hllpdf@referenceboldversion
+        \hllpdf@referenceoriginalmathversion{hllreferencebold}%
+      \else
+        \hllpdf@referenceoriginalmathversion{##1}%
+      \fi\fi}%
+    \let\hllpdf@referenceoriginalmathsettings\glb@settings
+    \def\glb@settings{%
+      \ifx\math@version\hllpdf@referencemathversion
+        \hllpdf@referencelocalmathsizes
+      \else\ifx\math@version\hllpdf@referenceboldmathversion
+        \hllpdf@referencelocalmathsizes
+      \else
+        \ifcsdef{hllpdf@referenceoriginalS@\f@size @captured}{%
+          \csletcs{S@\f@size}{hllpdf@referenceoriginalS@\f@size}}{}%
+      \fi\fi
+      \hllpdf@referenceoriginalmathsettings}%
+    \mathversion{\math@version}%
+  \fi}
+\newif\ifhllpdf@referencecolumnsactive
+\newif\ifhllpdf@referencewideactive
+% Presentation hooks run after the declared local font has been selected, so
+% a theme can derive display spacing from the actual reference baseline.
+% An environment's early begin hook would still see the outer article size.
+% This private empty hook preserves standalone layout and either load order.
+\providecommand{\hllpdf@referencebodysetup}{}
+\newcommand{\ReferenceSelectBodyFont}{%
+  \ifdim\ReferenceBodyFontSize pt>\z@\else
+    \PackageError{hebrew-english-latex-studio}{Reference body font size must be positive}%
+      {Use an explicit positive point size, for example 9.}%
+  \fi
+  \ifdim\ReferenceBodyBaseline pt<\ReferenceBodyFontSize pt
+    \PackageError{hebrew-english-latex-studio}{Reference baseline must not be smaller than the font size}%
+      {Declare a readable baseline in points, for example 11 for a 9-point font.}%
+  \fi
+  \hllpdf@referencecheckmathsizes
+  \fontsize{\ReferenceBodyFontSize}{\ReferenceBodyBaseline}\selectfont
+  \ifhllpdf@referencecolumnsactive
+    \hllpdf@referenceactivatemath
+  \else\ifhllpdf@referencewideactive
+    \hllpdf@referenceactivatemath
+  \fi\fi
+  \hllpdf@referencebodysetup}
+\newcommand{\hllpdf@referenceoutercheck}[1]{%
+  \ifinner
+    \PackageError{hebrew-english-latex-studio}{#1 requires outer text mode}%
+      {Do not place this environment in a box, minipage or float.}%
+  \fi
+  \if@twocolumn
+    \PackageError{hebrew-english-latex-studio}{#1 requires a one-column document class}%
+      {Use referencecolumns for the local column layout; omit the class twocolumn option.}%
+  \fi
+  \ifnum\@listdepth>\z@
+    \PackageError{hebrew-english-latex-studio}{#1 cannot be nested in a list}%
+      {Close the list before starting this layout environment.}%
+  \fi}
+\newcommand{\hllpdf@referenceforbidden}[1]{%
+  \PackageError{hebrew-english-latex-studio}{#1 is not supported inside referencecolumns}%
+    {Use a nonfloating local-width item, or close the columns and use referencewide.}}
+\newenvironment{referencecolumns}[1][\ReferenceColumnCount]{%
+  \par
+  \hllpdf@referenceoutercheck{referencecolumns}%
+  \ifhllpdf@referencecolumnsactive
+    \PackageError{hebrew-english-latex-studio}{referencecolumns cannot be nested}%
+      {Close the existing columns before starting a new set.}%
+  \fi
+  \ifhllpdf@referencewideactive
+    \PackageError{hebrew-english-latex-studio}{referencecolumns cannot be nested inside referencewide}%
+      {Close the full-width block before starting columns.}%
+  \fi
+  \edef\hllpdf@referencecount{#1}%
+  \def\hllpdf@referencetwo{2}\def\hllpdf@referencethree{3}%
+  \ifx\hllpdf@referencecount\hllpdf@referencetwo\else
+    \ifx\hllpdf@referencecount\hllpdf@referencethree\else
+      \PackageError{hebrew-english-latex-studio}{referencecolumns accepts only 2 or 3 columns}%
+        {Set ReferenceColumnCount or the environment's optional argument to 2 or 3.}%
+    \fi
+  \fi
+  \setlength{\columnsep}{\ReferenceColumnGap}%
+  \ifdim\columnsep>\z@\else
+    \PackageError{hebrew-english-latex-studio}{Reference column gap must be positive}%
+      {Use an explicit positive length, for example 5mm.}%
+  \fi
+  \setlength{\multicolsep}{\ReferenceColumnSkip}%
+  \ifdim\multicolsep<\z@
+    \PackageError{hebrew-english-latex-studio}{Reference column skip must not be negative}%
+      {Use zero or a positive length.}%
+  \fi
+  \setlength{\columnseprule}{\ReferenceColumnRule}%
+  \ifdim\columnseprule<\z@
+    \PackageError{hebrew-english-latex-studio}{Reference column rule must not be negative}%
+      {Use zero to omit separators or an explicit positive length.}%
+  \fi
+  \hllpdf@referencecolumnsactivetrue
+  \ReferenceSelectBodyFont
+  % LuaLaTeX's RTL page direction already places LR@column@boxes from right
+  % to left. RLmulticolcolumns would reverse that order a second time. Keep
+  % the native arrangement, and normalize physical assembly to the PAGE
+  % direction, including when the final paragraph is a minority-language one.
+  % Babel normalizes the regular multicol output routine, but not page@sofar's
+  % direct final balanced assembly. This scoped patch covers both paths.
+  \LRmulticolcolumns
+  \pretocmd{\page@sofar}{\bodydir\pagedir}{}{%
+    \PackageError{hebrew-english-latex-studio}{Cannot normalize reference column output direction}%
+      {Unsupported multicol output routine.}}%
+  \def\@float##1{\hllpdf@referenceforbidden{Floats}}%
+  \def\@dblfloat##1{\hllpdf@referenceforbidden{Floats}}%
+  \def\marginpar{\hllpdf@referenceforbidden{Margin notes}}%
+  \ifdefined\longtable
+    \def\longtable{\hllpdf@referenceforbidden{longtable}}%
+  \fi
+  \ifdefined\flowtable
+    \def\flowtable{\hllpdf@referenceforbidden{flowtable}}%
+  \fi
+  % Native multicol permits up to 12pt of final balancing overflow. For a
+  % reference page the authored atomic frames must fit the real text area;
+  % otherwise use multicol's ordinary next-page path. Native legal glue shrink
+  % remains available when forming balanced columns within that real area.
+  \maxbalancingoverflow=0pt\relax
+  % multicol normally packs each final trial into the clamped target height
+  % BEFORE discovering that the trial is too tall. That emits an Overfull vbox
+  % even when its native fallback subsequently reflows perfectly. Measure the
+  % natural box first and reject a column exceeding the AVAILABLE PAGE HEIGHT
+  % without constructing it. Do not compare it to the smaller equal-balancing
+  % target: legal glue shrink may fit that target, and prematurely rejecting it
+  % would turn a valid three-column balance into full-height two-column flow.
+  % The native vfuzz=0 diagnostic policy remains active in BOTH branches; no
+  % warning threshold, checker budget or ordinary output routine is relaxed.
+  \patchcmd{\balance@columns}{\vfuzz\z@}{%
+    \vfuzz\z@
+    \setbox\@tempboxa\vbox{\unvcopy\@tempcnta}%
+    \ifdim\ht\@tempboxa>\@colroom
+      \too@badtrue
+    \else}{}{%
+      \PackageError{hebrew-english-latex-studio}%
+        {Cannot preflight reference column balancing}%
+        {The installed multicol final-column packing routine is unsupported.}}%
+  \patchcmd{\balance@columns}{\ifnum\badness>\@M}{%
+    \fi\ifnum\badness>\@M}{}{%
+      \PackageError{hebrew-english-latex-studio}%
+        {Cannot finish reference column balancing preflight}%
+        {The installed multicol final-column badness test is unsupported.}}%
+  \begin{multicols}{\hllpdf@referencecount}%
+  \raggedcolumns
+  \ignorespaces
+}{%
+  \par\end{multicols}%
+  \ignorespacesafterend}
+% A wide block is an explicit transition between column runs. It does not
+% silently interrupt/restart multicol and does not resize any supplied content.
+\newenvironment{referencewide}{%
+  \par
+  \ifhllpdf@referencecolumnsactive
+    \PackageError{hebrew-english-latex-studio}{referencewide cannot be used inside referencecolumns}%
+      {Close referencecolumns, write the wide block, then start a new column run.}%
+  \fi
+  \ifhllpdf@referencewideactive
+    \PackageError{hebrew-english-latex-studio}{referencewide cannot be nested}%
+      {Close the existing wide block first.}%
+  \fi
+  \hllpdf@referenceoutercheck{referencewide}%
+  \hllpdf@referencewideactivetrue
+  \ReferenceSelectBodyFont
+  \addvspace{\ReferenceColumnSkip}%
+  \ignorespaces
+}{%
+  \par\addvspace{\ReferenceColumnSkip}%
+  \ignorespacesafterend}
+\makeatother

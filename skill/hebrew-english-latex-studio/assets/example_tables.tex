@@ -1,0 +1,382 @@
+% ============================================================================
+% example_tables.tex (v3.40.2) — GALLERY + smoke test for the TABLE patterns.
+% It \input{}s the REAL preamble.tex, so compiling it both (a) tests the actual
+% environment and (b) gives you copy-paste templates proven to render cleanly.
+%
+%   lualatex -interaction=nonstopmode example_tables.tex   (or via build.sh)
+%   pdftoppm -png -r 150 example_tables.pdf pg   &&   view EVERY page
+%
+% This is a LIBRARY, not a mandate: grab the pattern you need and swap the
+% content. Content here is deliberately topic-neutral (math / physics / CS)
+% because the skill serves a wide range of subjects.
+%
+% THE ONE DECISION that governs every mixed-direction table:
+%   * Columns ALWAYS lay out LEFT-to-right — the FIRST declared column lands
+%     LEFTMOST, in a plain tabular exactly as in otherlanguage (measured on
+%     rendered pages; an earlier version of this comment claimed plain
+%     tabular is RTL — it is not).
+%   * Hebrew-primary table (labels & cells mostly Hebrew, scanned from the
+%     right) -> plain tabular, and declare the KEY column LAST so it lands
+%     RIGHTMOST — the RTL reader meets the key before its explanation
+%     (side-by-side render comparison: key-on-the-right reads naturally,
+%     key-on-the-left forces the eye to jump).
+%   * LTR-primary table (code, truth tables, sequences — content that must
+%     READ left-to-right) -> wrap the tabular in otherlanguage{english}:
+%     it left-aligns the LTR cells uniformly and keeps the whole block in
+%     LTR reading order.
+%   Every table below is also wrapped in tablebox + \tabcap (uniform slate
+%   frame + auto-numbered "טבלה N.M." caption inside) — never \caption*.
+%
+% TWO MORE MEASURED FACTS (v3.40.2, calibration renders):
+%   * SIDE-BY-SIDE minipages are the OPPOSITE of columns: the minipage
+%     declared FIRST lands RIGHTMOST (paragraph-level blocks follow the
+%     page's RTL flow; tabular columns do not). See pattern 7.
+%   * DO NOT use longtable here: under the RTL base it REVERSES the declared
+%     column order relative to plain tabular (measured — first declared
+%     column landed rightmost). The preamble does NOT load longtable, and with
+%     it loaded by hand inside tablebox the output is broken: the first page
+%     comes out empty and \tabcap never prints (re-measured on v4.7.3; the
+%     older head/foot mechanism did not reproduce). Multi-page tables need a
+%     dedicated verification cycle first (DEFECTS BIDI-25).
+% ============================================================================
+\input{preamble.tex}
+\usepackage{colortbl}   % per-DOCUMENT load for \rowcolor (pattern 11) — NOT a
+                        % preamble package; copy this line only when you need it.
+\newcommand{\patternheading}[1]{%
+  \Needspace{11\baselineskip}%
+  {\large\bfseries #1}\par\smallskip}
+% (No \setcounter{chapter} hack needed: since v3.30 \tabcap prints "טבלה N."
+%  while no \chapter exists, and "טבלה C.N" once chapters start.)
+\begin{document}
+
+{\LARGE\bfseries מאגר תבניות טבלאות}\par\medskip
+\noindent העתק את התבנית שאתה צריך והחלף תוכן. כל טבלה כאן עוברת \code{tablebox} ו-\code{tabcap}
+— מסגרת אחידה וכותרת ממוספרת בפנים. שני כללים לטבלה מעורבת: כשהתוכן עברי־ראשי,
+השתמש ב-\code{tabular} רגיל \emph{והצהר את עמודת המפתח אחרונה} — היא נוחתת מימין,
+והקורא פוגש אותה ראשונה; כשהתוכן \en{LTR}־ראשי (קוד, נוסחאות, טבלת אמת), עטוף ב-\en{otherlanguage}.
+תבניות \en{1–6} הן משפחת ה-\en{booktabs} הפתוחה (קווים אופקיים בלבד); תבניות 8, 9 ו-12
+הן משפחת הרשת המלאה — המראה ה״סטנדרטי״ של מסמכי מקור (מסגרת + מפרידים אנכיים).
+\bigskip
+
+% +--- PATTERN 1: basic data table --------------------------------
+% | USE WHEN: the default. A few columns, Hebrew headers, cells that
+% |           may hold short math islands.
+% | KEY:      booktabs rules (\toprule/\midrule/\bottomrule); short
+% |           math as \en{$...$}; caption via \tabcap. Hebrew-primary
+% |           -> plain tabular, KEY column declared LAST (lands rightmost).
+% +----------------------------------------------------------------
+\patternheading{1. טבלת נתונים בסיסית}
+\begin{tablebox}\centering\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{הערה} & \textbf{סיבוכיות זמן} & \textbf{שיטה}\\
+\midrule
+ללא דרישת מיון.        & \en{$O(n)$}        & חיפוש לינארי\\
+דורש מערך ממוין.       & \en{$O(\log n)$}   & חיפוש בינארי\\
+תלוי בפונקציית הגיבוב. & \en{$O(1)$} בממוצע & טבלת גיבוב\\
+\bottomrule
+\end{tabular}
+\tabcap{השוואת שיטות חיפוש.}
+\end{tablebox}
+\bigskip
+
+% +--- PATTERN 2: glossary / symbol -> meaning --------------------
+% | USE WHEN: notation tables, constants, symbol lists (very common
+% |           in physics/math summaries). Prefer this over bullets.
+% | KEY:      the SYMBOL column is declared LAST -> lands RIGHTMOST (the
+% |           RTL reader scans symbol -> meaning); meaning = p{} so it
+% |           wraps. Hebrew-primary -> plain tabular.
+% +----------------------------------------------------------------
+\patternheading{2. טבלת מקרא (סמל $\leftarrow$ משמעות)}
+\begin{tablebox}\centering\small
+\begin{tabular}{@{}p{8cm}@{\hspace{1.1cm}}l@{}}
+\toprule
+\textbf{משמעות} & \textbf{סימון}\\
+\midrule
+עיגול כלפי מטה.                & \en{$\lfloor x \rfloor$}\\
+שארית החלוקה של \en{x} ב-\en{y}. & \en{$x \bmod y$}\\
+דיברגנץ של שדה וקטורי.          & \en{$\nabla \cdot \vec{F}$}\\
+מכפלה פנימית (סימון דיראק).     & \en{$\langle \psi \mid \phi \rangle$}\\
+\bottomrule
+\end{tabular}
+\tabcap{מוסכמות סימון.}
+\end{tablebox}
+\bigskip
+
+% +--- PATTERN 3: LTR / code column (+ multi-line cell) -----------
+% | USE WHEN: a column holds code or dense LTR that must left-align
+% |           uniformly and read left-to-right.
+% | KEY:      wrap the WHOLE tabular in otherlanguage{english};
+% |           Hebrew labels then need \h{}; a multi-line code cell =
+% |           nested \ttfamily\begin{tabular}[t]{@{}l@{}}line\\line.
+% |           Never put Hebrew INSIDE a code run.
+% +----------------------------------------------------------------
+\patternheading{3. טבלה עם עמודת קוד / LTR}
+\begin{tablebox}\centering\small
+\begin{otherlanguage}{english}
+\begin{tabular}{@{}l@{\hspace{1.2cm}}l@{}}
+\toprule
+\multicolumn{1}{c}{\h{\textbf{פעולה}}} & \multicolumn{1}{c}{\h{\textbf{קוד}}}\\
+\midrule
+\h{השמה}  & \ttfamily y = a + b\\
+\h{תנאי}  & \ttfamily\begin{tabular}[t]{@{}l@{}}if a < b:\\\ \ \ \ swap(a, b)\end{tabular}\\
+\h{לולאה} & \ttfamily\begin{tabular}[t]{@{}l@{}}while a < b:\\\ \ \ \ a = a + 1\end{tabular}\\
+\bottomrule
+\end{tabular}
+\end{otherlanguage}
+\tabcap{עמודת קוד עטופה ב-\en{otherlanguage}; תא רב־שורתי דרך \en{tabular} מקונן.}
+\end{tablebox}
+\bigskip
+
+% +--- PATTERN 4: two prose columns -------------------------------
+% | USE WHEN: term -> explanation, or any two justified Hebrew text
+% |           columns (definitions, pros/cons).
+% | KEY:      p{w1}p{w2} so both wrap; the TERM column is declared LAST
+% |           (lands rightmost). Widths sum to a bit under \textwidth.
+% +----------------------------------------------------------------
+\patternheading{4. טבלת שני טורי פרוזה}
+\begin{tablebox}\centering\small
+\begin{tabular}{@{}p{9cm}p{3cm}@{}}
+\toprule
+\textbf{הסבר} & \textbf{מונח}\\
+\midrule
+כל קורא רואה את הערך העדכני ביותר של הנתון המשותף. & עקביות\\
+כל בקשה מקבלת תשובה, גם אם לא בהכרח העדכנית ביותר. & זמינות\\
+המערכת ממשיכה לתפקד למרות ניתוקים בין רכיביה.      & סבילות\\
+\bottomrule
+\end{tabular}
+\tabcap{שלוש התכונות של משפט \en{CAP}.}
+\end{tablebox}
+\bigskip
+
+% +--- PATTERN 5: wide numeric / truth table ----------------------
+% | USE WHEN: many narrow columns whose ORDER must read left-to-
+% |           right (truth tables, matrices, sequences).
+% | KEY:      wrap in otherlanguage{english} — keeps every cell's LTR
+% |           content aligned and the whole block in left-to-right
+% |           reading order; centered c-columns; separate logical
+% |           groups (inputs|outputs) with @{\hspace{..}}.
+% +----------------------------------------------------------------
+\patternheading{5. טבלה רחבה / טבלת אמת}
+\begin{tablebox}\centering\small
+\begin{otherlanguage}{english}
+\begin{tabular}{@{}cc@{\hspace{1.5em}}cc@{}}
+\toprule
+$A$ & $B$ & $A \wedge B$ & $A \vee B$\\
+\midrule
+0 & 0 & 0 & 0\\
+0 & 1 & 0 & 1\\
+1 & 0 & 0 & 1\\
+1 & 1 & 1 & 1\\
+\bottomrule
+\end{tabular}
+\end{otherlanguage}
+\tabcap{טבלת אמת עבור \en{AND} ו-\en{OR}.}
+\end{tablebox}
+
+% ---- numeric columns: decimal alignment WITHOUT any package (v3.37) --------
+% dcolumn and siunitx both SCRAMBLE under the RTL base (render-proven:
+% D{.}{.}{3.3} shipped "12.75" as ".7512"; \SI{3.5}{eV} ships "eV 3.5") — do
+% not load them. The bidi-safe recipe: (a) give every value in the column the
+% SAME number of decimals, (b) declare the column `l` — under babel-RTL the
+% l/r colspec letters swap their VISUAL meaning, so `l` right-aligns (measured:
+% all decimal points at x=322.7 exactly). Hebrew headers need no tricks here.
+\begin{tablebox}\centering\small
+\begin{tabular}{l l}
+\toprule
+\textbf{שם} & \textbf{ערך} \\
+\midrule
+אלפא & 1.500 \\
+בטא & 12.750 \\
+גמא & 103.200 \\
+דלתא & 0.008 \\
+\bottomrule
+\end{tabular}
+\tabcap{יישור עשרוני: ספרות אחידות + עמודת \code{l} (ימין ויזואלי תחת RTL).}
+\end{tablebox}
+\bigskip
+
+% +--- PATTERN 6: grouped column headers (v3.40.2) ----------------
+% | USE WHEN: a super-header spans several sub-columns (before/after
+% |           comparisons, grouped metrics, multi-condition results).
+% | KEY:      \multicolumn spans + partial \cmidrule under each group.
+% |           cmidrule indices follow DECLARATION order, which is
+% |           visual LEFT-to-right — same as the columns (measured).
+% |           Declare the groups in REVERSE reading order so the
+% |           group the reader should meet FIRST lands rightmost
+% |           (here: לפני before אחרי).
+% +----------------------------------------------------------------
+\patternheading{6. כותרות מקובצות (\en{multicolumn} + \en{cmidrule})}
+\begin{tablebox}\centering\small
+\begin{tabular}{@{}cccc l@{}}
+\toprule
+\multicolumn{2}{c}{\textbf{אחרי כיול}} & \multicolumn{2}{c}{\textbf{לפני כיול}} & \\
+\cmidrule(lr){1-2}\cmidrule(lr){3-4}
+\textbf{שגיאה} & \textbf{דיוק} & \textbf{שגיאה} & \textbf{דיוק} & \textbf{מודל}\\
+\midrule
+\en{0.04} & \en{96\%} & \en{0.12} & \en{88\%} & רגרסיה\\
+\en{0.02} & \en{98\%} & \en{0.09} & \en{91\%} & רשת עצבית\\
+\bottomrule
+\end{tabular}
+\tabcap{כותרות־על מקובצות: כל קבוצה משתרעת על שתי עמודות־בת.}
+\end{tablebox}
+\bigskip
+
+% +--- PATTERN 7: two tables side by side (v3.40.2) ---------------
+% | USE WHEN: paired parameter sets, before/after states, any two
+% |           narrow tables that share one caption.
+% | KEY:      THE TRAP (measured): the minipage declared FIRST lands
+% |           RIGHTMOST — the OPPOSITE of tabular columns (first
+% |           declared column lands LEFTMOST). Paragraph-level blocks
+% |           flow with the page's RTL direction; columns do not.
+% |           So declare the RIGHT-hand table first.
+% +----------------------------------------------------------------
+\patternheading{7. שתי טבלאות זו לצד זו}
+\begin{tablebox}\centering\small
+\begin{minipage}[t]{0.44\textwidth}\centering
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{ערך} & \textbf{פרמטר}\\
+\midrule
+\en{$10^{16}$} & \en{$N_A$}\\
+\en{$300$K} & טמפרטורה\\
+\bottomrule
+\end{tabular}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.44\textwidth}\centering
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{ערך} & \textbf{פרמטר}\\
+\midrule
+\en{$10^{12}$} & \en{$n_i$}\\
+\en{$1.1$eV} & פער אסור\\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\tabcap{זוג טבלאות במיניפייג׳ים: המוצהר ראשון נוחת מימין — הפוך מעמודות.}
+\end{tablebox}
+\bigskip
+
+% +--- PATTERN 8: full-grid "standard" table (v3.40.2) ------------
+% | USE WHEN: reproducing the classic bordered look of source
+% |           documents; matrices with row AND column headers
+% |           (distance / payoff / cache-state tables).
+% | KEY:      |c|c|c| + \hline ONLY — booktabs rules do NOT meet
+% |           vertical bars (gaps at the corners). Empty corner
+% |           cell; row-header column declared LAST -> rightmost.
+% +----------------------------------------------------------------
+\patternheading{8. טבלה סטנדרטית — רשת מלאה עם כותרות שורה ועמודה}
+\begin{tablebox}\centering\small
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{ג} & \textbf{ב} & \textbf{א} & \\
+\hline
+\en{7} & \en{4} & \en{0} & \textbf{א}\\
+\hline
+\en{2} & \en{0} & \en{4} & \textbf{ב}\\
+\hline
+\en{0} & \en{2} & \en{7} & \textbf{ג}\\
+\hline
+\end{tabular}
+\tabcap{מטריצת מרחקים: רשת מלאה, תא פינה ריק, כותרות בשני הצירים.}
+\end{tablebox}
+\bigskip
+
+% +--- PATTERN 9: schedule / timetable (v3.40.2) ------------------
+% | USE WHEN: a grid whose COLUMN ORDER carries meaning read
+% |           right-to-left (days of the week, ordered stages).
+% | KEY:      declare the day columns in REVERSE (ה first) so יום א
+% |           lands next to the hour column on the RIGHT and the
+% |           week reads right-to-left. Time ranges use a typed
+% |           en-dash inside one island: \en{10–12}.
+% +----------------------------------------------------------------
+\patternheading{9. מערכת שעות / לוח זמנים}
+\begin{tablebox}\centering\small
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+\textbf{ה} & \textbf{ד} & \textbf{ג} & \textbf{ב} & \textbf{א} & \textbf{שעה}\\
+\hline
+ & מעבדה & הרצאה &  & הרצאה & \en{10–12}\\
+\hline
+תרגול &  &  & תרגול &  & \en{14–16}\\
+\hline
+\end{tabular}
+\tabcap{הימים מוצהרים בסדר הפוך (ה קודם) כדי שיום א ינחת מימין, צמוד לעמודת השעה.}
+\end{tablebox}
+\bigskip
+
+% +--- PATTERN 10: feature-comparison matrix (v3.40.2) ------------
+% | USE WHEN: features × options with yes/no marks.
+% | KEY:      marks come from MATH — $\checkmark$ / $\times$. The
+% |           literal ✓ codepoint is BLOCKED by the charset gate on
+% |           purpose (confusable-codepoint policy). Hebrew-primary:
+% |           the feature column declared LAST -> rightmost.
+% +----------------------------------------------------------------
+\patternheading{10. מטריצת השוואת תכונות (סימוני וי)}
+\begin{tablebox}\centering\small
+\begin{tabular}{@{}ccc l@{}}
+\toprule
+\en{C} & \en{Java} & \en{Python} & \textbf{תכונה}\\
+\midrule
+$\times$ & $\checkmark$ & $\checkmark$ & ניהול זיכרון אוטומטי\\
+$\checkmark$ & $\checkmark$ & $\times$ & טיפוסים סטטיים\\
+$\checkmark$ & $\times$ & $\times$ & גישה ישירה לזיכרון\\
+\bottomrule
+\end{tabular}
+\tabcap{השוואת תכונות: $\checkmark$ ו־$\times$ במתמטיקה — לא תווי יוניקוד.}
+\end{tablebox}
+\bigskip
+
+% +--- PATTERN 11: highlighted answer row (v3.40.2) ---------------
+% | USE WHEN: exam/solution tables where ONE row is the answer.
+% | KEY:      \rowcolor{black!12} from colortbl, loaded PER-DOCUMENT
+% |           (see the \usepackage line above) — verified not to
+% |           scramble cells under RTL. Number+unit are ONE island
+% |           with a thin space: \en{1.9\,ns}.
+% |           ❌ \en{1.9}\en{ns} — two adjacent islands render "ns1.9"
+% |              (BIDI-2; this file's own calibration render shipped
+% |              it before the lint caught the idea).
+% |           ✅ \en{1.9\,ns} — one island, order fixed.
+% +----------------------------------------------------------------
+\patternheading{11. הדגשת שורת התשובה (\en{rowcolor})}
+\begin{tablebox}\centering\small
+\begin{tabular}{@{}ll l@{}}
+\toprule
+\textbf{זמן גישה} & \textbf{\en{hit rate}} & \textbf{תצורה}\\
+\midrule
+\en{2.4\,ns} & \en{89\%} & מטמון ישיר\\
+\rowcolor{black!12}
+\en{1.9\,ns} & \en{94\%} & \en{two-way} — נבחרה\\
+\en{2.1\,ns} & \en{95\%} & \en{four-way}\\
+\bottomrule
+\end{tabular}
+\tabcap{שורת התשובה מודגשת ברקע אפור: \code{rowcolor} מ־\en{colortbl}, נטען פר־מסמך.}
+\end{tablebox}
+\bigskip
+
+% +--- PATTERN 12: reference table, Latin term+number (v3.40.2) ---
+% | USE WHEN: source-document style lookup tables keyed by a Latin
+% |           term WITH a number (RAID 5, USB 3.0, IEEE 802.11).
+% | KEY:      the term AND its number are ONE island: \en{RAID 0}.
+% |           Real course material shipped "0 RAID" by typing them
+% |           as separate runs (user-supplied screenshot). Grid look:
+% |           outer frame + column separators, \hline only at top /
+% |           below header / bottom.
+% +----------------------------------------------------------------
+\patternheading{12. טבלת עיון — מונח לועזי ממוספר}
+\begin{tablebox}\centering\small
+\begin{tabular}{|l|l|l|}
+\hline
+\multicolumn{1}{|c|}{\textbf{שימוש}} & \multicolumn{1}{c|}{\textbf{תיאור}} & \multicolumn{1}{c|}{\textbf{רמה}}\\
+\hline
+ביצועים, לא יתירות   & \en{Striping} בלבד                & \en{RAID 0}\\
+אמינות גבוהה         & \en{Mirroring}                     & \en{RAID 1}\\
+איזון ביצועים/מקום   & \en{Striping + Parity} מבוזר       & \en{RAID 5}\\
+סובלנות ל־2 כשלים    & כמו 5 עם 2 בלוקי \en{parity}       & \en{RAID 6}\\
+ביצועים + יתירות     & \en{Mirror of Stripes}             & \en{RAID 10}\\
+\hline
+\end{tabular}
+\tabcap{רמות \en{RAID}: המונח והמספר שלו הם אי אחד — \code{\textbackslash en\{RAID 0\}}, לעולם לא שני איים.}
+\end{tablebox}
+
+\end{document}

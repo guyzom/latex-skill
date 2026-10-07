@@ -1,0 +1,80 @@
+% PROOF-OF-FAILURE fixture for the destination gate (R6, v3.80).
+% Three shipped failure shapes.  EVERY ONE of them compiles clean, converges
+% byte-identically, and passes every other gate: build.sh prints "✓ clean
+% build" and check_pdf_render's R1-R5 print "✓ render check clean".  Only R6
+% sees them.
+%
+%  1. TABLE, mechanism (a) — a tabular wider than the tablebox's \linewidth.
+%     TeX breaks the paragraph after the tabular, so \tabcap's raised anchor
+%     is emitted on the NEXT line, one (depth + lineskip) lower, and the dest
+%     lands INSIDE the table.  Shipped live until v3.79 as
+%     advanced-electronic-devices tbl.B.1 (-59.2pt) and
+%     computer-architecture tbl.30.5 (-13.5pt), both with a SUB-5pt Overfull
+%     \hbox that build.sh's >5pt warn tier does not even print.
+%
+%  2. TABLE, mechanism (b) — one tablebox holding THREE stacked tabulars.
+%     v3.77's \lakin@grabtab reads the tail of the horizontal list, i.e. the
+%     LAST tabular only, so the dest lands below the first two.  Shipped live
+%     until v3.79 as computer-architecture tbl.14.1 (-46.4pt).
+%
+%     Both table shapes are rendered pre-v3.79 by neutering ONE macro below.
+%     That is deliberate and it is what makes this fixture a REGRESSION LOCK
+%     rather than a museum piece: tests/dest_ok.tex carries the two shapes
+%     character-for-character, with the corrector ARMED, and must stay silent.
+%     Delete the v3.79 mechanism from the preamble and dest_ok.pdf starts
+%     failing R6a — which is the whole point of pinning a fix with a gate.
+%
+%  3. FIGURE — a centered figure that is not a tikzpic/qcirc island.
+%     \lakin@grabfig never runs, \lakinfigraise keeps its 0pt sentinel,
+%     \figcap falls back to the plain \refstepcounter and hyperref drops the
+%     anchor at the CAPTION — below the whole figure.  No mutation needed:
+%     this shape is broken in the shipped preamble by construction (a bare
+%     \begin{center} is not measured), which is what made 13 fig dests in
+%     three exam collections land on their captions via clean_variant's
+%     \srcfig until v3.80.
+\input{../assets/preamble.tex}
+% --- pre-v3.79 rendering for the two table shapes (see note 1/2 above).
+\renewcommand{\lakintabboxclose}{}
+\begin{document}
+\chapter{שער היעדים}
+
+\section{טבלה רחבה מדי}
+טקסט לפני.
+
+\begin{tablebox}\centering\small
+\begin{tabular}{@{}p{\dimexpr\linewidth+3pt\relax}@{}}
+\toprule
+\h{שורה ראשונה} \\
+\h{שורה שנייה} \\
+\h{שורה שלישית} \\
+\h{שורה רביעית} \\
+\h{שורה חמישית} \\
+\bottomrule
+\end{tabular}
+\tabcap{\label{tbl:wide}טבלה רחבה מ־\en{linewidth} — היעד נוחת בתוך הקופסה}
+\end{tablebox}
+
+\section{שלוש טבלאות בקופסה אחת}
+\begin{tablebox}\centering\small
+\begin{otherlanguage}{english}
+\begin{tabular}{|c|c|}\hline A & B \\ \hline 1 & 2 \\ \hline\end{tabular}
+
+\smallskip
+\begin{tabular}{|c|c|}\hline C & D \\ \hline 3 & 4 \\ \hline\end{tabular}
+
+\smallskip
+\begin{tabular}{|c|c|}\hline E & F \\ \hline 5 & 6 \\ \hline\end{tabular}
+\end{otherlanguage}
+\tabcap{\label{tbl:three}שלוש טבלאות — נמדדת רק האחרונה}
+\end{tablebox}
+
+\section{איור מחוץ לאי}
+\begin{center}
+\rule{200pt}{160pt}
+\end{center}
+\figcap{\label{fig:bare}איור בתוך \en{center} בלבד — היעד נוחת בכיתוב}
+
+ראו טבלה \ref{tbl:wide}.
+ראו טבלה \ref{tbl:three}.
+ראו איור \ref{fig:bare}.
+\end{document}

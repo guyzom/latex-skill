@@ -1,0 +1,63 @@
+% reader_theme.tex — optional, restrained presentation for everyday reading.
+% No exam wording, suppressed titles, equation policy or numbering changes.
+% Measured with this Babel/mdframed backend: leftline is the LEADING edge,
+% not an absolute physical-left promise. It paints right in Hebrew and left
+% in englishprose. Keep this choice tied to a rendered geometry test.
+% <hllpdf:architecture-guard>
+\ifdefined\hllpdfcoreloaded\else
+  \errmessage{hllpdf: reader_theme.tex requires preamble.tex first}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdfcleanthemeloaded
+  \errmessage{hllpdf: reader_theme.tex conflicts with clean_theme.tex}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdfcleanvariantloaded
+  \errmessage{hllpdf: reader_theme.tex conflicts with clean_variant.tex}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdfacademicthemeloaded
+  \errmessage{hllpdf: reader_theme.tex conflicts with academic_theme.tex}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdfreferencethemeloaded
+  \errmessage{hllpdf: reader_theme.tex conflicts with reference_theme.tex}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdfreaderthemeloaded
+  \errmessage{hllpdf: reader_theme.tex loaded more than once}
+  \expandafter\endinput
+\fi
+\def\hllpdfreaderthemeloaded{1}
+% </hllpdf:architecture-guard>
+\definecolor{cBlue}{HTML}{243F50}   \definecolor{cBlueBg}{HTML}{F3F6F8}
+\definecolor{cGreen}{HTML}{35544B}  \definecolor{cGreenBg}{HTML}{F3F7F5}
+\definecolor{cAmber}{HTML}{765815}  \definecolor{cAmberBg}{HTML}{FAF7F0}
+\definecolor{cPurple}{HTML}{574465} \definecolor{cPurpleBg}{HTML}{F6F4F8}
+\definecolor{cTeal}{HTML}{285858}   \definecolor{cTealBg}{HTML}{F1F7F7}
+\definecolor{cRed}{HTML}{853A36}    \definecolor{cRedBg}{HTML}{FCF5F4}
+\definecolor{cRule}{HTML}{243F50}
+\definecolor{cSlate}{HTML}{3F4A56}  \definecolor{cSlateBg}{HTML}{F4F6F8}
+\mdfdefinestyle{hllpdfreader}{
+  frametitle={},leftline=true,rightline=false,topline=false,bottomline=false,
+  linewidth=2.2pt,roundcorner=0pt,
+  innerleftmargin=10pt,innerrightmargin=11pt,
+  innertopmargin=7pt,innerbottommargin=8pt,
+  skipabove=10pt,skipbelow=10pt,
+  everyline=true,splitbottomskip=7pt,splittopskip=10pt,
+  frametitlefont=\normalfont\sffamily\bfseries,
+  frametitleaboveskip=5pt,frametitlebelowskip=3pt
+}
+\renewmdenv[style=hllpdfreader,linecolor=cBlue,backgroundcolor=cBlueBg,
+  frametitlebackgroundcolor=cBlueBg,frametitlefontcolor=cBlue]{defbox}
+\renewmdenv[style=hllpdfreader,linecolor=cGreen,backgroundcolor=cGreenBg,
+  frametitlebackgroundcolor=cGreenBg,frametitlefontcolor=cGreen]{thmbox}
+\renewmdenv[style=hllpdfreader,linecolor=cAmber,backgroundcolor=cAmberBg,
+  frametitlebackgroundcolor=cAmberBg,frametitlefontcolor=cAmber]{notebox}
+\renewmdenv[style=hllpdfreader,linecolor=cPurple,backgroundcolor=cPurpleBg,
+  frametitlebackgroundcolor=cPurpleBg,frametitlefontcolor=cPurple]{exbox}
+\renewmdenv[style=hllpdfreader,linecolor=cRed,backgroundcolor=cRedBg,
+  frametitlebackgroundcolor=cRedBg,frametitlefontcolor=cRed]{warnbox}
+\renewmdenv[style=hllpdfreader,linecolor=cTeal,backgroundcolor=cTealBg,
+  frametitlebackgroundcolor=cTealBg,frametitlefontcolor=cTeal]{keybox}
+% Keep the core's tested codebox number geometry; only its palette changes.

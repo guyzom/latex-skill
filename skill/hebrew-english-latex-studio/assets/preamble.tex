@@ -1,0 +1,2052 @@
+% ============================================================================
+% preamble.tex — tested LuaLaTeX preamble for Hebrew + math + figures PDFs (v4.32.0)
+% Battle-tested: compiled an 80-page Hebrew quantum-computing summary AND a
+% 197-page Hebrew computer-architecture anthology (TikZ diagrams, code listings,
+% colored boxes) — both with 0 missing characters.
+%
+% Usage in your document:
+%   \input{preamble.tex}     % (or paste these lines at the top)
+%   \begin{document}  ...  \end{document}
+%
+% Compile with:  lualatex -interaction=nonstopmode doc.tex
+%   Repeat until two consecutive PDFs are byte-identical (scripts/build.sh
+%   does this) — a TOC document converges only on pass 3+; after two passes
+%   the TOC page numbers are STALE (measured; see SKILL.md step 3).
+% Font binaries are external dependencies, pinned by assets/fonts/SHA256SUMS.
+% scripts/setup_fonts.sh imports a verified local installation or prior skill.
+%
+% PUBLIC DOCUMENT-SHELL / LAYOUT CONTRACT (introduced v4.3.1; architecture-owned v4.7.1).  These six hooks may be
+% defined BEFORE \input{preamble.tex}; if omitted, the historical canonical
+% defaults below are exact.  They deliberately control only the document shell
+% and page layout.  RTL/math semantics stay in this preamble, while visual
+% presentation themes (for example clean_theme.tex) load AFTER it.
+%
+%   \def\lakitdocumentclass{article}
+%   \def\lakitclassoptions{11pt,a4paper}
+%   \def\lakitgeometryoptions{margin=1.8cm,headheight=14pt}
+%   \def\lakitlinespread{1.15}
+%   \def\lakittocdepth{1}
+%   \def\lakitsecnumdepth{2}
+%   \input{preamble.tex}
+%
+% Supported class contract: report or article.  Alternate paper sizes must also
+% be declared to build.sh through EXPECTED_PAPER; the PDF gate never infers them.
+% Do NOT use these hooks as a theme mechanism: theme overlays must not own page
+% geometry, class selection, or direction semantics. A declared presentation-policy
+% overlay may intentionally change numbering visibility after the preamble.
+% ============================================================================
+% Runtime architecture guard: generated from scripts/architecture_contract.py.
+% The readiness sentinel remains delayed until the END of this file.
+% <hllpdf:architecture-guard>
+\ifdefined\hllpdfcoreloaded
+  \errmessage{hllpdf: preamble.tex loaded more than once}
+  \expandafter\endinput
+\fi
+% </hllpdf:architecture-guard>
+
+\ifdefined\lakitdocumentclass\else\def\lakitdocumentclass{report}\fi
+\ifdefined\lakitclassoptions\else\def\lakitclassoptions{12pt,a4paper}\fi
+\ifdefined\lakitgeometryoptions\else\def\lakitgeometryoptions{margin=2.3cm,headheight=14pt}\fi
+\ifdefined\lakitlinespread\else\def\lakitlinespread{1.3}\fi
+\ifdefined\lakittocdepth\else\def\lakittocdepth{1}\fi
+\ifdefined\lakitsecnumdepth\else\def\lakitsecnumdepth{2}\fi
+% v4.3.1: the public class hook has a deliberately narrow support contract.
+% Before this guard, \def\lakitdocumentclass{book} silently compiled even though
+% every heading/TOC regression test targets report/article; an unsupported shell
+% could therefore look "supported" until a subtle class-specific defect shipped.
+% Fail before \documentclass rather than letting an undocumented combination enter
+% the mechanism core. Plain-TeX comparison is used because LaTeX packages are not
+% available yet at this point.
+\edef\lakitvalidatedclass{\lakitdocumentclass}
+\def\lakitreportclass{report}
+\def\lakitarticleclass{article}
+\ifx\lakitvalidatedclass\lakitreportclass
+\else\ifx\lakitvalidatedclass\lakitarticleclass
+\else
+  \errmessage{hllpdf: unsupported class \lakitdocumentclass; use report or article}
+\fi\fi
+\let\lakitvalidatedclass\relax
+\let\lakitreportclass\relax
+\let\lakitarticleclass\relax
+% Language intent is independent of document class, theme and content domain.
+% The two dominant-language profiles differ in authoring intent, not direction.
+% A balanced bilingual document must explicitly choose a navigation/base locale.
+% <hllpdf:language-profile>
+\providecommand{\lakitlanguageprofile}{hebrew}
+\edef\lakitlanguageprofile{\lakitlanguageprofile}
+\def\hllpdfhebrew{hebrew}\def\hllpdfenglish{english}
+\def\hllpdfhebrewmixed{hebrew-with-english}
+\def\hllpdfenglishmixed{english-with-hebrew}
+\def\hllpdfbilingual{bilingual}
+\let\hllpdfexpectedlanguage\relax
+\ifx\lakitlanguageprofile\hllpdfhebrew
+  \let\hllpdfexpectedlanguage\hllpdfhebrew
+\else\ifx\lakitlanguageprofile\hllpdfhebrewmixed
+  \let\hllpdfexpectedlanguage\hllpdfhebrew
+\else\ifx\lakitlanguageprofile\hllpdfenglish
+  \let\hllpdfexpectedlanguage\hllpdfenglish
+\else\ifx\lakitlanguageprofile\hllpdfenglishmixed
+  \let\hllpdfexpectedlanguage\hllpdfenglish
+\else\ifx\lakitlanguageprofile\hllpdfbilingual
+  \ifdefined\lakitmainlanguage\else
+    \errmessage{hllpdf: bilingual profile requires explicit lakitmainlanguage}
+  \fi
+\else
+  \errmessage{hllpdf: unsupported language profile \lakitlanguageprofile}
+\fi\fi\fi\fi\fi
+\ifdefined\lakitmainlanguage
+  \edef\lakitmainlanguage{\lakitmainlanguage}
+\else
+  \let\lakitmainlanguage\hllpdfexpectedlanguage
+\fi
+\ifx\lakitmainlanguage\hllpdfhebrew\else
+  \ifx\lakitmainlanguage\hllpdfenglish\else
+    \errmessage{hllpdf: main language must be hebrew or english}
+  \fi
+\fi
+\ifx\hllpdfexpectedlanguage\relax\else
+  \ifx\lakitmainlanguage\hllpdfexpectedlanguage\else
+    \errmessage{hllpdf: main language conflicts with language profile}
+  \fi
+\fi
+\typeout{HLLLANG|\lakitlanguageprofile|\lakitmainlanguage}
+% </hllpdf:language-profile>
+\documentclass[\lakitclassoptions]{\lakitdocumentclass}
+\usepackage[no-math]{fontspec}        % (1) ★ no-math — THE critical line (see recipe.md)
+% layout=lists asks Babel to adapt list parshape when paragraph and page
+% directions differ. Without it, minority-language list bodies lose their
+% indentation and labels hang outside the text block, despite a clean log.
+% The upstream mechanism preserves ordinary same-direction list geometry.
+\usepackage[bidi=basic,layout=lists]{babel}
+\ifx\lakitmainlanguage\hllpdfenglish
+  \babelprovide[import]{hebrew}
+  \babelprovide[import,main]{english}
+\else
+  \babelprovide[import,main]{hebrew}
+  \babelprovide[import]{english}
+\fi
+% v4.22: bind canonical families and fallbacks to the selected installation.
+% Lookup by basename or family alone is not proof of the file actually used.
+% <hllpdf:font-binding>
+\directlua{
+  local dir = os.getenv("HEBREW_LATEX_FONT_DIR")
+  if not dir or dir == "" then
+    local data = os.getenv("XDG_DATA_HOME")
+    if not data or data == "" or not (data:sub(1,1) == "/") then
+      data = (os.getenv("HOME") or "") .. "/.local/share"
+    end
+    dir = data .. "/fonts/hebrew-lualatex-pdf"
+  end
+  if not (dir:sub(1,1) == "/") then dir = lfs.currentdir() .. "/" .. dir end
+  if dir:find("[",1,true) or dir:find("]",1,true) or dir:find(string.char(0),1,true)
+     or dir:find(string.char(10),1,true) or dir:find(string.char(13),1,true) then
+    tex.error("hllpdf: unsupported character in font directory")
+  end
+  if not (lfs.attributes(dir,"mode") == "directory") then
+    tex.error("hllpdf: font directory is missing")
+  end
+  hllpdf_font_dir = dir:gsub("/+$", "") .. "/"
+  tex.sprint(string.char(92) .. "def" .. string.char(92) .. "hllpdffontdir{")
+  tex.sprint(-2,hllpdf_font_dir)
+  tex.sprint("}")
+  luaotfload.add_fallback("hebfb",{"[" .. hllpdf_font_dir .. "DejaVuSerif.ttf]:mode=node;"})
+  luaotfload.add_fallback("hebfbbf",{"[" .. hllpdf_font_dir .. "DejaVuSerif-Bold.ttf]:mode=node;"})
+}
+% </hllpdf:font-binding>
+% v3.22: Frank Ruhl Libre ships NO italic face. Instead of silently-upright
+% \emph (v<=3.20) or bold-as-emphasis (v3.21), synthesize a slanted face with
+% FakeSlant — real, VISIBLE italic emphasis with correct \emph nesting
+% semantics (inner \emph toggles back upright). Verified empirically at
+% 300dpi: slant clearly visible, 0 errors, 0 missing glyphs.
+\babelfont{rm}[Path={\hllpdffontdir},RawFeature={fallback=hebfb},
+  BoldFont={FrankRuhlLibre-Bold.ttf},
+  BoldFeatures={RawFeature={fallback=hebfbbf}},   % v3.56 — see hebfbbf above
+  ItalicFont={FrankRuhlLibre-Regular.ttf}, ItalicFeatures={FakeSlant=0.22},
+  % Bold-italic uses the weight-matched fallback and a synthetic slant.
+  BoldItalicFont={FrankRuhlLibre-Bold.ttf}, BoldItalicFeatures={RawFeature={fallback=hebfbbf},FakeSlant=0.22}
+  ]{FrankRuhlLibre-Regular.ttf}
+% Sans fallbacks preserve family and weight for the few missing codepoints.
+\directlua{luaotfload.add_fallback("hebfbsans",{"[" .. hllpdf_font_dir .. "DejaVuSans.ttf]:mode=node;"})}
+\directlua{luaotfload.add_fallback("hebfbsansbf",{"[" .. hllpdf_font_dir .. "DejaVuSans-Bold.ttf]:mode=node;"})}
+\babelfont{sf}[Path={\hllpdffontdir},RawFeature={fallback=hebfbsans},
+  BoldFont={Heebo-Bold.ttf},
+  BoldFeatures={RawFeature={fallback=hebfbsansbf}}]{Heebo-Regular.ttf}
+% v3.24: Scale=MatchLowercase — DejaVu Sans Mono has an outsized x-height, so
+% unscaled inline code visually SHOUTS next to the delicate Frank Ruhl body
+% (measured on a 197-page build: scaled, a code atom sits in the line at the
+% body's weight, and the document tightened by ~5%). Applies to listings too.
+\babelfont{tt}[Path={\hllpdffontdir},RawFeature={fallback=hebfb},Scale=MatchLowercase,
+  BoldFont={DejaVuSansMono.ttf},
+  BoldFeatures={RawFeature={fallback=hebfb},FakeBold=1.5},
+  ItalicFont={DejaVuSansMono.ttf},
+  ItalicFeatures={RawFeature={fallback=hebfb},FakeSlant=0.2},
+  BoldItalicFont={DejaVuSansMono.ttf},
+  BoldItalicFeatures={RawFeature={fallback=hebfb},FakeBold=1.5,FakeSlant=0.2}
+  ]{DejaVuSansMono.ttf}
+
+% Explicit multilingual/English profiles use real Latin faces and italics.
+% The legacy/default Hebrew profile retains its established measured typography.
+% Latin Modern is provided by the TeX distribution, not the pinned font bundle;
+% recorder/runtime evidence reports it as an additional toolchain resource.
+\ifx\lakitlanguageprofile\hllpdfhebrew\else
+  \babelfont[english]{rm}[Ligatures=TeX,RawFeature={fallback=hebfb},
+    BoldFeatures={RawFeature={fallback=hebfbbf}},
+    BoldItalicFeatures={RawFeature={fallback=hebfbbf}}]{Latin Modern Roman}
+  \babelfont[english]{sf}[Ligatures=TeX,RawFeature={fallback=hebfbsans},
+    BoldFeatures={RawFeature={fallback=hebfbsansbf}},
+    BoldItalicFeatures={RawFeature={fallback=hebfbsansbf}}]{Latin Modern Sans}
+\fi
+
+\usepackage{amsmath,amssymb,mathtools}
+% amsthm supplies theorem/proof machinery. Environment names remain
+% document-specific; the generic proof label is localized below.
+\usepackage{amsthm}
+% Proof names follow the surrounding prose, including return from an island.
+\addto\extrashebrew{\renewcommand{\proofname}{הוכחה}}
+\addto\extrasenglish{\renewcommand{\proofname}{Proof}}
+\ifx\lakitmainlanguage\hllpdfenglish
+  \renewcommand{\proofname}{Proof}
+\else
+  \renewcommand{\proofname}{הוכחה}
+\fi
+% v3.24.1: equation tags under babel-bidi. A tag re-emitted by mathtools'
+% showonlyrefs inside align inherits the RTL base and its parens MIRROR —
+% ")2.1(" instead of "(2.1)" (plain align/equation tags are unaffected;
+% verified on a minimal case + a 198-page build). LTR-isolate at the tag-BOX
+% level: mathtools' show/hide + numbering logic is untouched. Do NOT override
+% \tagform@ instead — that clobbers the showonlyrefs mechanism (measured:
+% every tag shows, numbering breaks).
+% v3.28.1: the v3.24.1 wrap must apply ONLY to tags of display environments.
+% Inline \eqref in Hebrew PROSE also goes through \maketag@@@, and there the
+% english-wrap MIRRORS the parens — ")1(" — while the unwrapped original is
+% correct (proven on a 2x2 isolation matrix: patch x showonlyrefs; regressed
+% every prose \eqref since v3.24.1, caught by the render gate's R4). The two
+% call sites are indistinguishable by \ifmmode (tag boxes are text mode), so
+% the display environments themselves raise a flag; \eqref in prose sees it
+% false and gets the original untouched \maketag@@@.
+\usepackage{etoolbox}
+
+% babel bidi=basic (including upstream 26.9) assumes every automatic
+% discretionary has a one-glyph replacement. LuaTeX can legally produce one
+% with replace=nil after a hyphenated Latin value; Babel then indexes nil and the
+% whole build dies. Do the narrow upstream-compatible correction: while Babel
+% classifies the list, present only that malformed disc as an ordinary
+% discretionary, then restore its subtype. Babel still reorders the ENTIRE box;
+% there is no pcall and no successful fallback to an unreordered node list.
+% If Babel throws for any other reason, the build remains fatal. The synthetic
+% nil-disc probe and the real table gallery in test_all.sh pin both layers.
+\AtBeginDocument{\directlua{
+  if Babel and Babel.bidi and not Babel.heb_nil_disc_compat then
+    Babel.heb_nil_disc_compat = true
+    local original = Babel.bidi
+    local disc_id = node.id('disc')
+    Babel.bidi = function(head, ispar, hdir)
+      local hidden = {}
+      for item in node.traverse_id(disc_id, head) do
+        if item.subtype == 2 and (not item.replace or not item.replace.char) then
+          table.insert(hidden, item)
+          item.subtype = 0
+        end
+      end
+      local result = original(head, ispar, hdir)
+      for _, item in ipairs(hidden) do item.subtype = 2 end
+      return result
+    end
+  end
+}}
+\makeatletter
+\newif\ifHEBdisptag
+\let\ORIGmaketag@@@\maketag@@@
+\def\maketag@@@#1{\ifHEBdisptag\ORIGmaketag@@@{\foreignlanguage{english}{#1}}\else\ORIGmaketag@@@{#1}\fi}
+\@for\HEB@env:=equation,equation*,align,align*,gather,gather*,multline,multline*,flalign,flalign*,alignat,alignat*,eqnarray,eqnarray*\do{%
+  \expandafter\AtBeginEnvironment\expandafter{\HEB@env}{\HEBdisptagtrue}}
+\makeatother
+% English page + Hebrew prose: Babel's equation-only tag flip uses a primitive
+% leqno path that shifts the formula to the left edge and the tag into the body
+% of an English page. Align's full-width alignment is unaffected. Give only this
+% display a physical LTR container and native amsmath eqno/leqno. The engine then
+% owns real tag width, collision handling and labels; no proxy tag box hides ink
+% from its fit calculation. Babel's saved \bbl@eqnodir still restores Hebrew text
+% inside math, and the prose locale/math direction are never switched.
+% Close the prior RTL paragraph before normalization. After the environment's
+% group restores its directions, close TeX's empty resumed display paragraph and
+% use native LaTeX continuation handling: same-paragraph prose has no indent,
+% while an authored blank line starts an ordinary indented RTL paragraph.
+% Register after Babel's setup; remain local to equation(*) in a main-English
+% document's actual RTL prose. Native Hebrew, ordinary English and explicit
+% fleqn retain their original paths. No page/display dimensions are assigned.
+% <hllpdf:minority-rtl-equation-geometry>
+\makeatletter
+\newcommand{\HEB@minorityprosecontinuation}{\par\@doendpe}
+\newcommand{\HEB@minorityequationgeometry}{%
+  \ifx\lakitmainlanguage\hllpdfenglish
+    \ifnum\pardirection=\@ne
+      \if@fleqn\else
+        \par\aftergroup\HEB@minorityprosecontinuation
+        \iftagsleft@\let\veqno\@@leqno
+        \else\let\veqno\@@eqno\fi
+        \bodydir TLT\pardir TLT\textdir TLT\relax
+      \fi
+    \fi
+  \fi}
+\AtBeginDocument{%
+  \AddToHook{env/equation/begin}{\HEB@minorityequationgeometry}%
+  \AddToHook{env/equation*/begin}{\HEB@minorityequationgeometry}}
+\makeatother
+% </hllpdf:minority-rtl-equation-geometry>
+% v3.63: \shortintertext rendered Hebrew MIRROR-REVERSED and flush LEFT — an entire
+% commentary line inside an align printed backwards. babel's bidi=basic patches
+% \intertext@ only (luababel.def), and mathtools' \shortintertext uses the identical
+% \vbox{\normalbaselines … \noindent\ignorespaces#1\par} skeleton but is never
+% patched, so its paragraph keeps pardir/textdir LTR: no bidi reordering (logical
+% order on the page) and flush-left. Measured against \intertext with the same
+% Applying babel's own replacement to \shortintertext@ makes the two identical.
+% \h{}/\mbox fix the letter order but leave the line flush LEFT, so they are not
+% substitutes. Guarded + \AtBeginDocument because mathtools \let-copies at load time.
+% NB \ExplSyntaxOn is REQUIRED: mathtools' internals carry expl3 names, and without
+% the expl3 catcodes the `_` is read as a subscript and the patch detonates far away
+% with "! Illegal unit of measure (pt inserted)" at the \end{align} (measured).
+\makeatletter
+\AtBeginDocument{%
+  \@ifundefined{shortintertext@}{}{%
+    \ExplSyntaxOn
+    \bbl@sreplace\shortintertext@{\normalbaselines}%
+      {\normalbaselines\ifx\bbl@eqnodir\relax\else\bbl@pardir\@ne\bbl@eqnodir\fi}%
+    \ExplSyntaxOff}}
+\makeatother
+% geometry inherits the canonical A4 sheet from \documentclass; build.sh then
+% verifies every rendered MediaBox and CropBox, so a silent Letter fallback is
+% impossible to publish as a clean default build.
+\usepackage[\lakitgeometryoptions]{geometry}
+\linespread{\lakitlinespread}       % layout hook; canonical default remains 1.3
+\usepackage{xcolor}
+\usepackage{mdframed}
+\usepackage{listings}                 % code listings (assembly / C / pseudo-code)
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,shapes.geometric,fit,backgrounds}
+\usepackage{pgfplots}\pgfplotsset{compat=1.18}
+\usepackage{quantikz}                 % quantum circuits (remove if unused)
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{float}                    % [H] = place table exactly here (reference doc: no drifting)
+\usepackage{enumitem}
+\usepackage{needspace}
+
+% ============================================================================
+% ★★ v3.4 — THE DIRECTION-ISOLATION TRIO (the heart of mixing Hebrew + Latin)
+% Mental model:
+%   \h{...}    Hebrew (RTL) island      — Hebrew text inside an LTR context
+%                                          (TikZ nodes, the english `tikzpic`).
+%   \en{...}   English (LTR) isolate    — Latin text / parentheses inside a
+%                                          Hebrew (RTL) context. KEEPS PARENS
+%                                          AND ORDER CORRECT.
+%   \code{...} \en + monospace          — code inside Hebrew / inside a frametitle.
+% CRITICAL: never wrap Latin in \h{} (it is for HEBREW). Inside a TikZ node,
+% Latin in \h{} renders REVERSED (Datapath->htapataD, CPU->UPC) and parens
+% mirror. Isolate every Latin/paren chunk with \en{} or \code{}. See
+% references/figures-boxes-listings.md.
+% ---- TEXT INSIDE MATH (v3.8) ----------------------------------------------
+% Put ANY text that sits inside math in a \text{}. The ONLY thing that is
+% invalid in math is a bare \h/\en (= \foreignlanguage) used DIRECTLY, outside
+% \text -> "\rmfamily invalid in math mode". Inside \text:
+%   Hebrew label           -> \text{...}            (bare Hebrew renders fine;
+%                              \h is optional — BUT NOT ALWAYS HARMLESS (v3.67):
+%                              if the \h group OPENS with a nested island
+%                              ($..$, \en{}, \code{}, \texttt{}, \mbox{}) the
+%                              WHOLE group loses bidi and the Hebrew prints in
+%                              LOGICAL order = gibberish. Measured:
+%                                \text{\h{$f$ קבועה}}  -> reads "העובק"  BROKEN
+%                                \text{\h{קבועה $f$}}  -> correct
+%                                \text{$f$ קבועה}      -> correct (no \h)
+%                              Hebrew first inside \h, or drop the \h. Flagged
+%                              H-OPENS-WITH-LTR-GROUP.)
+%   plain Latin word        -> \text{...}            (no marker needed)
+%   Latin WITH ( ) or [ ]   -> \text{\en{...}}       (\en forces LTR; a plain
+%                              \text mirrors the parens in RTL -> "Spec (TNR(" )
+%   f(Hebrew/text arg)      -> \text{f}(\text{...})  -- keep the parens at MATH
+%                              level, NOT \text{f(arg)} (parens inside the box mirror)
+%   code in math            -> \mathtt{...}  (or \texttt{}, math-guarded below)
+% NEVER write \en{...} or \h{...} straight into $...$ / \[..\] (outside \text);
+% always via \text{}. (\mbox{...} also works but does not scale in scripts.)
+% ============================================================================
+\newcommand{\h}[1]{\foreignlanguage{hebrew}{#1}}
+% v3.42.1 — \en islands do NOT hyphenate (auto OR at explicit hyphens). English hyphenation patterns were
+% tearing identifiers and terms ACROSS THE RTL SEAM ("IO Regis-/ters",
+% "In-/put", "Band-/width", "Per-/formance", "Multi-/ple" — all shipped on
+% real pages; probe-proven: "ALUS-/rcB", "Mem-/ToReg"). An island is a label
+% or a term, not English prose — a hyphen tear there is never right. A/B on
+% a full 197pp lakit: identical overfull sets, same page count, ~11
+% paragraphs healed, one mild underfull (badness 3525) that replaced a
+% mutilated "Regis-/ters". Long English PROSE belongs in the englishprose
+% environment below, which restores explicit-hyphen breaks while its paragraph
+% is still active. A raw otherlanguage block inherits the global prohibition.
+% (\l@nohyphenation needs \csname:
+% '@' is not a letter here.)
+% v3.43.2 — \exhyphenpenalty moved OUT of \en to a GLOBAL assignment below.
+% Render-proven: a group-local \exhyphenpenalty is DEAD CODE — TeX reads the
+% line-breaking parameters at \par time, after the \en group has closed, so
+% \en{write-through} / plain not-taken still tore at the "-" ("write-/
+% through" shipped on a real exam page). \language is different: it is
+% recorded in the node list as text is added, so the in-group nohyphenation
+% assignment above DOES work (and stays). The global penalty was A/B-measured
+% on a 197pp lakit: identical overfull set (25), identical page count, the
+% not-/taken tear healed. Hebrew is unaffected in practice — Hebrew compounds
+% use maqaf (־), not ASCII "-".
+\newcommand{\en}[1]{\foreignlanguage{english}{\language=\csname l@nohyphenation\endcsname #1}}
+% Babel runs extras locally for inline islands and paragraph language changes.
+% An English main document must not inherit the Hebrew no-hyphen paragraph rule.
+\addto\extrashebrew{\exhyphenpenalty=10000\relax}
+\addto\extrasenglish{\exhyphenpenalty=50\relax}
+\ifx\lakitmainlanguage\hllpdfenglish
+  \exhyphenpenalty=50\relax
+\else
+  \exhyphenpenalty=10000\relax
+\fi
+% Full English paragraphs need ordinary explicit-hyphen breaks. Use this
+% environment instead of a raw otherlanguage block; the paragraph ends while
+% the local penalty is still active.
+\newenvironment{englishprose}
+  {\par\begin{otherlanguage}{english}\exhyphenpenalty=50\relax}
+  {\par\end{otherlanguage}}
+\newenvironment{hebrewprose}
+  {\par\begin{otherlanguage}{hebrew}\exhyphenpenalty=10000\relax}
+  {\par\end{otherlanguage}}
+% Use for shell text whose locale must not depend on the last body paragraph.
+\DeclareRobustCommand{\doclang}[1]{\foreignlanguage{\lakitmainlanguage}{#1}}
+
+% ============================================================================
+% ★★ — fixes for defects that are INVISIBLE in the log and in the checks
+% and only surface on a VISUAL RENDER of the PDF. (Each verified empirically.)
+% ----------------------------------------------------------------------------
+% v3.22: \emph is now REAL slanted emphasis (FakeSlant italic face defined on
+% the \babelfont{rm} line above), replacing the v3.21 \emph->\textbf hack: it
+% preserves \emph's toggle semantics and keeps bold free for its own role.
+% Prefer bold-as-emphasis for your doc? one line: \renewcommand{\emph}[1]{\textbf{#1}}
+% page number: force the digits LTR so they never reverse (18 -> 81) in the RTL
+%   footer. That reversal is a NON-DETERMINISTIC bidi glitch (observed once in
+%   ~80 pp); this LuaLaTeX build is not byte-reproducible, so the defensive
+%   LTR wrap is the only reliable guard. Latin digits are always LTR anyway.
+\renewcommand{\thepage}{\foreignlanguage{english}{\arabic{page}}}
+% v3.70: \pagenumbering \gdef's \thepage and silently DESTROYS the wrap above —
+% after \pagenumbering{arabic} the folio guard is gone for the whole rest of the
+% document. Two collections discovered this independently and hand-restore the
+% wrap in main.tex with the same comment; that knowledge now lives here instead.
+% The wrapper re-applies the LTR wrap after the kernel call, for any style.
+\makeatletter
+\let\lakin@orig@pagenumbering\pagenumbering
+\renewcommand{\pagenumbering}[1]{%
+  \lakin@orig@pagenumbering{#1}%
+  \renewcommand{\thepage}{\foreignlanguage{english}{\csname @#1\endcsname\c@page}}}
+\makeatother
+% emergencystretch: Hebrew does not hyphenate, so an unbreakable LTR island
+%   (\en{...} / an inline math run) landing at the margin can leave a small
+%   (~2-13pt) overfull with no legal breakpoint. This rescues ONLY those
+%   inline-prose tie-breaks; it is a ceiling used only on offending lines and
+%   does NOT touch display-math / listing / table overflow (those still surface
+%   in the log for the content-level overflow pass). Verified: baseline overfull
+%   -> 0 with this set, with no change to pagination or underfull.
+\setlength{\emergencystretch}{3em}
+% v3.40: inline math (almost) never breaks across lines. TeX's default
+%   (binop 700 / rel 500) lets an inline run split at an operator —
+%   $(1.f)\cdot 2^{e}$ shipped as "(1.f)·" ending one line and "2^e" opening
+%   the next (reader-reported). In LTR that split is merely ugly; under an
+%   RTL base the carried operator lands on the visually WRONG side of the
+%   break and the formula reads backwards.
+%   WHY 10000 (v3.45.0 — the display-first resolution). Inline math is
+%   FORBIDDEN from breaking, so a torn island under an RTL base is
+%   structurally impossible. The v3.40 cycle used 9999 ("break only as a last
+%   resort") because a bare 10000 left ~30-39 WIDE inline equations
+%   overflowing (worst 90.7pt) — but 9999's "last resort" fires OFTEN in
+%   tight, non-hyphenating Hebrew: a reader found torn islands across the
+%   fleet (~150 candidates; e.g. "P(y |" ending one line and "x_0)" opening
+%   the next, read backwards). The step the 9999 cycle missed: every one of
+%   those ~30 overflows is a wide equation that BELONGS in display. Convert
+%   them to display FIRST, then 10000 gives 0 tears AND 0 overflows (measured,
+%   12/12 fleet). Doctrine: inline math is ATOMIC; a wide equation goes in a
+%   display, never inline. See content-style ("inline math is atomic").
+\binoppenalty=10000 \relpenalty=10000
+% v3.38: uniform sentence spacing. TeX's default (\nonfrenchspacing, sfcode
+% 3000) is the OLD Anglo-American wide-space-after-period convention — Hebrew
+% typography never had it, and modern Latin practice (Chicago et al.) dropped
+% it too. Measured on real pages: post-period gaps up to 1.9-2.1x the line's
+% mean word gap — the dominant "rivers" source in justified Hebrew prose.
+% Survives babel language switches (probed: sfcode stays french inside \en{}
+% islands and otherlanguage blocks).
+\frenchspacing
+% v3.38: widow/orphan protection. LaTeX's default penalties (150/150/50)
+% allow a lone line at a page top/bottom almost freely. 10000 = forbid;
+% this is SAFE here precisely because the document is \raggedbottom (the
+% demoted line just moves on, no vertical stretch fight) — under flushbottom
+% these values would cause underfull pages. raggedbottom is the report-class
+% default; made explicit so a future class/option change cannot silently
+% flip it and turn the 10000s harmful.
+\raggedbottom
+\widowpenalty=10000 \clubpenalty=10000 \displaywidowpenalty=10000
+% em-dash: --- does NOT become — under Frank Ruhl (the font lacks tlig; verified
+%   the width is identical with/without Ligatures=TeX, while the mechanism works
+%   on Latin Modern). TYPE THE CHARACTER — (U+2014) DIRECTLY; likewise – (U+2013).
+%   check_bidi_figures.py flags a --/--- that is adjacent to Hebrew.
+% ============================================================================
+
+% ---- STRUCTURAL DIRECTION-SAFETY for \texttt (v3.7) -------------------------
+% A parenthesis, bracket, or $ INSIDE \texttt{} mirrors/migrates in RTL prose
+% (MIPS 0($s0)->"(s0$)0", $rs->"rs$", arr[i]->"[arr[i") because \texttt sets the
+% font but NOT the direction. Redefining \texttt to LTR-isolate its content fixes
+% the WHOLE class at once (parens, brackets, $) so plain \texttt{lw $t0,0($s0)}
+% is safe — no need to remember \code{}. Guarded by \ifmmode because
+% \foreignlanguage is invalid in math (there, plain monospace is already LTR).
+% NB (corrected v3.56 — the old note here said "stays tofu", which is WRONG):
+% \texttt{Hebrew} is a FATAL build failure. The tt family is DejaVu Sans Mono
+% (zero Hebrew) and the tt fallback hebfb is DejaVuSerif (also zero Hebrew), so
+% the subsetter gets an empty glyph set and LuaTeX dies with
+%   "! error: (file .../DejaVuSansMono.ttf) (type 2): there are no glyphs in the
+%    subset"  -> no output PDF.
+% The message names a FONT FILE, never Hebrew/\texttt/the source line. And it is
+% non-local: add an unrelated Latin \code{} elsewhere and the fatal degrades into
+% a SILENT DELETION of the Hebrew word. Put Hebrew in \h{}/normal text, never in
+% \texttt{}/\code{}; flagged HEBREW-IN-MONO. To disable, delete this block.
+\let\origtexttt\texttt
+\protected\long\def\texttt#1{\ifmmode\origtexttt{#1}\else\foreignlanguage{english}{\origtexttt{#1}}\fi}
+% v4.8.0: defer the direction test until TeX has inserted an alignment cell's
+% math template. Unprotected expansion here tested \ifmmode too early at the
+% FIRST token of aligned/array/cases/matrix cells. Engine-level \protected also
+% preserves the original \texttt implementation without the self-recursion
+% observed when retrofitting \DeclareRobustCommand to its saved alias.
+\protected\long\def\code#1{\ifmmode\origtexttt{#1}\else\foreignlanguage{english}{\origtexttt{#1}}\fi}
+
+% ---- \codeline — display-code line (v3.24): the code analogue of display math.
+% Reader-friction rule (content-style.md §5b): inline \code{} is for a SINGLE
+% ATOM only (one register/variable/mnemonic, a tight no-space expression).
+% A multi-token expression — an instruction with operands, a spaced assignment,
+% a register-binding list — zigzags the eye RTL<->LTR mid-sentence and, being
+% an unbreakable island, line-breaks badly. Give it its own centered line with
+% display-math vertical rhythm. \centerline = one box => the expression never
+% wraps; \nopagebreak keeps it glued to its introducing sentence.
+%   ...the Hebrew sentence ends with a colon:
+%   \codeline{lw \$t1, -4(\$t0)}
+%   and the prose continues (escape dollars as \$).
+% v3.66 (first line of the body): flush a PENDING \item label before the \par.
+% LaTeX defers the label box (\@labels) until the next \everypar, and an \hbox in
+% vertical mode never fires \everypar — so `\item \codeline{...}` printed the code
+% at y=69.1 and the item's own "1." BELOW it at y=103.6 (the number appears after
+% its content, attached to nothing). \if@inlabel\leavevmode\fi is CONDITIONAL on
+% purpose: an unconditional \leavevmode would open an empty paragraph line when
+% \codeline follows ordinary prose. Verified both ways — in a list the label now
+% sits on the code's line at its normal x, and after prose the geometry is
+% byte-identical to before.
+\makeatletter
+\newcommand{\codeline}[1]{%
+  \if@inlabel\leavevmode\fi
+  \par\nopagebreak
+  \vspace{\abovedisplayskip}\nopagebreak
+  % v3.62: was \centerline{...}, i.e. \hbox to\hsize{\hss #1 \hss}. \hss has
+  % INFINITE SHRINK, so TeX could always "fit" the box and NEVER reported an
+  % Overfull — the same \hss mechanism as BLD-27's \item label. Measured: a wide
+  % \codeline in a defbox painted its first token ON the box's left border bar and
+  % sat 9.5pt outside the frame interior on both sides, with 0 Overfull, 0 Underfull
+  % and all four gates PASS; in bare prose it reached 21.0pt into BOTH margins.
+  % \hfil has no shrink, so the overflow is reported and build.sh's ovf_vis/ovf_big
+  % counters see it; \linewidth (not \hsize) makes it box-aware, so a \codeline
+  % inside a colored box centres on the box interior. Verified: a FITTING \codeline
+  % keeps byte-identical glyph positions, and the box-crossing case now emits
+  % "Overfull \hbox (19.03pt too wide)". A wide \codeline should be split in two.
+  \hbox to\linewidth{\hfil\code{#1}\hfil}%
+  \nopagebreak\vspace{\belowdisplayskip}}
+\makeatother
+
+% ---- a thin decorative rule helper ----
+\newcommand{\sep}{\par\vspace{2pt}\noindent\textcolor{cRule}{\rule{\linewidth}{0.6pt}}\par\vspace{4pt}}
+
+% ---- colors ----
+\definecolor{cBlue}{HTML}{1F4E79}   \definecolor{cBlueBg}{HTML}{EAF1F8}
+\definecolor{cGreen}{HTML}{2E6B4F}  \definecolor{cGreenBg}{HTML}{EAF4EE}
+\definecolor{cAmber}{HTML}{9C6A00}  \definecolor{cAmberBg}{HTML}{FBF3E2}
+\definecolor{cPurple}{HTML}{5B2C6F} \definecolor{cPurpleBg}{HTML}{F3ECF7}
+\definecolor{cTeal}{HTML}{0E6E6E}   \definecolor{cTealBg}{HTML}{E6F4F4}
+\definecolor{cRed}{HTML}{8E2B2B}    \definecolor{cRedBg}{HTML}{FBEAEA}
+\definecolor{cGray}{HTML}{555555}   \definecolor{cRule}{HTML}{1F4E79}
+
+% ---- math operators ----
+\DeclareMathOperator{\Tr}{Tr}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator{\sgn}{sgn}
+
+% ---- bra-ket (quantikz defines \ket/\bra/\braket; add the rest safely) ----
+\providecommand{\ket}[1]{\left|#1\right\rangle}
+\providecommand{\bra}[1]{\left\langle#1\right|}
+\providecommand{\braket}[2]{\left\langle#1\middle|#2\right\rangle}
+\newcommand{\dyad}[1]{\left|#1\right\rangle\!\left\langle#1\right|}
+% v3.21: general outer product |a><b| and expectation value <A> — agents reach
+% for these by reflex (esp. \expval); quantikz defines neither, so their absence
+% threw "Undefined control sequence" in a real build. \providecommand = safe.
+\providecommand{\ketbra}[2]{\left|#1\right\rangle\!\left\langle#2\right|}
+\providecommand{\expval}[1]{\left\langle#1\right\rangle}
+\newcommand{\abs}[1]{\left|#1\right|}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\half}{\tfrac12}
+\newcommand{\R}{\mathbb{R}}\newcommand{\C}{\mathbb{C}}\newcommand{\Z}{\mathbb{Z}}
+% identity operator. NB: \mathbb{1} silently renders a WRONG glyph (msbm has no
+% blackboard digits). Use \mathbb{I} = 𝕀 (works with amssymb, no extra package).
+% Do NOT "fix" this back to \mathbb{1}.
+\newcommand{\id}{\mathbb{I}}
+
+% ---- physical units (v3.35): \punit — upright unit with thin space ---------
+% Usage: $300\punit{K}$, $80\punit{mV/decade}$, $10^{7}\punit{cm/s}$ — the
+% NUMBER AND UNIT LIVE IN ONE MATH ISLAND. Promoted verbatim from a 199-page
+% production lakit (advanced-electronic-devices, dozens of uses).
+% Two measured traps this design avoids (both render-proven):
+%   1. siunitx SCRAMBLES under RTL — \SI{3.5}{eV} renders "eV 3.5", exponents
+%      detach ("Hz 10 x 10^9"): its quantity assembly is not bidi-isolated.
+%      Do NOT load siunitx in this pipeline.
+%   2. A text-mode unit next to a bare-prose number is TWO adjacent LTR runs
+%      and reorders ("5 mm" -> "mm5" — the BIDI-2/3 class). \punit is therefore
+%      math-only ON PURPOSE: prose misuse fails LOUDLY at compile (\mathrm
+%      outside math) instead of scrambling silently.
+% Domain shorthands (\MeV, \fm...) stay per-document: \newcommand{\MeV}{\,\text{\en{MeV}}}
+\providecommand{\punit}[1]{\,\mathrm{#1}}
+
+% ============================================================================
+% Colored boxes — mdframed (NOT tcolorbox, which breaks under bidi).
+% ★★ v3.4: innerleftmargin/innerrightmargin give code listings room so their
+% frame/line-numbers do not spill out the box border (see listing styles below).
+% ============================================================================
+% v3.61: everyline/split skips were applied to `tablebox` only (BLD-14, v3.37) —
+% the six colored boxes below never got them, so they still split OPEN across a page
+% break: the page-N segment gets top+sides and NO bottom rule, the page-N+1 segment
+% sides+bottom and NO top rule. Measured on the shipped fleet this is a COVERAGE GAP,
+% not a re-report of BLD-14: 0 split-open `tablebox` segments (that fix holds) vs 62
+% split-open COLORED boxes across 7 documents. Verified after the fix: both segments
+% close, and the frametitle is NOT duplicated on the continuation. BLD-14's caveat
+% still applies — a box taller than a full page grinds mdframed's split-trial loop, so
+% split such content manually.
+% ============================================================================
+% v3.72: frametitle={} leads EVERY \newmdenv option list below. mdframed options
+% are GROUP-scoped: a box nested inside \begin{exbox}[frametitle={...}] used to
+% INHERIT the outer title — measured, the identical title string rendered twice,
+% the second riding a title-bar fill inside the INNER box's frame, for all seven
+% environments in both directions. Both natural forms were broken (= preamble
+% bug, not an authoring rule). The explicit reset makes every box titleless
+% unless ITS OWN [frametitle={...}] says otherwise; verified both directions:
+% no duplicate on the nested box, an explicit title still renders.
+\newmdenv[frametitle={},linecolor=cBlue,backgroundcolor=cBlueBg,linewidth=1.1pt,
+  frametitlebackgroundcolor=cBlue,frametitlefontcolor=white,
+  innertopmargin=6pt,innerbottommargin=7pt,skipabove=9pt,skipbelow=9pt,
+  innerleftmargin=9pt,innerrightmargin=9pt,everyline=true,splitbottomskip=6pt,splittopskip=12pt,
+  roundcorner=3pt]{defbox}   % הגדרה
+\newmdenv[frametitle={},linecolor=cGreen,backgroundcolor=cGreenBg,linewidth=1.1pt,
+  frametitlebackgroundcolor=cGreen,frametitlefontcolor=white,
+  innertopmargin=6pt,innerbottommargin=7pt,skipabove=9pt,skipbelow=9pt,
+  innerleftmargin=9pt,innerrightmargin=9pt,everyline=true,splitbottomskip=6pt,splittopskip=12pt,
+  roundcorner=3pt]{thmbox}   % משפט/טענה
+\newmdenv[frametitle={},linecolor=cAmber,backgroundcolor=cAmberBg,linewidth=1.1pt,
+  frametitlebackgroundcolor=cAmber,frametitlefontcolor=white,
+  innertopmargin=6pt,innerbottommargin=7pt,skipabove=9pt,skipbelow=9pt,
+  innerleftmargin=9pt,innerrightmargin=9pt,everyline=true,splitbottomskip=6pt,splittopskip=12pt,
+  roundcorner=3pt]{notebox}  % הערה
+\newmdenv[frametitle={},linecolor=cPurple,backgroundcolor=cPurpleBg,linewidth=1.1pt,
+  frametitlebackgroundcolor=cPurple,frametitlefontcolor=white,
+  innertopmargin=6pt,innerbottommargin=7pt,skipabove=9pt,skipbelow=9pt,
+  innerleftmargin=9pt,innerrightmargin=9pt,everyline=true,splitbottomskip=6pt,splittopskip=12pt,
+  roundcorner=3pt]{exbox}    % דוגמה
+\newmdenv[frametitle={},linecolor=cRed,backgroundcolor=cRedBg,linewidth=1.1pt,
+  frametitlebackgroundcolor=cRed,frametitlefontcolor=white,
+  innertopmargin=6pt,innerbottommargin=7pt,skipabove=9pt,skipbelow=9pt,
+  innerleftmargin=9pt,innerrightmargin=9pt,everyline=true,splitbottomskip=6pt,splittopskip=12pt,
+  roundcorner=3pt]{warnbox}  % טעות נפוצה
+\newmdenv[frametitle={},linecolor=cTeal,backgroundcolor=cTealBg,linewidth=1.1pt,
+  frametitlebackgroundcolor=cTeal,frametitlefontcolor=white,
+  innertopmargin=6pt,innerbottommargin=7pt,skipabove=9pt,skipbelow=9pt,
+  innerleftmargin=9pt,innerrightmargin=9pt,everyline=true,splitbottomskip=6pt,splittopskip=12pt,
+  roundcorner=3pt]{keybox}   % רעיון מרכזי
+
+% ---- codebox (v4.5.0): the dedicated container for code -------------------
+% An OPTION, not a policy: asmblock unboxed stays canonical for a full listing,
+% and a snippet inside any of the six colored boxes still works as before.
+% What makes codebox worth its own environment is that it is the ONE framed box
+% that keeps its margin line numbers.
+%
+% v4.4.0 shipped it WITHOUT them, on the strength of v3.37's "no margin knob can
+% save them" plus four fresh probes that agreed. That was wrong: every probe had
+% moved the code, the box, or both — never the key that carries the NUMBER
+% COLUMN. Measured on the page:
+%   resetmargins=false   the listing follows THIS box instead of the page,
+%                        moving the code from x=75.26 to x=97.54
+%   xrightmargin=26pt    under RTL this is the PHYSICAL LEFT indent, and the
+%                        only key that carries the \llap'ed digits with it:
+%                        x=64.28 -> 90.18, clearing the rule at 65.64 by 23.6pt
+%   xleftmargin=26pt     moves the code and LEAVES THE DIGITS on the rule —
+%                        the asymmetry that hid the fix for eleven versions
+% resetmargins is hoisted out of the four styles (see the \lstset below them) so
+% this override is possible at all; every other listing still resolves to true.
+% Pinned by tests/codebox_numbers.tex + probe_lstnum.py --inside-rule, whose
+% negative control strips xrightmargin and watches the digits fall back.
+\definecolor{cSlate}{HTML}{3F4A56}  \definecolor{cSlateBg}{HTML}{F2F4F7}
+\newmdenv[frametitle={},leftline=true,rightline=true,topline=true,bottomline=true,
+  linecolor=cSlate,backgroundcolor=cSlateBg,linewidth=0.9pt,
+  frametitlebackgroundcolor=cSlate,frametitlefontcolor=white,
+  innertopmargin=6pt,innerbottommargin=7pt,skipabove=9pt,skipbelow=9pt,
+  innerleftmargin=9pt,innerrightmargin=9pt,everyline=true,splitbottomskip=6pt,splittopskip=12pt,
+  roundcorner=3pt]{codebox}   % קוד
+% The two keys that make in-box numbering work, both measured on the page:
+%   resetmargins=false  the listing follows THIS box instead of the page
+%   xrightmargin        under RTL this is the PHYSICAL LEFT indent, and it is
+%                       the only one that carries the \llap'ed number column
+%                       with it. xleftmargin moves the code and leaves the
+%                       digits behind on the rule (measured: code 97.54,
+%                       digits 64.28 — the v3.37 defect, reproduced); with
+%                       xrightmargin=26pt the digits land at x=90.18, a
+%                       clearance of 23.6pt from the rule at 65.64.
+% This asymmetry is why v3.4's note had the semantics backwards and v3.37
+% concluded the digits could not be saved.
+% <hllpdf:listing-container-state>
+% v4.29: all state is local to the current environment group. A semantic
+% callout masks number text, while a nested codebox restores the formatter
+% saved before that mask. Save it once across successive semantic wrappers;
+% an explicit numbers=none (or an explicitly empty formatter) remains valid.
+\makeatletter
+\newif\ifhllpdf@incodebox
+\newif\ifhllpdf@englishcodebox
+\newif\ifhllpdf@lstnumbermasked
+\let\hllpdf@savedlstnumber\thelstnumber
+\makeatother
+% </hllpdf:listing-container-state>
+% <hllpdf:codebox-gutter>
+\makeatletter
+\AtBeginEnvironment{codebox}{%
+  \hllpdf@incodeboxtrue
+  % Snapshot the OUTER language before asmblock selects English.
+  \iflanguage{english}{\hllpdf@englishcodeboxtrue}{\hllpdf@englishcodeboxfalse}%
+  \ifhllpdf@lstnumbermasked
+    \let\thelstnumber\hllpdf@savedlstnumber
+    \hllpdf@lstnumbermaskedfalse
+  \fi
+}
+% listings' AddToHook is GLOBAL. Register once, and gate on local box state;
+% adding an unconditional hook at every codebox entry leaks into later listings.
+\lst@AddToHook{PreInit}{%
+  \ifhllpdf@incodebox
+    % Apply every listing override here, inside the LISTING's own group.
+    % Setting margins at box entry leaks them into nested semantic callouts.
+    \lstset{resetmargins=false,xrightmargin=26pt}%
+    % Styles resolve before PreInit. In LTR the physical number gutter follows
+    % xleftmargin; in Hebrew retain the measured inherited xrightmargin path.
+    \ifhllpdf@englishcodebox
+      \lstset{xleftmargin=26pt,xrightmargin=0pt}%
+    \fi
+    % ONE box, not two: suppress only the frame/background/skips of a listing
+    % inside this codebox. The next unboxed listing keeps its own style.
+    \lstset{frame=none,backgroundcolor=\color{cSlateBg},aboveskip=0pt,belowskip=0pt}%
+  \fi
+}
+\makeatother
+% </hllpdf:codebox-gutter>
+
+% v3.37: line numbers inside a COLORED BOX are sliced by the box border —
+% measured: digit span x=63.5-67.3 vs border line at x=65.2 (the border runs
+% THROUGH the digits), and the inter-border gap (3.5pt) is narrower than a
+% digit (3.8pt), so no margin knob can save them (under resetmargins,
+% xleftmargin is inert in-box — measured: code at x=75.26 with 2.2em AND
+% 3.0em). A 3-6 line boxed snippet does not need line numbers; blank the
+% number TEXT inside every colored box (\thelstnumber is what gets printed;
+% the style's numbers=left survives, so nothing else shifts — code position
+% byte-frozen at x=75.26, verified). Unboxed listings keep their numbers.
+% v3.78: the blanking is coupled to the FRAME, not to the box name —
+% clean_theme.tex registers LATER hooks (registration order wins) that
+% restore the number text inside the boxes it renders frameless.
+% v4.5.0 RETRACTS the "no margin knob can save them" clause above. It holds only
+% under resetmargins=true (the shipped default): there xleftmargin is inert
+% in-box, as measured. With resetmargins=false, xrightmargin DOES carry the
+% \llap'ed digit column clear of the rule — measured; the codebox \lstset that
+% does it is the one above, in the codebox block. The loop below therefore
+% covers SIX boxes, not "every colored box": codebox opts out and keeps its
+% numbers.
+% <hllpdf:semantic-listing-mask>
+\makeatletter
+\@for\HEB@lstbox:=defbox,thmbox,notebox,exbox,warnbox,keybox\do{%
+  \expandafter\AtBeginEnvironment\expandafter{\HEB@lstbox}{%
+    \ifhllpdf@lstnumbermasked\else
+      \let\hllpdf@savedlstnumber\thelstnumber
+    \fi
+    \hllpdf@lstnumbermaskedtrue
+    \def\thelstnumber{}%
+    % The nearest semantic container owns its listing presentation. On exit,
+    % TeX's group restores the enclosing codebox state and formatter.
+    \hllpdf@incodeboxfalse}}
+\makeatother
+% </hllpdf:semantic-listing-mask>
+
+% ============================================================================
+% Unified TABLE presentation: subtle uniform slate frame + auto-numbered
+% caption rendered INSIDE the frame. Use:
+%   \begin{tablebox}\centering\small  <tabular>  \tabcap{<description>}\end{tablebox}
+% Replaces the buggy \caption* (which emitted a stray "טבלה N : *" line) and
+% gives every table one identical frame + numbered caption "טבלה N.M.".
+% Optional intro text may be placed at the TOP, before the tabular, inside the box.
+% ============================================================================
+\definecolor{cTblLine}{HTML}{B9C4D2}  \definecolor{cTblBg}{HTML}{FAFBFC}
+% v3.23: class-aware — under `article` there is no chapter counter (the promised
+% report->article switch used to die with "No counter 'chapter' defined").
+\makeatletter
+\@ifundefined{c@chapter}{%
+  % v3.31: in article the counter resets per SECTION, so an unprefixed number
+  % repeated ("טבלה 1." in every section — measured on a two-section render).
+  % Same conditional idea as the report branch: prefix the section number once
+  % a real \section exists; a pre-section table stays "טבלה 1".
+  \newcounter{tbl}[section]
+  \renewcommand{\thetbl}{\ifnum\value{section}>0 \thesection.\fi\arabic{tbl}}%
+}{%
+  \newcounter{tbl}[chapter]
+  % v3.30: a report-class doc that uses SECTIONS ONLY (chapter stays 0 —
+  % the common short-doc pattern) used to print "טבלה 0.1"; the chapter
+  % prefix now appears only once a real \chapter exists (render-verified
+  % both ways: "טבלה 1." chapterless, "טבלה 1.1" with chapters).
+  \renewcommand{\thetbl}{\ifnum\value{chapter}>0 \thechapter.\fi\arabic{tbl}}%
+  % v3.64: the SAME leak in \thesection itself, left behind by v3.30. That fix
+  % guarded the CAPTION counter and stopped there, so a chapterless report still
+  % printed the heading "0.1 סעיף ראשון" and \ref to it printed "0.2" — measured:
+  %   p1 y=65.2  '…0.1'   p1 y=144.9 '…0.2'   p1 y=183.4 '…0.2.1'
+  % report.cls hardcodes \thesection as \thechapter.\@arabic\c@section, and the
+  % leading 0 is the chapter counter that no \chapter ever incremented. Fixing
+  % \thesection fixes the whole chain — \thesubsection and \thesubsubsection are
+  % defined in terms of it. \theequation and \thetbl/\thefig were already guarded,
+  % which is exactly why this survived: every NUMBER around the heading looked
+  % right, so the heading's own 0 read as a style choice rather than a bug.
+  % \appendix is safe: report.cls resets chapter to 0 and redefines \thechapter to
+  % \@Alph\c@chapter, so an appendix \chapter makes the counter 1 and the guard
+  % emits "A.1" unchanged. Render-verified in all four modes (chapterless,
+  % chaptered, appendix+chapter, appendix+section-only).
+  \renewcommand{\thesection}{\ifnum\value{chapter}>0 \thechapter.\fi\arabic{section}}%
+}
+\makeatother
+% v3.37: everyline=true — if the box DOES split across pages, every segment
+% gets a CLOSED frame (measured before: the split ran open-ended into the page
+% edge with no bottom border, and the caption could strand alone at the next
+% page top — "טבלה A.2" shipped that way). The split skips give the segments
+% breathing room. In practice, with the caption GLUE below, every previously-
+% split table in the corpus now moves WHOLE instead (the white-gap tradeoff,
+% documented benign); everyline stays as the safety net for a genuinely
+% page-tall table. NB: a table taller than ONE FULL PAGE can grind mdframed's
+% split-trial loop (reproduced: minimal doc, minutes of 1pt-step Overfull
+% probes) — break such a monster into two tables.
+\newmdenv[frametitle={},leftline=true,rightline=true,topline=true,bottomline=true,
+  linecolor=cTblLine,backgroundcolor=cTblBg,linewidth=0.9pt,
+  innertopmargin=9pt,innerbottommargin=8pt,skipabove=11pt,skipbelow=11pt,
+  innerleftmargin=11pt,innerrightmargin=11pt,roundcorner=4pt,
+  % v4.2.0 (adopted): tablebox is ATOMIC. Short tableboxes near page bottoms
+  % repeatedly entered mdframed's split trial, emitting benign Overfull-vbox
+  % bursts and occasionally separating the intro prose from the tabular.
+  % nobreak=true moves the complete short table to the next page instead. The
+  % output-active Overfull-vbox gate still catches a box taller than a page;
+  % everyline/split skips remain as defensive styling should that path ever
+  % re-arm, but the canonical path never publishes a split tablebox.
+  nobreak=true,
+  everyline=true,splitbottomskip=6pt,splittopskip=12pt,
+  % v3.79 (BLD-37 table side, correction): startinnercode/endinnercode run
+  % INSIDE mdframed's body vbox (mdframed.sty:848 / :856+863) -- the second one
+  % after \par\unskip, i.e. after line breaking, which is the only moment the
+  % \tabcap anchor's true offset from the top of the box EXISTS. See
+  % \lakintabboxclose below. These two keys are the ONLY tablebox change.
+  startinnercode={\lakintabboxopen},endinnercode={\lakintabboxclose}]{tablebox}
+% v3.37: \nopagebreak GLUE — \vsplit honors penalties, so the caption can no
+% longer strand alone at the top of the next page (it takes its rows along, or
+% the whole box moves). Render-verified on the real shipped orphan.
+% v3.59: \NR@gettitle is what nameref injects into the stdlib title-bearing
+% commands (\@sect, \@chapter, \caption) to fill \@currentlabelname. \figcap and
+% \tabcap are INDEPENDENT macros — they never called it, so \@currentlabelname kept
+% whatever the last heading left and \nameref{fig:x} silently printed the enclosing
+% SECTION's title instead of the caption (proven in the .aux: field 3 of \newlabel
+% was the heading text while field 1 and the anchor `fig.1.1` were correct — so this
+% is a THIRD, distinct head next to BLD-13's counter fix and BIDI-38's autoref-name
+% fix, neither of which writes that field). \@ifundefined keeps it inert if
+% hyperref/nameref is ever dropped. Guarded helper because \figcap is defined
+% after \makeatother.
+% NB both helpers below need \makeatletter — this part of the preamble is OUTSIDE
+% any letter-catcode region, so an unwrapped \@currentlabel parses as LaTeX's \@
+% and dies with "You can't use \spacefactor in vertical mode" (measured).
+\makeatletter
+\newcommand{\lakinrtitle}[1]{\@ifundefined{NR@gettitle}{}{\NR@gettitle{#1}}}
+% v3.59: \hitem{<letter>}{<key>} — a REFERENCEABLE Hebrew-lettered list item.
+%   \begin{enumerate} \hitem{א}{it:a} הסעיף הראשון. \end{enumerate}  ->  \ref{it:a} = (א)
+% Why this exists: automatic Hebrew list labels fail silently, so SKILL.md mandates
+% an EXPLICIT \item[(\textbf{א})] — but LaTeX puts \refstepcounter INSIDE
+% \if@noitemarg (latex.ltx:12964), and \item[...] never sets that flag. So an
+% explicit item steps no counter and never touches \@currentlabel: a \label there
+% binds to the AMBIENT one and \ref prints the CHAPTER/SECTION number where the
+% item letter belongs (proven in the .aux: {chapter.1}). Same doctrine as \figcap —
+% own the label state before \label. \phantomsection matters: without it the
+% hyperlink still lands on the chapter head (measured); with it the anchor is
+% section*.N and the bookmark outline stays clean.
+\newcommand{\hitem}[2]{\item[(\textbf{#1})]%
+  \def\@currentlabel{(#1)}\def\@currentlabelname{#1}\phantomsection\label{#2}}
+% NB (v3.66): \hitem is \ref-only. \autoref{key} calls it a SECTION ("סעיף (א)")
+% because \phantomsection brands the anchor section*.N, and \nameref{key} prints
+% the bare letter. For \autoref-able items prefer \hebenumlabels below.
+%
+% v3.66: \hebenumlabels — OPT-IN automatic Hebrew enumerate letters, done right.
+%   {\hebenumlabels\begin{enumerate}\item\label{q:a} ...\end{enumerate}}
+%   -> labels (א) (ב) (ג); \ref{q:a} = א; anchor Item.N (real, per-item).
+% This retires the belief that made \item[(\textbf{א})] + \hitem necessary.
+% "Automatic Hebrew labels fail silently" was TRUE but unexplained, and the
+% mechanism is now bisected (plain article vs +enumitem, measured): ENUMITEM
+% PRE-EXPANDS the label expression in an \edef BEFORE \refstepcounter, with the
+% counter still at 0. Tokens it shields by name (\arabic,\alph,\roman) survive;
+% a plain \newcommand \ifcase wrapper evaluates at 0 -> the EMPTY zero-branch ->
+% the label prints as "()" with the letter GONE (and \the\c@enumi prints a
+% literal 0, \number\value dies fatally pointing at \item). The cure is one
+% property, not a doctrine: the wrapper must be ROBUST (survives the \edef
+% unexpanded), while \theenumi stays EXPANDABLE (so \refstepcounter writes the
+% real letter to the .aux). Verified: labels (א)(ב)(ג), \ref -> א/ב/ג each item
+% its own value, .aux = {א}{...}{Item.1} — versus the explicit-\item doctrine
+% where BIDI-50/\hitem exist purely to patch the counter that never stepped.
+\def\@hebalph#1{\ifcase#1\or א\or ב\or ג\or ד\or ה\or ו\or ז\or ח\or ט\or י\or
+  יא\or יב\or יג\or יד\or טו\or טז\or יז\or יח\or יט\or כ\else\@ctrerr\fi}
+\DeclareRobustCommand*\hebalph[1]{\expandafter\@hebalph\csname c@#1\endcsname}
+\newcommand{\hebenumlabels}{%
+  \renewcommand{\theenumi}{\@hebalph\c@enumi}%
+  \renewcommand{\labelenumi}{(\textbf{\hebalph{enumi}})}}
+\makeatother
+% v3.63: \mbox the LABEL. \thetbl ("7.1") and a caption description that STARTS
+% WITH A DIGIT ("32 הרגיסטרים…") are two European-Number runs separated only by
+% neutrals (the label's own "." and \enspace). Under the RTL paragraph base the UBA
+% resolves those neutrals to the RTL level, so both numbers sit in ONE reversed span
+% and EXCHANGE VISUAL POSITIONS. Measured on the shipped PDF: a table whose real
+% number is 7.1 printed "טבלה 32" — a different, EXISTING table number — while \ref
+% correctly printed 7.1, so the caption silently contradicted its own cross-reference,
+% and the description lost its leading count. The source contains no adjacency at all;
+% it is manufactured by this macro, which is why every source linter was blind.
+% \mbox makes the label one atomic box so nothing can reorder across it. Verified
+% zero-regression: an ordinary Hebrew caption keeps identical x-geometry.
+% Public caption-presentation hooks. Their core defaults retain the historical
+% gray bold label and period exactly. Themes may change these two hooks, while
+% the core remains the sole owner of counters, label state and raised anchors.
+% The enclosing \mbox in both caption commands keeps the entire label atomic.
+\newcommand{\lakitcaptionlabelstyle}[1]{\textcolor{cGray}{\textbf{#1}}}
+\newcommand{\lakitcaptionpunctuation}{.}
+% v3.64: OPT-IN list-of-figures/tables entry via an optional short caption.
+% \listoffigures and \listoftables are inherited from report.cls and LOOK available,
+% but \figcap/\tabcap step the custom \c@fig/\c@tbl counters and never call
+% \addcontentsline — so both printed their heading and NOTHING ELSE. Measured: a doc
+% with one \figcap and one \tabcap rendered page 1 as 'רשימת האיורים\n1\n', and the
+% .lof held only \@chapter's \addvspace, zero \contentsline entries. An empty list
+% under a correct Hebrew heading reads as "this document has no figures".
+%
+% WHY OPTIONAL, AND NOT AUTOMATIC. Writing #1 unconditionally was implemented first
+% and REJECTED: a caption containing \codeline compiles CLEANLY today (verified on
+% the pre-v3.64 preamble: 0 errors, PDF produced) but becomes FATAL once it is also
+% written to the .lof — \codeline is \hbox to\linewidth{...}, and a full-width box in
+% a list entry dies with "\pdfextension endlink cannot be used in vertical mode", no
+% output PDF. Gaining a feature nobody uses (0 of 13 collections call \listoffigures)
+% at the price of breaking a construct that works is a bad trade. Stock \caption has
+% exactly this limitation and exactly this escape hatch, so the convention is familiar.
+% \en{}, \code{}, \h{} and inline math in the short text are all safe — verified, they
+% survive the write and typeset correctly in the list (RTL geometry confirmed: number
+% rightmost at x=509.9, title left of it, dots and folio at the far left).
+% With no optional argument the macro is byte-identical to v3.63 — zero risk to every
+% existing document, and \listoffigures lists exactly the captions that opted in.
+% BLD-37, TABLE side (the \figcap v3.74 idea, adapted): clicking a \ref to a
+% table used to land MID-table — hyperref's automatic anchor inside
+% \refstepcounter was emitted on the still-open horizontal line whose TAIL is
+% the tabular (an hbox whose baseline is the table's vertical CENTER), so the
+% jump scrolled the top half of the table above the viewport. The v3.74 entry
+% deferred this side claiming "tablebox splits — no single box to measure";
+% that deferral dissolves: the measurement target is the TABULAR itself at
+% \tabcap ENTRY, while it is still the tail of the open list — the same
+% situation \lakin@grabfig handles at an island's end (and the fleet has 0
+% split tableboxes). So \lakin@grabtab runs as the FIRST token, before any
+% typesetting can push the box away, and the anchor is re-emitted raised above
+% the measured tabular. \lakintabraise is a SEPARATE register from
+% \lakinfigraise (defined with it, below the LTR-island block): a captionless
+% island intentionally leaves the fig register set, and a table must never
+% inherit that stale figure height.
+%
+% WHY the anchor stays AT THE ENTRY SPOT and is NOT deferred into the caption
+% paragraph the way \figcap defers it: at \par TeX DROPS a final glue item,
+% and the automatic anchor's smash box sitting BEHIND the interword glue kept
+% that glue alive — so every centered tabular has always sat half a space off
+% true center. Deferring the anchor removed that box and was measured as 982
+% differing glyph records: EVERY tabular line shifted 1.30pt (2.61pt for
+% pattern 7's two minipages) while captions stayed put. Emitting the raised
+% anchor at the old spot — through hyperref's own \Hy@raisedlink, exactly the
+% macro the automatic path uses — keeps the line's node structure, and so the
+% A/B glyph diff at 0, BY CONSTRUCTION. \Hy@raisedlink reads the raise from
+% \HyperRaiseLinkDefault (default \baselineskip = the old mid-table dest); the
+% group-local \edef freezes measured-height+42pt into it, and \smash inside
+% \Hy@raisedlink hides any raise from the line's extent. \HyCnt@ProvideTheH-
+% Counter keeps the dest NAME byte-identical to the automatic one (it defines
+% \theHtbl, which \hyper@makecurrent prefers — without it the first measured
+% caption was named tbl.1 where the automatic path said tbl.0.1, measured).
+% vmode entry, or anything but a box at the tail (no tabular to measure),
+% falls back to the plain \refstepcounter — byte-identical to the old path.
+\makeatletter
+\newcommand{\tabcap}[2][]{\lakin@grabtab
+  % v3.79: arm the box-close correction. Set unconditionally and in BOTH
+  % branches below's scope, so the plain-\refstepcounter fallback is corrected
+  % too; \lakintabboxopen clears it at every \begin{tablebox}, so a \tabcap
+  % outside a tablebox can never leave it armed for a later box.
+  \global\lakintabcapseentrue
+  \ifdim\lakintabraise>0pt
+    \H@refstepcounter{tbl}\HyCnt@ProvideTheHCounter{tbl}\hyper@makecurrent{tbl}%
+    \begingroup
+      \edef\HyperRaiseLinkDefault{\the\dimexpr\lakintabraise+42pt\relax}%
+      \Hy@raisedlink{\hyper@anchorstart{\@currentHref}\hyper@anchorend}%
+    \endgroup
+    \global\lakintabraise 0pt\relax
+  \else
+    \refstepcounter{tbl}%
+  \fi
+  \lakinrtitle{#2}\par\nopagebreak\addvspace{6pt}%
+  \def\lakin@short{#1}\ifx\lakin@short\@empty\else
+    \addcontentsline{lot}{table}{\protect\numberline{\thetbl}{\protect\ignorespaces #1}}\fi
+  {\centering\small\mbox{\lakitcaptionlabelstyle{\tablename~\thetbl\lakitcaptionpunctuation}}\enspace #2\par}}
+\makeatother
+
+% ============================================================================
+% Unified FIGURE caption — the \tabcap twin for TikZ/plot figures (v3.34.0).
+% A figure (tikzpic) sits inline in the prose; put \figcap BELOW it for a
+% numbered, \ref-able caption "איור N.M." in the same gray style as \tabcap:
+%   \begin{tikzpic} ... \end{tikzpic}
+%   \figcap{\label{fig:foo}description}     % \label FIRST, inside the argument
+% WHY a macro, not a hand-written gray line: a manual
+%   {\centering\small\textcolor{cGray}{איור: ...}} with a \label inside has NO
+% \refstepcounter, so the \label binds to the AMBIENT \@currentlabel (the last
+% equation) — \ref then prints an equation number AS the figure number
+% (measured on a real page: "איור 48" where 48 is equation 48). \figcap steps a
+% real \c@fig counter first, so \label is correct, numbering is consistent, and
+% refs are stable. Class-aware like \thetbl (chapter- or section-prefixed).
+% ============================================================================
+\makeatletter
+\@ifundefined{c@chapter}{%
+  \newcounter{fig}[section]
+  \renewcommand{\thefig}{\ifnum\value{section}>0 \thesection.\fi\arabic{fig}}%
+}{%
+  \newcounter{fig}[chapter]
+  \renewcommand{\thefig}{\ifnum\value{chapter}>0 \thechapter.\fi\arabic{fig}}%
+}
+\makeatother
+\makeatletter
+\newcommand{\figcap}[2][]{%
+  \ifdim\lakinfigraise>0pt
+    % v3.74: step WITHOUT hyperref's automatic anchor, then emit the anchor
+    % raised above the measured figure. \H@refstepcounter is hyperref's saved
+    % pre-hook \refstepcounter (sets the counter AND \@currentlabel — \label
+    % in the caption arg binds exactly as before); \hyper@makecurrent supplies
+    % \@currentHref, so the dest NAME is identical to the old automatic one —
+    % \ref/\autoref/bookmarks are unchanged, only the dest'S POSITION moves.
+    \H@refstepcounter{fig}\hyper@makecurrent{fig}%
+    % The anchor is emitted INSIDE the caption paragraph below, as a zero-size
+    % raisebox — NOT here in vertical mode, where a \raisebox starts an empty
+    % paragraph and adds a blank line (measured: every glyph after the caption
+    % shifted +18.8pt). Inside an existing line a [0pt][0pt] box is inert.
+    \edef\lakin@anch{\@currentHref}%
+    % \edef FREEZES the measured height into the pending macro: the deferred
+    % \raisebox is typeset inside the caption paragraph AFTER the register is
+    % reset to the 0pt sentinel below — a plain \def read 0 at use time
+    % (measured: LAKINRAISE=0.0, dest moved 14pt instead of above the figure).
+    \edef\lakin@pend{\noexpand\raisebox{\the\dimexpr\lakinfigraise+42pt\relax}[0pt][0pt]{%
+      \noexpand\hyper@anchorstart{\lakin@anch}\noexpand\hyper@anchorend}}%
+    \global\lakinfigraise 0pt\relax
+  \else
+    \refstepcounter{fig}\let\lakin@pend\relax
+  \fi
+  \lakinrtitle{#2}\par\nopagebreak\addvspace{4pt}%
+  \def\lakin@short{#1}\ifx\lakin@short\@empty\else
+    \addcontentsline{lof}{figure}{\protect\numberline{\thefig}{\protect\ignorespaces #1}}\fi
+  {\centering\lakin@pend\small\mbox{\lakitcaptionlabelstyle{\figurename~\thefig\lakitcaptionpunctuation}}\enspace #2\par}}
+\makeatother
+
+% ============================================================================
+% LTR islands.  EVERY tikzpicture / quantikz MUST live inside one, or the whole
+% figure's coordinates and Latin labels flip. (Hebrew node text still uses \h{}.)
+% ============================================================================
+% v3.74 (BLD-37): the \figcap hyperlink DESTINATION used to land at the caption
+% line — BELOW the figure — so clicking a figure reference scrolled the figure
+% off-screen (measured fleet-wide: 97/97 fig dests in one collection sat 19-54pt
+% under their figure's ink; a 347pt figure was fully hidden after the jump).
+% hypcap-style fix in two parts: (1) at the island's END, \lakin@grabfig grabs
+% the just-typeset centered line with \lastbox, measures it, and puts it back
+% with \nointerlineskip — the interline glue above the line was already
+% contributed and is NOT re-added, so the page geometry is unchanged to the
+% glyph (verified); (2) \figcap then steps the counter WITHOUT hyperref's
+% automatic anchor (\H@refstepcounter = the pre-hyperref \refstepcounter) and
+% emits the anchor itself, raised by the measured height — the dest lands ABOVE
+% the figure top. A captionless island leaves numbering untouched (nothing is
+% stepped at the island; the grab flag is cleared at every island begin, so a
+% stale height from a captionless figure cannot leak into a later caption).
+\newsavebox{\lakinfigbox}
+\newdimen\lakinfigraise  % real \dimen: tex.setdimen cannot target a \newlength SKIP register (measured lua error)
+% BLD-37 table side: a SEPARATE register for \tabcap. The two must not share —
+% a captionless island INTENTIONALLY leaves \lakinfigraise set (the grab runs
+% at every island END; only the NEXT island's begin clears it), so a shared
+% register would hand a \tabcap after a captionless figure that stale FIGURE
+% height. \lakintabraise is written only by \lakin@grabtab at \tabcap entry
+% and consumed/reset inside \tabcap itself, so it can never go stale.
+\newdimen\lakintabraise
+\makeatletter
+% v3.74b: measure WITHOUT touching the list. The first draft grabbed the box
+% with \lastbox and put it back — and \lastbox DISCARDS the node's baseline
+% shift, so a vertically-anchored quantikz circuit rose 2.57pt and everything
+% after it sank 5.32pt (measured on the A/B glyph diff). LuaTeX lets us READ
+% the tail node's dimensions without removing anything: geometry is identical
+% by construction. \lakinfigraise=0pt is the "no figure measured" sentinel.
+\def\lakin@grabfig{%
+  \ifhmode
+    \directlua{
+      local n = tex.nest[tex.nest.ptr].tail
+      local GLUE, PEN = node.id('glue'), node.id('penalty')
+      while n and (n.id == GLUE or n.id == PEN) do n = n.prev end
+      local HL, VL = node.id('hlist'), node.id('vlist')
+      if n and (n.id == HL or n.id == VL) then
+        tex.setdimen('global', 'lakinfigraise',
+                     (n.height or 0) + (n.depth or 0))
+      else
+        tex.setdimen('global', 'lakinfigraise', 0)
+      end}%
+  \else
+    \global\lakinfigraise 0pt\relax
+  \fi}
+% BLD-37 table side: \lakin@grabfig's twin, NOT a shared helper — the Lua body
+% differs in exactly one place, the skip set. Between \end{tabular} and \tabcap
+% an otherlanguage wrapper (patterns 3/5 of example_tables) leaves a \write
+% whatsit and a dir node ON TOP of the interword glue (measured node dump:
+% "whatsit/write <- dir <- glue(2.62) <- hlist"), so the table reader must
+% also step over whatsit/dir markers — all zero-size — to reach the tabular.
+% \lakin@grabfig deliberately does NOT get the wider skip set: its glue/penalty
+% body is the one the v3.74 A/B proof froze, and widening it would newly
+% measure (and so newly raise) anchors in island shapes that today take the
+% plain path — an unproven behavior change on the FIG side. Anything that is
+% not a box behind those markers still hits the 0pt sentinel and \tabcap falls
+% back to the plain \refstepcounter.
+% SECOND deliberate difference: this stores the box's HEIGHT, not height+depth.
+% \figcap's anchor is emitted in the caption paragraph BELOW the figure, so it
+% must climb the full extent; \tabcap's anchor sits ON the tabular's own line,
+% whose baseline is the vcentered tabular's MIDPOINT — height alone reaches
+% the top edge, and adding the depth was measured to overshoot by half the
+% table (dests 80-135pt above their frame, INSIDE the preceding table's box).
+\def\lakin@grabtab{%
+  \ifhmode
+    \directlua{
+      local n = tex.nest[tex.nest.ptr].tail
+      local GLUE, PEN = node.id('glue'), node.id('penalty')
+      local WHAT, DIR = node.id('whatsit'), node.id('dir')
+      while n and (n.id == GLUE or n.id == PEN
+                   or n.id == WHAT or n.id == DIR) do n = n.prev end
+      local HL, VL = node.id('hlist'), node.id('vlist')
+      if n and (n.id == HL or n.id == VL) then
+        tex.setdimen('global', 'lakintabraise', n.height or 0)
+      else
+        tex.setdimen('global', 'lakintabraise', 0)
+      end}%
+  \else
+    \global\lakintabraise 0pt\relax
+  \fi}
+\makeatother
+% ============================================================================
+% v3.79 (BLD-37 table side, CORRECTION): put the anchor at the TOP OF THE BOX,
+% instead of guessing the distance to it.
+% ============================================================================
+% v3.77 raised the \tabcap anchor by (height of the box at the tail of the open
+% horizontal list) + 42pt. That is a MEASUREMENT taken BEFORE line breaking, and
+% it is short by every term it cannot see. Fleet-measured on the 12 built
+% collections (299 tbl.* dests, ownership established through each table's own
+% CAPTION, never through "which frame encloses the dest"): 3 dests landed INSIDE
+% their own tablebox, below the frame top —
+%   computer-architecture       tbl.14.1  -46.4pt   three stacked tabulars
+%   computer-architecture       tbl.30.5  -13.5pt   tabular 2.85pt over \linewidth
+%   advanced-electronic-devices tbl.B.1   -59.2pt   tabular 2.56pt over \linewidth
+% Two missing terms, both reproduced in a minimal document (probe P2/P3):
+%   (1) VERTICAL LIST ALREADY CONTRIBUTED inside the box — a second and third
+%       tabular, or a heading above the table. The tail read sees only the LAST
+%       box, so 77.7pt of stacked tabulars is invisible to the raise.
+%   (2) WHICH LINE THE ANCHOR LANDS ON. When the tabular alone overfills
+%       \linewidth (459.6121pt in a tablebox), the interword glue after
+%       \end{tabular} becomes the chosen breakpoint and \Hy@raisedlink is
+%       emitted on the NEXT line — one (depth + lineskip) lower. That term does
+%       not EXIST at \tabcap time: line breaking has not happened yet. No
+%       measurement taken there can ever recover it. (Proof: probe P3, the same
+%       table 2.84912pt too wide, fails at -13.5pt; probe P4, the identical
+%       table with \tabcolsep 2pt so it fits, is correct at +32.0pt.)
+% So the raise is not computed at \tabcap at all. It is CORRECTED at
+% \end{tablebox}, from inside mdframed's own body vbox (endinnercode runs after
+% \par\unskip, i.e. after line breaking, while tex.nest[tex.nest.ptr] is still
+% that vbox's vertical list). There the anchor's true offset from the top of the
+% box content is not estimated but WALKED, and the \Hy@raisedlink shift is set
+% so the dest lands 42pt above it — which is 42pt - innertopmargin(9pt) -
+% linewidth(0.9pt) = 32.0pt above the FRAME top, the exact position the 295
+% already-correct dests have today. That is why this is a correction and not a
+% re-placement: the good sites do not move.
+%
+% WHY THE GLYPH DIFF IS 0 BY CONSTRUCTION — the only thing written is the
+% `shift` field of the hlist that \Hy@raisedlink already built, and the guard
+% below refuses to write it unless that box is 0x0x0. A zero-size box carries no
+% dimension into its parent's packing, the packing already happened, and shift
+% is not an input to it. Nothing else in the list is touched: no node is added,
+% removed, resized or reordered. Measured, not assumed: assets/example_tables.tex
+% and the whole computer-architecture collection A/B at 0 differing pymupdf
+% rawdict glyph records.
+%
+% WHY NOT the alternatives (all prototyped and measured before this one):
+%   * accumulate the vertical list at \tabcap time — fixes term (1), CANNOT fix
+%     term (2); 2 of the 3 real failures survive. A fix that leaves the majority
+%     of the defect standing is the false all-clear this repo exists to avoid.
+%   * \zref-savepos two-pass — correct on all shapes, but it makes the dest
+%     POSITION aux-derived (DEFECTS BLD-1/2), a single-pass compile silently
+%     ships an unraised anchor, and the bare y-difference has no page guard.
+%   * emit the anchor at \begin{tablebox} and let \tabcap adopt it — needs the
+%     tbl counter stepped at box OPEN to keep the dest NAME byte-identical; a
+%     captionless tablebox then either shifts every later table number or leaves
+%     an orphan dest that the next table duplicates (a HARD build gate). This
+%     correction touches neither the counter nor the name: \tabcap's naming path
+%     is v3.77's, unchanged, so resolve_names() is byte-identical (verified).
+%   * suppressing the line break (a penalty before the glue) — that MOVES the
+%     tabular: the break currently discards the interword glue, so forbidding it
+%     re-centers the two overfull tables. Reflow, rejected.
+%
+% SCOPE. The correction is armed only by \tabcap ITSELF (\lakintabcapseen),
+% cleared at every box open, so a captionless tablebox is a no-op and a \tabcap
+% hosted OUTSIDE a tablebox (the fleet has exactly one, computer-architecture
+% tbl.14.2 in an exbox) keeps v3.77's measured raise. Both fallbacks are
+% therefore never worse than today; and because hyperref's AUTOMATIC anchor uses
+% the same \Hy@raisedlink shape, the plain-\refstepcounter path (vmode entry, or
+% prose between \end{tabular} and \tabcap — probe P6, -51.5pt) is corrected too.
+% KNOWN LIMIT — a tablebox that SPLITS across pages. The offset is measured from
+% the top of the UNSPLIT body, so a dest in segment 2 gets raised past its own
+% segment. MEASURED on a forced split (probe: 40 filler lines + a table): the
+% dest went from y=585.0 on page 2 (inside segment 2, at the caption — the old
+% BLD-37 symptom) to y=-113.4, i.e. ABOVE the page top. Viewers clamp that to the
+% page top, which happens to show segment 2 whole, but an out-of-page coordinate
+% is not something to ship on purpose. Hence the \textheight guard in
+% lakintab.fix: a body TALLER THAN THE TEXT BLOCK cannot fit on any page, so it
+% must split — the correction is skipped and v3.77's behaviour stands unchanged
+% (verified: the probe returns to y=585.0). The guard is deliberately EXACT, not
+% a page-fitting heuristic: it is sound (a taller-than-page body always splits)
+% but PARTIAL (a shorter body that starts low on a page could still split). That
+% residue is unreachable in practice — v3.37's everyline + the caption's
+% \nopagebreak glue move such boxes WHOLE instead (probe N7: a 22-row table
+% pushed down by 430pt moved whole, 0 segments), and the fleet has 0 split
+% tableboxes, re-counted after this change. Reimplementing mdframed's own
+% page-fitting arithmetic to close the residue would be a heuristic with its own
+% failure mode, which is the trade this repo has repeatedly refused.
+\newif\iflakintabcapseen
+% The Lua lives in ONE \directlua at load time, and is written with NO
+% backslash, %, # or ~ : \directlua expands its argument like \edef, so an
+% active ~ would expand to \nobreakspace and a % would eat the rest of the line
+% (the second is how the first draft of this block died). "not (a == b)" stands
+% in for Lua's inequality operator for the same reason.
+\directlua{
+  lakintab = { }
+  lakintab.HL = node.id("hlist")
+  lakintab.VL = node.id("vlist")
+  lakintab.RU = node.id("rule")
+  lakintab.GL = node.id("glue")
+  lakintab.KE = node.id("kern")
+  lakintab.WH = node.id("whatsit")
+  lakintab.TM = node.id("temp")
+  lakintab.WD = node.subtype("pdf_dest")
+  function lakintab.d(v)
+    if v == nil then return 0 end
+    if v < -1000000000 then return 0 end
+    return v
+  end
+  function lakintab.scan(list, y, horiz, parent, target)
+    local x = list
+    while x do
+      local i = x.id
+      if i == lakintab.HL or i == lakintab.VL then
+        if horiz then
+          local b = y + x.shift
+          if i == lakintab.HL then
+            lakintab.scan(x.head, b, true, x, target)
+          else
+            lakintab.scan(x.head, b - lakintab.d(x.height), false, x, target)
+          end
+        else
+          if i == lakintab.HL then
+            lakintab.scan(x.head, y + lakintab.d(x.height), true, x, target)
+          else
+            lakintab.scan(x.head, y, false, x, target)
+          end
+          y = y + lakintab.d(x.height) + lakintab.d(x.depth)
+        end
+      elseif i == lakintab.WH then
+        if x.subtype == lakintab.WD then
+          local id = x.dest_id
+          if type(id) == "string" and string.sub(id, 1, 4) == "tbl." then
+            if horiz and parent and parent.width == 0
+               and parent.height == 0 and parent.depth == 0 then
+              parent.shift = parent.shift + (target - y)
+            end
+          end
+        end
+      elseif not horiz then
+        if i == lakintab.RU then
+          y = y + lakintab.d(x.height) + lakintab.d(x.depth)
+        elseif i == lakintab.GL or i == lakintab.KE then
+          y = y + lakintab.d(x.width)
+        end
+      end
+      x = x.next
+    end
+  end
+  function lakintab.fix(target, maxh)
+    local nst = tex.nest[tex.nest.ptr]
+    if nst == nil then return end
+    local h = nst.head
+    if h == nil then return end
+    if h.id == lakintab.TM then h = h.next end
+    local tot = 0
+    local x = h
+    while x do
+      local i = x.id
+      if i == lakintab.HL or i == lakintab.VL or i == lakintab.RU then
+        tot = tot + lakintab.d(x.height) + lakintab.d(x.depth)
+      elseif i == lakintab.GL or i == lakintab.KE then
+        tot = tot + lakintab.d(x.width)
+      end
+      x = x.next
+    end
+    if tot > maxh then return end
+    lakintab.scan(h, 0, false, nil, target)
+  end
+}
+% @-FREE NAMES ON PURPOSE: these two are named in the `tablebox` key list at
+% \newmdenv above, which is tokenised OUTSIDE any \makeatletter region — a
+% \lakin@... there would tokenise as \lakin followed by the letters @tabopen.
+\newcommand{\lakintabboxopen}{\global\lakintabcapseenfalse}
+\newcommand{\lakintabboxclose}{%
+  \iflakintabcapseen
+    \directlua{lakintab.fix(-\number\dimexpr\lakintabcushion\relax,
+                            \number\dimexpr\textheight\relax)}%
+    \global\lakintabcapseenfalse
+  \fi}
+% The cushion above the box's CONTENT top. 42pt puts the dest 32.0pt above the
+% frame top (42pt - innertopmargin 9pt - linewidth 0.9pt), i.e. exactly where
+% the 295 correct dests already are — the correction moves only the broken ones.
+\newcommand{\lakintabcushion}{42pt}
+\newenvironment{qcirc}{\par\medskip\global\lakinfigraise 0pt\relax\begin{otherlanguage}{english}\begin{center}}
+  {\csname lakin@grabfig\endcsname\end{center}\end{otherlanguage}\par\medskip}
+\newenvironment{tikzpic}{\par\medskip\global\lakinfigraise 0pt\relax\begin{otherlanguage}{english}\begin{center}}
+  {\csname lakin@grabfig\endcsname\end{center}\end{otherlanguage}\par\medskip}
+
+% ============================================================================
+% Code listings.  ★★ v3.4 THE BOX-OVERFLOW FIX:
+%   resetmargins=true   → the listing IGNORES the enclosing environment's
+%                         indentation and measures from the PAGE. v3.4 stated
+%                         this backwards ("measured from the ENCLOSING box"),
+%                         and v3.37 then blanked in-box line numbers because
+%                         the page-anchored listing put its hanging digits on
+%                         top of the box rule. Measured v4.5.0: with the key
+%                         FALSE the listing follows the box and the code moves
+%                         from x=75.26 to x=97.74, clearing the rule at 72.07.
+%                         The key now lives in one \lstset below instead of in
+%                         each style, so a box can override it — codebox does.
+%   framexleftmargin=0  → the frame (left bar) does not extend left of the code.
+%   xleftmargin keeps a small indent so the line numbers have room INSIDE.
+% asmblock wraps the listing in an LTR island (code is LTR).
+% ============================================================================
+\lstdefinestyle{asm}{
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{cBlueBg!55},
+  frame=leftline,framerule=2.5pt,rulecolor=\color{cBlue},
+  numbers=left,numberstyle=\tiny\color{cGray},numbersep=8pt,
+  xleftmargin=2.2em,framexleftmargin=0pt,framexrightmargin=0pt,
+  breaklines=true,columns=fullflexible,keepspaces=true,
+  showstringspaces=false,aboveskip=8pt,belowskip=8pt,
+  % v3.36: without a comment DELIMITER the commentstyle below never fires —
+  % listings has no `language` here, so it does not know '#' opens a comment,
+  % and every asm listing rendered flat black (measured: a whole-page pixel
+  % sweep found ZERO cGreen glyphs across 135 shipped listings). morecomment
+  % gives it the delimiter; color-only change, glyph widths untouched.
+  morecomment={[l]{\#}},
+  commentstyle=\color{cGreen},
+}
+\lstdefinestyle{cstyle}{
+  language=C,basicstyle=\ttfamily\small,
+  backgroundcolor=\color{cGreenBg!55},
+  frame=leftline,framerule=2.5pt,rulecolor=\color{cGreen},
+  numbers=left,numberstyle=\tiny\color{cGray},numbersep=8pt,
+  xleftmargin=2.2em,framexleftmargin=0pt,framexrightmargin=0pt,
+  breaklines=true,columns=fullflexible,keepspaces=true,
+  showstringspaces=false,keywordstyle=\color{cBlue}\bfseries,
+  commentstyle=\color{cGray}\itshape,aboveskip=8pt,belowskip=8pt,
+}
+% v3.36: pystyle/htmlstyle — colored twins of cstyle for the Python/HTML
+% listings that used to repeat a ~200-char options blob with NO color
+% (keywords rendered bold-black, comments italic-black — measured; C alone
+% was colored). Geometry is copied VERBATIM from the shipped blob (frame,
+% margins, skips) so swapping a call site to style=pystyle moves NOTHING —
+% only keywordstyle/commentstyle/stringstyle are added (bold stays bold,
+% italic stays italic, mono metrics identical => zero reflow, proven by
+% per-page word-bbox diff). breaklines/breakatwhitespace stay per-site.
+% v3.78: numbers=left joins both styles, with the exact numberstyle/numbersep
+% keys asm/cstyle carry — fleet-wide consistency (author decision: all four
+% styles numbered; "asm/cstyle numbered, py/html not" was an accident of the
+% v3.36 geometry freeze, not a design). The numbers hang LEFT of the code box
+% (listings sets them with \llap, so no overfull hbox can arise and the code
+% x is untouched — measured: code frozen, digits at code_x-11.8pt); inside a
+% colored box they are blanked like everyone else's (v3.37 hook), and the
+% clean variant restores them in its frameless boxes (v3.78, above).
+\lstdefinestyle{pystyle}{
+  language=Python,basicstyle=\ttfamily\small,
+  columns=fullflexible,keepspaces=true,
+  frame=single,rulecolor=\color{cTblLine},
+  numbers=left,numberstyle=\tiny\color{cGray},numbersep=8pt,
+  xleftmargin=0.5em,framexleftmargin=0pt,framexrightmargin=0pt,
+  showstringspaces=false,aboveskip=8pt,belowskip=8pt,
+  keywordstyle=\color{cBlue}\bfseries,
+  commentstyle=\color{cGray}\itshape,
+  stringstyle=\color{cGreen},
+}
+% v4.5.0: hoisted out of the four styles so an enclosing box can override it.
+% Every listing still resolves to true unless something later says otherwise,
+% so shipped output is unchanged (verified byte-for-byte on all eight PDFs).
+\lstset{resetmargins=true}
+\lstdefinestyle{htmlstyle}{
+  language=HTML,basicstyle=\ttfamily\small,
+  columns=fullflexible,keepspaces=true,
+  frame=single,rulecolor=\color{cTblLine},
+  numbers=left,numberstyle=\tiny\color{cGray},numbersep=8pt,
+  xleftmargin=0.5em,framexleftmargin=0pt,framexrightmargin=0pt,
+  showstringspaces=false,aboveskip=8pt,belowskip=8pt,
+  keywordstyle=\color{cBlue}\bfseries,
+  commentstyle=\color{cGray}\itshape,
+  stringstyle=\color{cGreen},
+}
+\newenvironment{asmblock}{\par\begin{otherlanguage}{english}}{\end{otherlanguage}\par}
+
+% <hllpdf:listing-smart-quotes>
+% v4.21.0: four Unicode punctuation characters must enter listings' token
+% buffer. Unregistered characters bypass it: a closing quote was printed
+% BEFORE the pending word, and an opening quote BEFORE a pending brace.
+% Extend the standard character table, then activate only these codepoints
+% in the listing's local character-table scope. Do this BEFORE the package's
+% delimiter/alsoother/literate hooks so explicit user mappings still win.
+% This is not universal Unicode support, nor a conversion to ASCII quotes.
+% See listings developer guide 15.3.1 and references/listing-smart-quotes.md.
+\makeatletter
+\lst@CCPut \lst@ProcessOther {"2018}{"2019}{"201C}{"201D}\z@
+\lst@AddToHookAtTop{SelectCharTable}{%
+  \lst@ifactivechars
+    \catcode"2018=\active \catcode"2019=\active
+    \catcode"201C=\active \catcode"201D=\active
+  \fi}
+\makeatother
+% </hllpdf:listing-smart-quotes>
+
+% <hllpdf:listing-technical-symbols>
+% v4.30: bounded extension for common technical punctuation in LTR listings.
+% Without character-table registration these glyphs bypass the token buffer
+% and can move before the preceding word even inside quoted strings.
+% Keep the original four-quote block separate for its standing mutation test.
+% This is source-faithful printing, not syntax validation or general Unicode.
+\makeatletter
+\lst@CCPut \lst@ProcessOther
+  {"2013}{"2014}{"2026}{"2190}{"2192}{"2194}{"21D2}
+  {"2212}{"221E}{"2260}{"2264}{"2265}\z@
+\lst@AddToHookAtTop{SelectCharTable}{%
+  \lst@ifactivechars
+    \catcode"2013=\active \catcode"2014=\active \catcode"2026=\active
+    \catcode"2190=\active \catcode"2192=\active \catcode"2194=\active
+    \catcode"21D2=\active \catcode"2212=\active \catcode"221E=\active
+    \catcode"2260=\active \catcode"2264=\active \catcode"2265=\active
+  \fi}
+\makeatother
+% </hllpdf:listing-technical-symbols>
+
+
+\usepackage[hidelinks,unicode]{hyperref}   % LAST, after colors. unicode = Hebrew bookmarks.
+% v3.62: THE ISOLATION MACROS CORRUPTED EVERY PDF BOOKMARK THEY APPEARED IN.
+% \en is defined (line ~155) as
+%     \foreignlanguage{english}{\language=\csname l@nohyphenation\endcsname #1}
+% and in a heading that body is written verbatim to the .toc and handed to
+% hyperref's \pdfstringdef. hyperref strips the two CONTROL SEQUENCES (\language,
+% \l@nohyphenation) but the plain `=` CHARACTER token between them is not a control
+% sequence, so it survives into the PDF string: \chapter{שער \en{CNOT} והצמדה}
+% produced the bookmark "שער =CNOT והצמדה". The printed TOC and the heading on the
+% page are CORRECT — only the navigation pane and the viewer window title are wrong,
+% which is why it went unnoticed. Measured on the shipped fleet: 70 corrupted
+% bookmarks across 5 PDFs, from 177 unprotected \en-in-heading sites. Same corruption
+% reached /Title and /Subject via the \hypersetup{pdftitle=...} the docs recommend.
+% This hook tells hyperref to use the plain argument for all three isolation macros
+% when building a PDF string. It does NOT touch the .toc (the printed TOC is
+% byte-unchanged) and it does NOT mask the math signal — a heading with $...$ still
+% logs "removing math shift", so BIDI-15 detection is intact.
+% BONUS, measured: it also makes \code{} in an UNSTARRED heading COMPILE. BLD-10
+% recorded that as needing \texorpdfstring or a starred heading; the real root cause
+% is hyperref's \pdfstringdef scan of \code's \ifmmode...\else...\fi body — which is
+% exactly why the identically-bodied \texttt survived (hyperref pre-neutralizes
+% \texttt in PDF strings) and why \DeclareRobustCommand could never help.
+% v3.64: \def\\{ } added. A manual line break in a heading WELDS the two words
+% together in the bookmark: \chapter{שורה ראשונה\\שורה שנייה} produced the outline
+% entry 'שורה ראשונהשורה שנייה' — "ראשונהשורה" is not a word. hyperref drops the
+% \\ and puts nothing in its place, so the break that looks like a space on the
+% page is a zero-width join in the navigation pane. The spaced form
+% 'מילה אחת \\ מילה שנייה' escapes with a harmless DOUBLE space ('אחת  מילה'),
+% which is why this never got noticed. Both are measured on a real outline.
+% 0 live instances in the corpus — but SKILL.md and content-style.md both RECOMMEND
+% a manual heading break, so this is a primed trap rather than a dormant one, and a
+% one-token preamble fix retires it for good instead of asking authors to remember.
+% Mapping \\ to a space fixes the WELD, which is the actual defect (a nonexistent
+% word in the navigation pane). It does not normalise whitespace: measured after the
+% fix, the welded form becomes 'שורה ראשונה שורה שנייה' (correct) and the already-
+% spaced form goes from two spaces to three. That is cosmetic — viewers render it as
+% a wider gap, and no word is corrupted. A per-heading \texorpdfstring is still the
+% way to get an exactly-tuned bookmark string.
+\pdfstringdefDisableCommands{\def\en#1{#1}\def\h#1{#1}\def\doclang#1{#1}\def\code#1{#1}\def\codeline#1{#1}\def\\{ }}
+% v3.70: RESTORE \url LINE-BREAKING. url.sty freezes its break penalties at LOAD
+% time (\mathchardef\UrlBreakPenalty=\binoppenalty), and v3.45's global
+% \binoppenalty=10000 (inline-math atomicity) therefore priced EVERY breakpoint
+% inside \Url at 10000 = never break. Measured: a long \url in Hebrew prose is
+% one unbroken line, ~100pt overfull, invading the margin band the ink gates
+% deliberately tolerate. With the two lines below: 0 overfull, the URL breaks
+% after '/', the RTL split is CORRECT (fragment order forward), and each line
+% gets its own link annotation exactly covering its fragment (measured).
+% Confined to \Url's group — inline-math atomicity (TYP-7) is untouched.
+\mathchardef\UrlBreakPenalty=200
+\mathchardef\UrlBigBreakPenalty=100
+\ifx\lakitmainlanguage\hllpdfenglish
+  \hypersetup{pdflang=en}
+\else
+  \hypersetup{pdflang=he}
+\fi  % /Lang is the document base locale (not per-span accessibility tagging).
+% Set a per-document \hypersetup{pdftitle={...}} too — see SKILL.md.
+
+% v3.52 (round-2 audit): two RTL bibliography/cross-ref defects, both invisible to
+% every gate and both affecting the FIRST author to use the feature.
+% (a) \@biblabel's default [#1] brackets are bidi-neutral and mirror to ]1[ under
+% the RTL bibliography base — every \thebibliography reference list shows ]1[.
+% LTR-isolating the label restores [1]. (The render gate's mirror rule fingerprints
+% round parens )1(, so square brackets slipped through.)
+\makeatletter
+\renewcommand*{\@biblabel}[1]{\foreignlanguage{english}{[#1]}}
+% v3.54: the SAME neutral-bracket trap on the INLINE side — a multi-key \cite{a,b}
+% under the RTL base lays its European-number list right-to-left, so [1, 2] renders
+% "[2,1]" and [1, 2, 3] renders "[3,2,1]" (verified by glyph geometry — the reader
+% sees the sources in REVERSE order; a note form \cite[p.5]{a} also reorders to
+% "[p. 5,1]"). LTR-isolate the whole bracket group (number list AND optional note),
+% exactly like \@biblabel above: [1, 2] / [1, 2, 3] / [1, p. 5] all render correct.
+% Placed AFTER hyperref so it wins; hyperref hyperlinks each number inside #1 (via
+% \@citex), which this wrapper leaves intact. Mirrors the LaTeX kernel \@cite shape.
+% v4.9.1: directional isolation must NOT switch the language here. Babel's
+% safe-active citation wrapper passes its key list through \bbl@tempa;
+% \foreignlanguage reuses that scratch macro before the deferred citation
+% loop expands it. The old line therefore cited the literal key "english".
+% If such a key existed, even the undefined-reference gate stayed green.
+% \babelsublr isolates the bracket group without selecting a locale or
+% changing that key list. Preserve native links, key order and optional notes.
+\def\@cite#1#2{\babelsublr{[{#1\if@tempswa , #2\fi}]}}
+\makeatother
+
+% v4.11.0: a reference inside align's \text inherited HEBdisptag=true,
+% so its enclosing hbox mirrored the brackets despite a clean compile.
+% Isolate the complete printed reference without selecting a Babel language.
+% Also neutralize the display-only normalfont direction reset locally. A
+% direction-only patch inverted 12 to 21 inside equation in the measured probe.
+% Plain maketag is local to the reference: mathtools' display-side wrapper
+% otherwise globally consumes manual_tag while formatting a nested reference.
+% Preserve each original command (including the selective auxiliary write),
+% current tag forms, native links, and showonlyrefs on/off transitions.
+\makeatletter
+\NewCommandCopy{\HEB@nativeeqref}{\eqref}
+\newcommand{\HEB@eqrefisolate}[1]{%
+  \babelsublr{\HEBdisptagfalse\let\bbl@eqnodir\relax\let\maketag@@@\ORIGmaketag@@@#1}}
+\protected\def\eqref#1{\HEB@eqrefisolate{\HEB@nativeeqref{#1}}}
+\ExplSyntaxOn
+\NewCommandCopy{\HEB@nativeMTeqref}{\MT_extended_eqref:n}
+\cs_set_protected:Npn \MT_extended_eqref:n #1
+  {\HEB@eqrefisolate{\HEB@nativeMTeqref{#1}}}
+\ExplSyntaxOff
+\makeatother
+
+% v4.11.0: custom caption counters are not part of hyperref's English
+% locale, and Hebrew has no upstream hyperref locale in this toolchain.
+% Restore the appropriate names at every Babel language switch, including
+% return from a nested inline island. Do not localize the destination keys.
+\makeatletter
+\newcommand{\HEB@refnames}{%
+\def\chapterautorefname{פרק}%
+\def\sectionautorefname{סעיף}%
+\def\subsectionautorefname{תת־סעיף}%
+\def\subsubsectionautorefname{תת־תת־סעיף}%
+\def\paragraphautorefname{פסקה}%
+% v4.31: hyperref uses a distinct counter name at the deepest standard level.
+\def\subparagraphautorefname{תת־פסקה}%
+\def\equationautorefname{משוואה}%
+\def\figureautorefname{איור}%
+\def\tableautorefname{טבלה}%
+\def\partautorefname{חלק}%
+\def\appendixautorefname{נספח}%
+\def\footnoteautorefname{הערת שוליים}%
+\def\itemautorefname{סעיף}%
+\def\Itemautorefname{סעיף}%
+\def\figautorefname{איור}%
+\def\tblautorefname{טבלה}%
+\def\pageautorefname{עמוד}% 
+}
+\addto\extrashebrew{\HEB@refnames}
+\newcommand{\ENG@refnames}{%
+  \def\subparagraphautorefname{subparagraph}%
+  \def\chapterautorefname{chapter}%
+  \def\sectionautorefname{section}%
+  \def\subsectionautorefname{subsection}%
+  \def\subsubsectionautorefname{subsubsection}%
+  \def\paragraphautorefname{paragraph}%
+  \def\equationautorefname{Equation}%
+  \def\figureautorefname{Figure}%
+  \def\tableautorefname{Table}%
+  \def\partautorefname{Part}%
+  \def\appendixautorefname{Appendix}%
+  \def\footnoteautorefname{footnote}%
+  \def\itemautorefname{item}%
+  \def\figautorefname{Figure}%
+  \def\tblautorefname{Table}%
+  \def\Itemautorefname{item}%
+  \def\pageautorefname{page}%
+}
+\addto\extrasenglish{\ENG@refnames}
+\ifx\lakitmainlanguage\hllpdfenglish\ENG@refnames\else\HEB@refnames\fi
+\makeatother
+
+% ============================================================================
+% Optional running head (v3.39): \lakithead{<book title>} — OFF by default.
+% A document opts in with ONE line after \input{preamble.tex}:
+%   \lakithead{מבנה המחשב}
+% Every content page then carries the series' orientation line: chapter name
+% at the reading edge, book title opposite, thin rule. (fancyhdr's [L]/[R]
+% are PHYSICAL; under the RTL page direction [L] lands at the RIGHT/reading
+% edge — measured, consistent across the corpus.) Packaged like the topic
+% rail: always loaded, inert without the call. This centralizes the 8-line
+% block that 8 lakits used to copy by hand — the same duplication vector
+% that once let a lakit preamble go ~100 lines stale. Class-aware: report
+% fills the mark from \chapter, article from \section. NB: a titlepage env
+% self-empties; front matter that sets \pagestyle{empty} must restore with
+% \pagestyle{fancy} afterwards (NOT plain — that discards the head).
+% ============================================================================
+\usepackage{fancyhdr}
+% v3.61: \chapter* left a STALE running head — pages of an UNNUMBERED chapter
+% carried the PREVIOUS chapter's title. report.cls routes \chapter* through
+% \@schapter, which never calls \chaptermark, so \leftmark keeps whatever the last
+% numbered chapter left. Measured: with \chapter{פרק ממוספר} then
+% \chapter*{מבוא לא ממוספר}, page 4 (inside the starred chapter) printed
+% "פרק ממוספר". Invisible on the chapter's FIRST page (\thispagestyle{plain}), so it
+% only shows from the second page on — the pages an author is least likely to check.
+% An unnumbered front-matter chapter (\chapter*{מבוא}, \chapter*{הקדמה}) is everyday
+% Hebrew-academic structure, and the corpus already carries HAND-WRITTEN \markboth
+% lines right after \chapter* — the exact per-document duplication \lakithead exists
+% to retire. Patched INSIDE \lakithead so the macro stays inert when unused; a
+% document's own later \markboth still wins, so those hand-patches do not regress.
+\makeatletter
+% <hllpdf:starred-heading-scope>
+\newif\iflakin@starmarkpatched
+\newcommand{\lakistarmark}{%
+  \iflakin@starmarkpatched\else
+  % Dispatch on the actual class counter, not hyperref's shared internals.
+  \ifdefined\c@chapter
+    \let\HEBorigschapter\@schapter
+    % Record only after the native heading has reached its page. A mark
+    % before the native routine can advertise the next heading too early.
+    \def\@schapter##1{\HEBorigschapter{##1}\chaptermark{##1}}%
+  \else
+    % @ssect receives layout arguments, NOT the section name or level.
+    % Capture the name in @startsection without introducing a TeX group:
+    % grouping sectioning would break the native after-heading state.
+    \def\HEB@sectionkind{}%
+    \def\HEB@mainsection{section}%
+    \let\HEBorigstartsection\@startsection
+    \def\@startsection##1##2##3##4##5##6{%
+      \def\HEB@sectionkind{##1}%
+      \HEBorigstartsection{##1}{##2}{##3}{##4}{##5}{##6}}%
+    \let\HEBorigssect\@ssect
+    \def\@ssect##1##2##3##4##5{%
+      \HEBorigssect{##1}{##2}{##3}{##4}{##5}%
+      % Lower starred headings must not replace the article's section mark.
+      \ifx\HEB@sectionkind\HEB@mainsection
+        \sectionmark{##5}%
+      \fi
+      \ignorespaces}%
+  \fi
+  \global\lakin@starmarkpatchedtrue
+  \fi}
+% </hllpdf:starred-heading-scope>
+% <hllpdf:running-language>
+% Choose the wrapper when the mark is written, not when a later page ships.
+% English punctuation must remain LTR even after returning to Hebrew prose.
+\newcommand{\HEB@runningmark}[1]{%
+  \iflanguage{english}{\markboth{\en{#1}}{}}{\markboth{\h{#1}}{}}}
+% </hllpdf:running-language>
+\makeatother
+% v4.2.1 (NAV): every collection already names itself in \lakithead — feed the
+% PDF /Title from the same declaration, so the navigation gate's
+% PDF_REQUIRE_TITLE has a universal source and no fleet member ships
+% title-less by missing a second declaration site. Measured before this: 14
+% of 16 collections shipped /Title-empty while every one carried a perfectly
+% good \lakithead string (plain Hebrew in all 16 — no math, no formatting, so
+% the PDF-string path is clean). An explicit title always wins: set it with
+% \lakitpdftitle{...} anywhere before \lakithead, or with a plain
+% \hypersetup{pdftitle=...} — the fallback detects that via hyperref's
+% \@pdftitle, probe-verified \@empty-equal until the first explicit set.
+\makeatletter
+\newif\iflakit@pdftitleset
+\newcommand{\lakitpdftitle}[1]{%
+  \hypersetup{pdftitle={#1}}\global\lakit@pdftitlesettrue}
+\newcommand{\lakithead}[1]{%
+  \iflakit@pdftitleset\else
+    \ifx\@pdftitle\@empty
+      \hypersetup{pdftitle={#1}}\global\lakit@pdftitlesettrue
+    \fi
+  \fi
+  \pagestyle{fancy}\fancyhf{}%
+  \lakistarmark
+
+  \fancyhead[L]{\small\textcolor{cGray}{\leftmark}}%
+  % <hllpdf:fixed-head-language>
+  % The fixed document title has its OWN language snapshot, independent of
+  % the current section/chapter mark. Choose the branch NOW, not at shipout:
+  % the page may be Hebrew by the time an English title is finally printed.
+  \iflanguage{english}{%
+    \fancyhead[R]{\small\textcolor{cGray}{\en{#1}}}%
+  }{%
+    \fancyhead[R]{\small\textcolor{cGray}{\h{#1}}}%
+  }%
+  % </hllpdf:fixed-head-language>
+  \fancyfoot[C]{\thepage}%
+  \renewcommand{\headrulewidth}{0.4pt}%
+  \ifdefined\chaptermark
+    \renewcommand{\chaptermark}[1]{\HEB@runningmark{##1}}%
+  \else
+    \renewcommand{\sectionmark}[1]{\HEB@runningmark{##1}}%
+  \fi}
+\makeatother
+
+% v3.39.1: path-independent byte-reproducibility. LuaTeX derives the trailer
+% /ID from the OUTPUT PATH, so two clones of the same source at different
+% directories produced different sha256 (measured: the ONLY delta was the
+% 62-byte /ID line). Bit 512 suppresses exactly that line — measured: Creator/
+% Producer/CreationDate/ModDate and all content untouched. /ID is optional
+% per ISO 32000 (required only for ENCRYPTED PDFs and PDF/A — neither is a
+% target here). If a future workflow needs an ID (PDF/A, Acrobat revision
+% matching), delete this line and it returns.
+\pdfvariable suppressoptionalinfo \numexpr 512\relax
+
+% v3.75: BOLD MATH IN BOLD HEADINGS. Heading text is \bfseries but math inside
+% it stayed regular-weight CM — a hairline $V_T$ inside a heavy 24.8pt chapter
+% title (measured: CMMI12 fl=6 next to FrankRuhlLibre-Bold fl=20; 155 live
+% heading-with-math sites fleet-wide). \boldmath rides along wherever the class
+% sets \bfseries for a heading; A/B measured: $V_T$ -> CMMIB10 fl=22, 0 missing
+% characters (the bold CM faces ship with this TeX Live). Guarded per-macro so
+% the article class (no \@makechapterhead) and future class changes stay safe.
+% v4.0.1 (adoption fix): the SEARCH patterns above carry no parameter token.
+% v4.0.0 made them specific by including the class's own #1/#2, and measured on
+% TeX Live 2023 that never matches: a \patchcmd search pattern containing a
+% parameter token cannot match while the call sits inside \@ifundefined{...}{}{...}
+% (probed both #1 and ##1 -> FAIL; the same pattern at top level succeeds). Every
+% one of these patches therefore failed, and because v4.0.0 also replaced the
+% empty failure branch with \PackageError, the failure became FATAL: all four
+% bundled example assets stopped building ("Cannot patch chapter-title math
+% weight -> Fatal error, no output PDF"). The \PackageError branches are KEPT —
+% a silent no-op here is what let v3.75's fix rot unnoticed — only the parameter
+% tokens are dropped, so the patches match and a real class change still errors.
+\makeatletter
+\@ifundefined{@makechapterhead}{}{%
+  \patchcmd{\@makechapterhead}{\huge\bfseries \@chapapp}
+    {\huge\bfseries\boldmath \@chapapp}{}
+    {\PackageError{hebrew-lualatex-pdf}{Cannot patch chapter-number math weight}{Unsupported document class}}%
+  \patchcmd{\@makechapterhead}{\Huge \bfseries}
+    {\Huge \bfseries\boldmath}{}
+    {\PackageError{hebrew-lualatex-pdf}{Cannot patch chapter-title math weight}{Unsupported document class}}%
+  \patchcmd{\@makeschapterhead}{\Huge \bfseries}
+    {\Huge \bfseries\boldmath}{}
+    {\PackageError{hebrew-lualatex-pdf}{Cannot patch starred chapter math weight}{Unsupported document class}}}
+% v4.0.1: \part sits under a THREE-DEEP wrapper chain, so the class-based anchor
+% is not in \@part at all. Measured with \show: hyperref rewrites \@part to
+% `...\phantomsection\fi \H@old@part`, and nameref rewrites THAT to
+% `\NR@gettitle{#1}\NR@part[{#1}]{#2}` — the class body ends up in \NR@part.
+% v4.0.0 patched \@part and made failure fatal, which is why all seven bundled
+% examples stopped building. \part is NOT a dead heading level here: 188 live uses
+% across the fleet, so the bold-math fix is worth getting right rather than
+% dropping. We walk the chain innermost-first and stop at the first hit. Failure is
+% a WARNING, not an error: the chain is a property of hyperref/nameref versions, so
+% a future package release must degrade to regular-weight part math — a cosmetic
+% loss — instead of refusing to build. Chapter and section keep \PackageError,
+% because those targets are in the CLASS and were verified to patch here.
+\newif\iflakin@partnum \newif\iflakin@parttitle \newif\iflakin@sparttitle
+\def\lakin@partnum#1#2{\iflakin@partnum\else
+  \patchcmd{#1}{#2\bfseries \partname}{#2\bfseries\boldmath \partname}
+    {\lakin@partnumtrue}{}\fi}
+\def\lakin@parttitle#1#2{\iflakin@parttitle\else
+  \patchcmd{#1}{#2 \bfseries}{#2 \bfseries\boldmath}{\lakin@parttitletrue}{}\fi}
+\def\lakin@sparttitle#1#2{\iflakin@sparttitle\else
+  \patchcmd{#1}{#2 \bfseries}{#2 \bfseries\boldmath}{\lakin@sparttitletrue}{}\fi}
+\@ifundefined{c@chapter}{\def\lakin@pnum{\Large}\def\lakin@ptit{\huge}}%
+                        {\def\lakin@pnum{\huge}\def\lakin@ptit{\Huge}}
+\@ifundefined{NR@part}{}{\expandafter\lakin@partnum\expandafter\NR@part\expandafter{\lakin@pnum}%
+                         \expandafter\lakin@parttitle\expandafter\NR@part\expandafter{\lakin@ptit}}
+\@ifundefined{H@old@part}{}{\expandafter\lakin@partnum\expandafter\H@old@part\expandafter{\lakin@pnum}%
+                            \expandafter\lakin@parttitle\expandafter\H@old@part\expandafter{\lakin@ptit}}
+\@ifundefined{@part}{}{\expandafter\lakin@partnum\expandafter\@part\expandafter{\lakin@pnum}%
+                       \expandafter\lakin@parttitle\expandafter\@part\expandafter{\lakin@ptit}}
+\@ifundefined{NR@spart}{}{\expandafter\lakin@sparttitle\expandafter\NR@spart\expandafter{\lakin@ptit}}
+\@ifundefined{H@old@spart}{}{\expandafter\lakin@sparttitle\expandafter\H@old@spart\expandafter{\lakin@ptit}}
+\@ifundefined{@spart}{}{\expandafter\lakin@sparttitle\expandafter\@spart\expandafter{\lakin@ptit}}
+\iflakin@partnum\else\PackageWarning{hebrew-lualatex-pdf}{Part-number math stays
+  regular weight: no known \noexpand\part wrapper matched (hyperref/nameref
+  version change). Cosmetic only}\fi
+\iflakin@parttitle\else\PackageWarning{hebrew-lualatex-pdf}{Part-title math stays
+  regular weight: no known \noexpand\part wrapper matched. Cosmetic only}\fi
+% v4.12.0: THE PART NUMBER IN THE TOC WAS NOT DIRECTIONALLY SEPARATED FROM THE
+% TITLE. report.cls/article.cls compose the part entry as ONE text stream --
+% \addcontentsline{toc}{part}{\thepart\hspace{1em}#1} -- while EVERY other level
+% goes through \numberline, which puts the number in an \hbox. A box is a bidi
+% OBJECT and cannot join a neighbouring run; a bare "IV" can. So in the RTL TOC
+% paragraph a Latin number and a Latin-INITIAL title merge into a SINGLE LTR run
+% and are laid out left-to-right as a unit: the number lands on the wrong side of
+% the row, and a mixed title is scrambled outright. Measured on \part{MCP ...}:
+% the printed order was "<tail> V MCP" -- title fragment, number, title fragment.
+% The chapter/section rows one line below, with the SAME Latin-initial titles,
+% were correct on the same page. That contrast is the whole diagnosis.
+% \en{} IS NOT A WORKAROUND, measured both ways on one fixture: it fixes a
+% PURE-Latin title (\part{\en{Hooks}} renders correctly) and does NOT fix a MIXED
+% one (\part{\en{MCP} <hebrew>} stays scrambled). babel's language switch changes
+% font and hyphenation, not the bidi run structure -- so the defect is not
+% reachable from the source side at all, which is why it belongs here.
+% Boxing the number is the entire fix and is a STRICT NO-OP where the bug never
+% bit: a Hebrew-titled document compiles BYTE-IDENTICAL before and after (md5,
+% 3 clean runs), because there the neutral glue already sat between an L run and
+% an R run. The PDF outline is byte-identical too -- hyperref's \pdfstringdef
+% neutralises \mbox, so bookmark strings keep their part numbers.
+% \numberline{\thepart} would also fix the direction, but it re-geometries every
+% part row in the fleet and DROPS the number from the part bookmark (hyperref
+% strips \numberline). \mbox changes nothing that was already right.
+% The search pattern deliberately carries no # token: etoolbox cannot match a
+% parameter token in a patch pattern (measured -- all three chain members
+% reported "not patchable" while the pattern included #1). "\thepart \hspace
+% {1em}" is brace-balanced and occurs exactly once in the wrapper body.
+\newif\iflakin@parttocnum
+\def\lakin@parttocnum#1{\iflakin@parttocnum\else
+  \patchcmd{#1}{\thepart \hspace {1em}}{\mbox {\thepart }\hspace {1em}}
+    {\lakin@parttocnumtrue}{}\fi}
+\@ifundefined{NR@part}{}{\lakin@parttocnum\NR@part}
+\@ifundefined{H@old@part}{}{\lakin@parttocnum\H@old@part}
+\@ifundefined{@part}{}{\lakin@parttocnum\@part}
+\iflakin@parttocnum\else\PackageWarning{hebrew-lualatex-pdf}{Part TOC number is
+  not boxed: no known \noexpand\part wrapper matched. A part title that BEGINS
+  with Latin will print its number on the wrong side of its TOC row}\fi
+\patchcmd{\section}{\bfseries}{\bfseries\boldmath}{}
+  {\PackageError{hebrew-lualatex-pdf}{Cannot patch section math weight}{Unsupported document class}}
+\patchcmd{\subsection}{\bfseries}{\bfseries\boldmath}{}
+  {\PackageError{hebrew-lualatex-pdf}{Cannot patch subsection math weight}{Unsupported document class}}
+\patchcmd{\subsubsection}{\bfseries}{\bfseries\boldmath}{}
+  {\PackageError{hebrew-lualatex-pdf}{Cannot patch subsubsection math weight}{Unsupported document class}}
+\patchcmd{\paragraph}{\bfseries}{\bfseries\boldmath}{}{}
+\patchcmd{\subparagraph}{\bfseries}{\bfseries\boldmath}{}{}
+\@ifundefined{l@chapter}{}{%
+  \patchcmd{\l@chapter}{\bfseries}{\bfseries\boldmath}{}{}}
+\makeatother
+\setcounter{tocdepth}{\lakittocdepth}
+% <hllpdf:measured-toc>
+% v4.16.0: Measure actual number labels, not a guessed digit count. Read only
+% canonical contentsline records; never execute titles or addtocontents code
+% during the measuring pass. Widths are local to this individual list and are
+% available before its first row: no per-row drift and no extra aux pass.
+\makeatletter
+\newread\hllpdf@tocstream
+\newdimen\hllpdf@toc@chapter
+\newdimen\hllpdf@toc@section
+\newdimen\hllpdf@toc@subsection
+\newdimen\hllpdf@toc@subsubsection
+\newdimen\hllpdf@toc@paragraph
+\newdimen\hllpdf@toc@subparagraph
+\newdimen\hllpdf@toc@figure
+\newdimen\hllpdf@toc@table
+\newdimen\hllpdf@tocpage
+\newdimen\hllpdf@toc@sectionindent
+\newdimen\hllpdf@toc@subsectionindent
+\newdimen\hllpdf@toc@subsubsectionindent
+\newdimen\hllpdf@toc@paragraphindent
+\newdimen\hllpdf@toc@subparagraphindent
+\def\hllpdf@tocdefaults{%
+  \hllpdf@toc@chapter=2em
+  \hllpdf@toc@section=3.2em
+  \hllpdf@toc@subsection=3.9em
+  \@ifundefined{c@chapter}{%
+    \hllpdf@toc@subsubsection=3.2em
+    \hllpdf@toc@paragraph=4.1em
+    \hllpdf@toc@subparagraph=5em
+  }{%
+    \hllpdf@toc@subsubsection=4.1em
+    \hllpdf@toc@paragraph=5em
+    \hllpdf@toc@subparagraph=6em
+  }%
+  \hllpdf@toc@figure=2.3em
+  \hllpdf@toc@table=2.3em
+  \hllpdf@tocpage=\@pnumwidth\relax
+}
+\def\hllpdf@tocindents{%
+  % Preserve the established shallow layout when its slots already fit.
+  \hllpdf@toc@sectionindent=1.5em
+  \@tempdima=\hllpdf@toc@chapter \advance\@tempdima by -2em
+  \advance\hllpdf@toc@sectionindent by \@tempdima
+  \hllpdf@toc@subsectionindent=\dimexpr
+    \hllpdf@toc@sectionindent+\hllpdf@toc@section\relax
+  \hllpdf@toc@subsubsectionindent=\dimexpr
+    \hllpdf@toc@subsectionindent+\hllpdf@toc@subsection\relax
+  \hllpdf@toc@paragraphindent=\dimexpr
+    \hllpdf@toc@subsubsectionindent+\hllpdf@toc@subsubsection\relax
+  \hllpdf@toc@subparagraphindent=\dimexpr
+    \hllpdf@toc@paragraphindent+\hllpdf@toc@paragraph\relax
+}
+\def\hllpdf@tocfont@chapter{\bfseries\boldmath}
+\def\hllpdf@tocfont@part{\large\bfseries\boldmath}
+\def\hllpdf@tocentryfont{%
+  \ifcsname hllpdf@tocfont@\hllpdf@toclevel\endcsname
+    \csname hllpdf@tocfont@\hllpdf@toclevel\endcsname
+  \fi}
+\long\def\hllpdf@tocdiscard#1\hllpdf@tocstop{}
+\def\hllpdf@tocscanrecord{%
+  \@ifnextchar\contentsline{\hllpdf@tocscanline}{%
+    \@ifnextchar\babel@toc{\hllpdf@tocscanlanguage}{\hllpdf@tocdiscard}}}
+\long\def\hllpdf@tocscanlanguage\babel@toc#1#2#3\hllpdf@tocstop{%
+  % Babel records are declarations, not arbitrary code. Track the language
+  % without executing the original directive or changing the surrounding list.
+  \def\hllpdf@toclanguage{#1}}
+\long\def\hllpdf@tocscanline\contentsline#1#2#3#4#5\hllpdf@tocstop{%
+  \def\hllpdf@toclevel{#1}%
+  \ifcsname hllpdf@toc@#1\endcsname
+    \hllpdf@tocscantitle#2\hllpdf@tocstop
+  \fi
+  % The page-number column needs its own measurement (including bold chapter
+  % rows). Its extra clearance separates the page label from dot leaders.
+  \setbox\@tempboxa=\hbox{\foreignlanguage{\hllpdf@toclanguage}{\hllpdf@tocentryfont #3\kern.3em}}%
+  \ifdim\wd\@tempboxa>\hllpdf@tocpage
+    \hllpdf@tocpage=\wd\@tempboxa
+  \fi}
+\def\hllpdf@tocscantitle{%
+  \@ifnextchar\numberline{\hllpdf@tocscanlabel}{\hllpdf@tocdiscard}}
+\long\def\hllpdf@tocscanlabel\numberline#1#2\hllpdf@tocstop{%
+  \setbox\@tempboxa=\hbox{\foreignlanguage{\hllpdf@toclanguage}{\hllpdf@tocentryfont #1\kern.5em}}%
+  \ifdim\wd\@tempboxa>\csname hllpdf@toc@\hllpdf@toclevel\endcsname
+    \csname hllpdf@toc@\hllpdf@toclevel\endcsname=\wd\@tempboxa
+  \fi}
+\def\hllpdf@tocread{%
+  \ifeof\hllpdf@tocstream\else
+    \read\hllpdf@tocstream to\hllpdf@tocrecord
+    \expandafter\hllpdf@tocscanrecord\hllpdf@tocrecord\hllpdf@tocstop
+    \expandafter\hllpdf@tocread
+  \fi}
+\def\hllpdf@tocmeasure#1{%
+  \makeatletter
+  \edef\hllpdf@toclanguage{\languagename}%
+  \hllpdf@tocdefaults
+  \openin\hllpdf@tocstream=\jobname.#1\relax
+  \hllpdf@tocread
+  \closein\hllpdf@tocstream
+  \hllpdf@tocindents
+  \edef\@pnumwidth{\the\hllpdf@tocpage}%
+  \@tempdima=\dimexpr\hllpdf@tocpage+1em\relax
+  \ifdim\@tempdima>\@tocrmarg\relax
+    \edef\@tocrmarg{\the\@tempdima}%
+  \fi}
+\let\hllpdf@originalstarttoc\@starttoc
+\def\@starttoc#1{%
+  \begingroup
+    \def\hllpdf@tocext{#1}%
+    \def\hllpdf@tocwanted{toc}%
+    \ifx\hllpdf@tocext\hllpdf@tocwanted \hllpdf@tocmeasure{#1}\else
+      \def\hllpdf@tocwanted{lof}%
+      \ifx\hllpdf@tocext\hllpdf@tocwanted \hllpdf@tocmeasure{#1}\else
+        \def\hllpdf@tocwanted{lot}%
+        \ifx\hllpdf@tocext\hllpdf@tocwanted \hllpdf@tocmeasure{#1}\fi
+      \fi
+    \fi
+    \hllpdf@originalstarttoc{#1}%
+  \endgroup}
+\hllpdf@tocdefaults
+\hllpdf@tocindents
+\@ifundefined{l@chapter}{}{%
+  \patchcmd{\l@chapter}{\setlength\@tempdima{1.5em}}%
+    {\setlength\@tempdima{\hllpdf@toc@chapter}}{}%
+    {\PackageError{hebrew-lualatex-pdf}{Cannot size chapter TOC numbers}%
+       {Unsupported contents layout: the chapter number slot was not found}}}
+\renewcommand*\l@section{\@dottedtocline{1}%
+  {\hllpdf@toc@sectionindent}{\hllpdf@toc@section}}
+\renewcommand*\l@subsection{\@dottedtocline{2}%
+  {\hllpdf@toc@subsectionindent}{\hllpdf@toc@subsection}}
+\renewcommand*\l@subsubsection{\@dottedtocline{3}%
+  {\hllpdf@toc@subsubsectionindent}{\hllpdf@toc@subsubsection}}
+\renewcommand*\l@paragraph{\@dottedtocline{4}%
+  {\hllpdf@toc@paragraphindent}{\hllpdf@toc@paragraph}}
+\renewcommand*\l@subparagraph{\@dottedtocline{5}%
+  {\hllpdf@toc@subparagraphindent}{\hllpdf@toc@subparagraph}}
+\renewcommand*\l@figure{\@dottedtocline{1}{1.5em}{\hllpdf@toc@figure}}
+\renewcommand*\l@table{\@dottedtocline{1}{1.5em}{\hllpdf@toc@table}}
+\makeatother
+% </hllpdf:measured-toc>
+\setcounter{secnumdepth}{\lakitsecnumdepth}
+% Public preamble-only caption-numbering policy. The historical within-major
+% default is untouched unless this command is called. "continuous" removes the
+% reset edge as well as the printed prefix, so Figure 1/2 and Table 1/2 stay
+% unique across sections/chapters. Returning to "within-major" restores the
+% original class-aware displays and native destination conventions. The policy
+% never replaces \figcap/\tabcap or their measured link-placement mechanism.
+\makeatletter
+\let\lakin@majorfig\thefig
+\let\lakin@majortbl\thetbl
+\let\lakin@majorHfig\theHfig
+\let\lakin@majorHtbl\theHtbl
+\newcommand{\lakitcaptionnumbering}[1]{%
+  \edef\lakin@numbering{#1}%
+  \def\lakin@continuous{continuous}\def\lakin@withinmajor{within-major}%
+  \ifx\lakin@numbering\lakin@continuous
+    \@ifundefined{c@chapter}{%
+      \@removefromreset{fig}{section}\@removefromreset{tbl}{section}%
+    }{\@removefromreset{fig}{chapter}\@removefromreset{tbl}{chapter}}%
+    \renewcommand{\thefig}{\arabic{fig}}\renewcommand{\thetbl}{\arabic{tbl}}%
+    \def\theHfig{\arabic{fig}}\def\theHtbl{\arabic{tbl}}%
+  \else\ifx\lakin@numbering\lakin@withinmajor
+    \@ifundefined{c@chapter}{%
+      \@removefromreset{fig}{section}\@removefromreset{tbl}{section}%
+      \@addtoreset{fig}{section}\@addtoreset{tbl}{section}%
+    }{%
+      \@removefromreset{fig}{chapter}\@removefromreset{tbl}{chapter}%
+      \@addtoreset{fig}{chapter}\@addtoreset{tbl}{chapter}}%
+    \let\thefig\lakin@majorfig\let\thetbl\lakin@majortbl
+    \let\theHfig\lakin@majorHfig\let\theHtbl\lakin@majorHtbl
+  \else
+    \PackageError{hebrew-english-latex-studio}{Unknown caption-numbering policy '#1'}%
+      {Use continuous or within-major before begin{document}.}%
+  \fi\fi}
+\@onlypreamble\lakitcaptionnumbering
+\makeatother
+% Architecture readiness sentinel. Optional runtime layers require the complete
+% core, so the marker is defined only after every mechanism/baseline definition.
+% <hllpdf:architecture-ready>
+\def\hllpdfcoreloaded{1}
+% </hllpdf:architecture-ready>
+
+% v4.22: registered file resources, not an assertion about embedded subset bytes.
+% The log framing avoids long-path wrapping and preserves UTF-8 as hex.
+% <hllpdf:font-inventory>
+\directlua{
+  local function inventory()
+    local names = {}
+    local unnamed = 0
+    for id, item in font.each() do
+      local path = item.filename
+      if path and not (path == "") then names[path] = true else unnamed = unnamed + 1 end
+    end
+    local sorted = {}
+    for path in pairs(names) do table.insert(sorted,path) end
+    table.sort(sorted)
+    texio.write_nl("log","HLLFONT|BEGIN|1")
+    for index,path in ipairs(sorted) do
+      local hex = path:gsub(".",function(c) return string.format(string.char(37) .. "02x",string.byte(c)) end)
+      local count = math.ceil(string.len(hex)/48)
+      texio.write_nl("log","HLLFONT|FILE|" .. index .. "|" .. count)
+      for offset=1,string.len(hex),48 do texio.write_nl("log","HLLFONT|HEX|" .. hex:sub(offset,offset+47)) end
+    end
+    texio.write_nl("log","HLLFONT|END|" .. rawlen(sorted) .. "|" .. unnamed)
+    texio.write_nl("log","")
+  end
+  luatexbase.add_to_callback("finish_pdffile",inventory,"hllpdf.runtime.fonts")
+}
+% </hllpdf:font-inventory>

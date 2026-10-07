@@ -1,0 +1,123 @@
+% academic_theme.tex — restrained, classic academic article presentation.
+% Load after preamble.tex and optional semantic/page-shell extensions.
+% Class, paper, margins, line spacing and running furniture belong to the
+% document shell; this theme retains standard serif headings and maketitle.
+% <hllpdf:architecture-guard>
+\ifdefined\hllpdfcoreloaded\else
+  \errmessage{hllpdf: academic_theme.tex requires preamble.tex first}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdfreaderthemeloaded
+  \errmessage{hllpdf: academic_theme.tex conflicts with reader_theme.tex}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdfcleanthemeloaded
+  \errmessage{hllpdf: academic_theme.tex conflicts with clean_theme.tex}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdfcleanvariantloaded
+  \errmessage{hllpdf: academic_theme.tex conflicts with clean_variant.tex}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdfreferencethemeloaded
+  \errmessage{hllpdf: academic_theme.tex conflicts with reference_theme.tex}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdfacademicthemeloaded
+  \errmessage{hllpdf: academic_theme.tex loaded more than once}
+  \expandafter\endinput
+\fi
+\def\hllpdfacademicthemeloaded{1}
+% </hllpdf:architecture-guard>
+
+% Native Hebrew keeps the core's pinned Frank Ruhl Libre serif typography.
+% English prose uses the TeX distribution's actual Latin Modern Roman faces,
+% including when the document's main language is the legacy Hebrew profile.
+% These are the same known English faces/fallbacks as the mechanism core.
+\babelfont[english]{rm}[Ligatures=TeX,RawFeature={fallback=hebfb},
+  BoldFeatures={RawFeature={fallback=hebfbbf}},
+  BoldItalicFeatures={RawFeature={fallback=hebfbbf}}]{Latin Modern Roman}
+
+% Keep native class heading numbering visible. With mathtools, only equations
+% used by \eqref/\refeq receive automatic numbers. An author may explicitly
+% mark a central, unreferenced equation with \noeqref{eq:central} in prose.
+% Routine derivations use equation*/align* or \[...\]. Avoid invented tags.
+\mathtoolsset{showonlyrefs=true,showmanualtags=false}
+\lakitcaptionnumbering{continuous}
+\renewcommand{\lakitcaptionlabelstyle}[1]{\normalfont\color{black}#1}
+\renewcommand{\lakitcaptionpunctuation}{:}
+
+% Localized front matter follows the current language and nested prose islands.
+% Standard article \maketitle supplies a centered serif title/author/date block.
+\addto\extrashebrew{\renewcommand{\abstractname}{תקציר}}
+\addto\extrasenglish{\renewcommand{\abstractname}{Abstract}}
+\iflanguage{hebrew}{\renewcommand{\abstractname}{תקציר}}%
+  {\renewcommand{\abstractname}{Abstract}}
+
+% In the ordinary article title block, literal \author{} / \date{} should not
+% reserve invisible metadata rows above the abstract. Retain the class's own
+% sizes, nonempty author tabular (including \and), date and outer \maketitle
+% handling of \thanks, footnotes and title-page policy. Metadata remains live
+% until \maketitle: macros supplied as title/author/date expand at typesetting.
+% Explicit titlepage articles and report titles keep their native class path.
+\makeatletter
+\@ifclassloaded{article}{%
+  \if@titlepage\else
+    \renewcommand{\@maketitle}{%
+      \newpage\null\vskip 2em%
+      \begin{center}%
+        \normalfont\rmfamily\let\footnote\thanks
+        {\LARGE\@title\par}%
+        \ifx\@author\@empty\else
+          \vskip 1.5em%
+          {\large\lineskip .5em%
+            \begin{tabular}[t]{c}\@author\end{tabular}\par}%
+        \fi
+        \ifx\@date\@empty\else
+          \vskip 1em{\large\@date\par}%
+        \fi
+      \end{center}\par\vskip 1.5em}%
+  \fi
+}{}
+\makeatother
+
+% Optional existing callouts retain all author-supplied titles/content and the
+% mdframed grouping/splitting machinery, without colored teaching furniture.
+\definecolor{cBlue}{HTML}{000000}   \definecolor{cBlueBg}{HTML}{FFFFFF}
+\definecolor{cGreen}{HTML}{000000}  \definecolor{cGreenBg}{HTML}{FFFFFF}
+\definecolor{cAmber}{HTML}{000000}  \definecolor{cAmberBg}{HTML}{FFFFFF}
+\definecolor{cPurple}{HTML}{000000} \definecolor{cPurpleBg}{HTML}{FFFFFF}
+\definecolor{cTeal}{HTML}{000000}   \definecolor{cTealBg}{HTML}{FFFFFF}
+\definecolor{cRed}{HTML}{000000}    \definecolor{cRedBg}{HTML}{FFFFFF}
+\definecolor{cSlate}{HTML}{000000}  \definecolor{cSlateBg}{HTML}{FFFFFF}
+\definecolor{cRule}{HTML}{000000}
+\definecolor{cTblLine}{HTML}{000000}\definecolor{cTblBg}{HTML}{FFFFFF}
+\mdfdefinestyle{hllpdfacademic}{
+  frametitle={},leftline=false,rightline=false,topline=false,bottomline=false,
+  backgroundcolor=white,linecolor=black,roundcorner=0pt,
+  innerleftmargin=0pt,innerrightmargin=0pt,
+  innertopmargin=3pt,innerbottommargin=3pt,
+  skipabove=8pt,skipbelow=8pt,everyline=true,
+  frametitlebackgroundcolor=white,frametitlefontcolor=black,
+  frametitlefont=\normalfont\rmfamily\bfseries,
+  frametitleaboveskip=3pt,frametitlebelowskip=3pt
+}
+\renewmdenv[style=hllpdfacademic]{defbox}
+\renewmdenv[style=hllpdfacademic]{thmbox}
+\renewmdenv[style=hllpdfacademic]{notebox}
+\renewmdenv[style=hllpdfacademic]{exbox}
+\renewmdenv[style=hllpdfacademic]{warnbox}
+\renewmdenv[style=hllpdfacademic]{keybox}
+% Restore the existing number formatter only in these now-frameless callouts;
+% TeX grouping preserves explicit numbers=none and surrounding codebox state.
+\makeatletter
+\@for\HEB@academicbox:=defbox,thmbox,notebox,exbox,warnbox,keybox\do{%
+  \expandafter\AtBeginEnvironment\expandafter{\HEB@academicbox}{%
+    \ifhllpdf@lstnumbermasked
+      \let\thelstnumber\hllpdf@savedlstnumber
+      \hllpdf@lstnumbermaskedfalse
+    \fi}}
+\makeatother
+% Short academic tables keep the core's atomic container and raised anchors,
+% but have no decorative outer frame; booktabs handles the table's own rules.
+\renewmdenv[style=hllpdfacademic,nobreak=true]{tablebox}

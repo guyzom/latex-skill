@@ -1,0 +1,16 @@
+% build_droplst_broken.tex — droplst-gate POSITIVE fixture (v3.76, build.sh
+% block 3d). The first code line is written ON the \begin{lstlisting} line:
+% listings consumes everything after the options bracket into \lst@dropped,
+% emits only "Text dropped after begin of listing", lualatex exits 0, and
+% `li $t0, 5` is ABSENT from the PDF. build.sh must FAIL this build (exit 1)
+% with its "listing line(s) SILENTLY DROPPED" block. The canonical twin
+% (build_droplst_ok.tex) is identical except the code starts on the NEXT line.
+\input{../assets/preamble.tex}
+\begin{document}
+קטע קוד שבו שורת הקוד הראשונה נכתבה על שורת הפתיחה, ולכן נבלעת:
+\begin{asmblock}
+\begin{lstlisting}[style=asm] li   $t0, 5
+add  $t1, $t0, $t0
+\end{lstlisting}
+\end{asmblock}
+\end{document}

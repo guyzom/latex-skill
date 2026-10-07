@@ -1,0 +1,38 @@
+\def\lakitlanguageprofile{english}
+\def\lakitmainlanguage{english}
+\def\lakitdocumentclass{article}
+\def\lakitclassoptions{11pt,a4paper}
+\def\lakitgeometryoptions{margin=2.2cm,headheight=14pt}
+\def\lakitlinespread{1.18}
+\input{preamble.tex}
+\input{document_components.tex}
+\input{flow_tables.tex}
+\input{reader_theme.tex}
+\hypersetup{pdftitle={Data report},pdfauthor={}}
+\begin{document}
+% Replace sample content, title, and metadata before delivery.
+{\LARGE\sffamily\bfseries Data report}\par\medskip
+These are synthetic example values. Before drawing conclusions from real data,
+record the source, define the units, and verify that each record is included once.
+\section{Variable definitions}
+Let $x_i$ be the value of record $i$ and $n$ the number of records.
+For this example, use the unweighted mean:
+\begin{equation}\label{eq:mean}
+\bar{x}=\frac{1}{n}\sum_{i=1}^{n}x_i.
+\end{equation}
+\Needspace{10\baselineskip}
+\section{Data}
+\begin{flowtable}{3}{N{.12\flowtablewidth} N{.18\flowtablewidth} E{.70\flowtablewidth}}
+{Example records}{tab:measurements}{ID & Value & Note}
+001 & -12.50 & Negative values retain their sign and decimal digits.\\
+002 & 0.00 & Zero is an observed value, not a missing-value marker.\\
+003 & 4.25 & Record the measurement conditions or other relevant context.\\
+004 & 8.00 & Longer descriptions can wrap without reducing the font size.\\
+005 & 13.75 & Adding rows allows the table to continue onto later pages.\\
+006 & 16.50 & The heading repeats on later pages; the list entry remains unique.\\
+\end{flowtable}
+\section{Checks and conclusions}
+\autoref{tab:measurements} contains six records. Substitution in
+\eqref{eq:mean} gives $\bar{x}=5$. For real data, also check missing values,
+units, and provenance.
+\end{document}

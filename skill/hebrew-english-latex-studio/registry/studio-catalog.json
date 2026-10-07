@@ -1,0 +1,1358 @@
+{
+  "schema_version": 1,
+  "language_contract": "architecture_contract.LANGUAGE_PROFILE_SPECS",
+  "asset_contract": "architecture_contract.ASSET_SPECS",
+  "build_contract": "build_contract",
+  "default_theme": "reader",
+  "base_copy_plan": [
+    "assets/preamble.tex",
+    "assets/document_components.tex"
+  ],
+  "required_glossary_terms": [
+    "registry",
+    "catalog-schema",
+    "resolver",
+    "resolved-recipe",
+    "provenance",
+    "copy-plan",
+    "load-plan",
+    "recipe-revision",
+    "hook",
+    "ownership",
+    "constraint",
+    "backward-compatibility",
+    "composer",
+    "source-handler"
+  ],
+  "templates": [
+    {
+      "id": "note",
+      "recipe_revision": 1,
+      "title": {
+        "he": "סיכום קצר",
+        "en": "Short note"
+      },
+      "use": "Short note",
+      "starters": [
+        {
+          "language": "hebrew",
+          "asset_path": "assets/starter_note.tex",
+          "sha256": "9824784b377596de3768886b701c33e8f75527f8713ef7d6f6412d1e4bd0d0d0",
+          "declared_hooks": {
+            "lakitdocumentclass": "article",
+            "lakitclassoptions": "11pt,a4paper",
+            "lakitgeometryoptions": "margin=2.2cm,headheight=14pt",
+            "lakitlinespread": "1.18"
+          }
+        },
+        {
+          "language": "english",
+          "asset_path": "assets/starter_note_english.tex",
+          "sha256": "19e62420f18b0767727d5fcc02ce5dd5f4afae6ce0c8b8137aa876641ec81fab",
+          "declared_hooks": {
+            "lakitdocumentclass": "article",
+            "lakitclassoptions": "11pt,a4paper",
+            "lakitgeometryoptions": "margin=2.2cm,headheight=14pt",
+            "lakitlinespread": "1.18"
+          }
+        }
+      ],
+      "content_profile": "generic",
+      "default_layout": "standard",
+      "default_theme": "reader",
+      "bilingual_composer_id": "paired-bodies",
+      "minority_composer_id": "append-note",
+      "source_handlers": [
+        "declare-note-language"
+      ],
+      "copy_extra": [],
+      "docs": [
+        "references/template-catalog.md",
+        "references/catalog-development.md"
+      ],
+      "glossary_refs": [
+        "template",
+        "starter",
+        "document-kind",
+        "content-profile",
+        "recipe-revision",
+        "composer",
+        "source-handler"
+      ],
+      "acceptance": [
+        "template:note:native",
+        "template:note:mixed",
+        "template:note:bilingual"
+      ],
+      "build_defaults": []
+    },
+    {
+      "id": "general",
+      "recipe_revision": 1,
+      "title": {
+        "he": "מסמך כללי",
+        "en": "General document"
+      },
+      "use": "General document",
+      "starters": [
+        {
+          "language": "hebrew",
+          "asset_path": "assets/starter_general.tex",
+          "sha256": "f82fbef15c66ba0a8b31f11174c6e1a63f28d431938fb2ecd13535d69aa86fa6",
+          "declared_hooks": {
+            "lakitdocumentclass": "article",
+            "lakitclassoptions": "11pt,a4paper",
+            "lakitgeometryoptions": "margin=2.2cm,headheight=14pt",
+            "lakitlinespread": "1.18"
+          }
+        },
+        {
+          "language": "english",
+          "asset_path": "assets/starter_general_english.tex",
+          "sha256": "f3a43e7581b3d6075c59ab0a7e1389ffdfc770af0ddc3814867556e1478d753f",
+          "declared_hooks": {
+            "lakitdocumentclass": "article",
+            "lakitclassoptions": "11pt,a4paper",
+            "lakitgeometryoptions": "margin=2.2cm,headheight=14pt",
+            "lakitlinespread": "1.18"
+          }
+        }
+      ],
+      "content_profile": "generic",
+      "default_layout": "standard",
+      "default_theme": "reader",
+      "bilingual_composer_id": "paired-bodies",
+      "minority_composer_id": "append-note",
+      "source_handlers": [
+        "declare-note-language"
+      ],
+      "copy_extra": [],
+      "docs": [
+        "references/template-catalog.md",
+        "references/catalog-development.md"
+      ],
+      "glossary_refs": [
+        "template",
+        "starter",
+        "document-kind",
+        "content-profile",
+        "recipe-revision",
+        "composer",
+        "source-handler"
+      ],
+      "acceptance": [
+        "template:general:native",
+        "template:general:mixed",
+        "template:general:bilingual"
+      ],
+      "build_defaults": []
+    },
+    {
+      "id": "letter",
+      "recipe_revision": 2,
+      "title": {
+        "he": "מכתב",
+        "en": "Letter"
+      },
+      "use": "Letter",
+      "starters": [
+        {
+          "language": "hebrew",
+          "asset_path": "assets/starter_letter.tex",
+          "sha256": "9fbc555c74a6ef690ef0fb14acd41df1a11cdd487dd1e8a0c98e52b13a675ba8",
+          "declared_hooks": {
+            "lakitdocumentclass": "article",
+            "lakitclassoptions": "11pt,a4paper",
+            "lakitgeometryoptions": "margin=2.2cm,headheight=14pt",
+            "lakitlinespread": "1.18"
+          }
+        },
+        {
+          "language": "english",
+          "asset_path": "assets/starter_letter_english.tex",
+          "sha256": "bfc36bfcc10bbd4c76ea957a0750407803c21950b3c9b64699440ac7955803e0",
+          "declared_hooks": {
+            "lakitdocumentclass": "article",
+            "lakitclassoptions": "11pt,a4paper",
+            "lakitgeometryoptions": "margin=2.2cm,headheight=14pt",
+            "lakitlinespread": "1.18"
+          }
+        }
+      ],
+      "content_profile": "generic",
+      "default_layout": "standard",
+      "default_theme": "reader",
+      "bilingual_composer_id": "paired-bodies",
+      "minority_composer_id": "letter-before-signature",
+      "source_handlers": [
+        "declare-note-language"
+      ],
+      "copy_extra": [],
+      "docs": [
+        "references/template-catalog.md",
+        "references/catalog-development.md"
+      ],
+      "glossary_refs": [
+        "template",
+        "starter",
+        "document-kind",
+        "content-profile",
+        "recipe-revision",
+        "composer",
+        "source-handler"
+      ],
+      "acceptance": [
+        "template:letter:native",
+        "template:letter:mixed",
+        "template:letter:bilingual"
+      ],
+      "build_defaults": []
+    },
+    {
+      "id": "report",
+      "recipe_revision": 2,
+      "title": {
+        "he": "דוח",
+        "en": "Report"
+      },
+      "use": "Report",
+      "starters": [
+        {
+          "language": "hebrew",
+          "asset_path": "assets/starter_report.tex",
+          "sha256": "469d77ec4f1f34fe94423a5ccf5e34b7da4482c4decd336d13bb9b48c5feaa40",
+          "declared_hooks": {
+            "lakitdocumentclass": "article",
+            "lakitclassoptions": "11pt,a4paper",
+            "lakitgeometryoptions": "margin=2.2cm,headheight=14pt",
+            "lakitlinespread": "1.18"
+          }
+        },
+        {
+          "language": "english",
+          "asset_path": "assets/starter_report_english.tex",
+          "sha256": "a34c34c9040c1042b7ea6098b0e6f94c1bb427cfd40d4bd1406e9f925ea97a13",
+          "declared_hooks": {
+            "lakitdocumentclass": "article",
+            "lakitclassoptions": "11pt,a4paper",
+            "lakitgeometryoptions": "margin=2.2cm,headheight=14pt",
+            "lakitlinespread": "1.18"
+          }
+        }
+      ],
+      "content_profile": "report",
+      "default_layout": "standard",
+      "default_theme": "reader",
+      "bilingual_composer_id": "paired-full-pages",
+      "minority_composer_id": "append-note",
+      "source_handlers": [
+        "declare-note-language"
+      ],
+      "copy_extra": [],
+      "docs": [
+        "references/template-catalog.md",
+        "references/catalog-development.md"
+      ],
+      "glossary_refs": [
+        "template",
+        "starter",
+        "document-kind",
+        "content-profile",
+        "recipe-revision",
+        "composer",
+        "source-handler"
+      ],
+      "acceptance": [
+        "template:report:native",
+        "template:report:mixed",
+        "template:report:bilingual"
+      ],
+      "build_defaults": []
+    },
+    {
+      "id": "technical",
+      "recipe_revision": 2,
+      "title": {
+        "he": "מסמך טכני",
+        "en": "Technical document"
+      },
+      "use": "Technical document",
+      "starters": [
+        {
+          "language": "hebrew",
+          "asset_path": "assets/starter_technical.tex",
+          "sha256": "5e55aa09a60f27fc8c24dbe88e65f417373d060288992d5062d3c8a40f110ecf",
+          "declared_hooks": {
+            "lakitdocumentclass": "article",
+            "lakitclassoptions": "11pt,a4paper",
+            "lakitgeometryoptions": "margin=2.1cm,headheight=14pt",
+            "lakitlinespread": "1.18"
+          }
+        },
+        {
+          "language": "english",
+          "asset_path": "assets/starter_technical_english.tex",
+          "sha256": "7749829ecfdea31860e55f1baf4533af6ba408161ae1676d4a86f4ea212d8f0b",
+          "declared_hooks": {
+            "lakitdocumentclass": "article",
+            "lakitclassoptions": "11pt,a4paper",
+            "lakitgeometryoptions": "margin=2.2cm,headheight=14pt",
+            "lakitlinespread": "1.18"
+          }
+        }
+      ],
+      "content_profile": "report",
+      "default_layout": "standard",
+      "default_theme": "reader",
+      "bilingual_composer_id": "paired-full-pages",
+      "minority_composer_id": "append-note",
+      "source_handlers": [
+        "declare-note-language"
+      ],
+      "copy_extra": [],
+      "docs": [
+        "references/template-catalog.md",
+        "references/catalog-development.md"
+      ],
+      "glossary_refs": [
+        "template",
+        "starter",
+        "document-kind",
+        "content-profile",
+        "recipe-revision",
+        "composer",
+        "source-handler"
+      ],
+      "acceptance": [
+        "template:technical:native",
+        "template:technical:mixed",
+        "template:technical:bilingual"
+      ],
+      "build_defaults": []
+    },
+    {
+      "id": "formula-sheet",
+      "recipe_revision": 2,
+      "title": {
+        "he": "דף נוסחאות",
+        "en": "Formula sheet"
+      },
+      "use": "Formula sheet",
+      "starters": [
+        {
+          "language": "hebrew",
+          "asset_path": "assets/starter_formula_sheet.tex",
+          "sha256": "4ca53cf1385e4e9ce17c49db8355c3038e0cf1fe0d902d7c7f5e1660263c653e",
+          "declared_hooks": {
+            "lakitdocumentclass": "article",
+            "lakitclassoptions": "11pt,a4paper",
+            "lakitgeometryoptions": "margin=1.8cm,headheight=14pt",
+            "lakitlinespread": "1.08"
+          }
+        },
+        {
+          "language": "english",
+          "asset_path": "assets/starter_formula_sheet_english.tex",
+          "sha256": "f76f4817f88b7e0ecd22296bf1eb1892be15fc1b209b902cab30c07b44bfacf5",
+          "declared_hooks": {
+            "lakitdocumentclass": "article",
+            "lakitclassoptions": "11pt,a4paper",
+            "lakitgeometryoptions": "margin=2.2cm,headheight=14pt",
+            "lakitlinespread": "1.18"
+          }
+        }
+      ],
+      "content_profile": "formula-sheet",
+      "default_layout": "standard",
+      "default_theme": "reader",
+      "bilingual_composer_id": "paired-full-pages",
+      "minority_composer_id": "append-note",
+      "source_handlers": [
+        "declare-note-language"
+      ],
+      "copy_extra": [],
+      "docs": [
+        "references/template-catalog.md",
+        "references/catalog-development.md"
+      ],
+      "glossary_refs": [
+        "template",
+        "starter",
+        "document-kind",
+        "content-profile",
+        "recipe-revision",
+        "composer",
+        "source-handler"
+      ],
+      "acceptance": [
+        "template:formula-sheet:native",
+        "template:formula-sheet:mixed",
+        "template:formula-sheet:bilingual"
+      ],
+      "build_defaults": []
+    },
+    {
+      "id": "data-report",
+      "recipe_revision": 1,
+      "title": {
+        "he": "דוח נתונים",
+        "en": "Data report"
+      },
+      "use": "Data report",
+      "starters": [
+        {
+          "language": "hebrew",
+          "asset_path": "assets/starter_data_report.tex",
+          "sha256": "f5046047fc6c15eb45b6d15afe8c83d6dc5149d01f9fb00e95539192217b98c4",
+          "declared_hooks": {
+            "lakitdocumentclass": "article",
+            "lakitclassoptions": "11pt,a4paper",
+            "lakitgeometryoptions": "margin=2.2cm,headheight=14pt",
+            "lakitlinespread": "1.16"
+          }
+        },
+        {
+          "language": "english",
+          "asset_path": "assets/starter_data_report_english.tex",
+          "sha256": "f1e9a1866ea68b7a7e57e865e1e3745a65637b41a2950171d7b8f725615f6231",
+          "declared_hooks": {
+            "lakitdocumentclass": "article",
+            "lakitclassoptions": "11pt,a4paper",
+            "lakitgeometryoptions": "margin=2.2cm,headheight=14pt",
+            "lakitlinespread": "1.18"
+          }
+        }
+      ],
+      "content_profile": "report",
+      "default_layout": "standard",
+      "default_theme": "reader",
+      "bilingual_composer_id": "paired-bodies",
+      "minority_composer_id": "append-note",
+      "source_handlers": [
+        "declare-note-language",
+        "data-heading-guard"
+      ],
+      "copy_extra": [
+        "assets/flow_tables.tex"
+      ],
+      "docs": [
+        "references/template-catalog.md",
+        "references/catalog-development.md"
+      ],
+      "glossary_refs": [
+        "template",
+        "starter",
+        "document-kind",
+        "content-profile",
+        "recipe-revision",
+        "composer",
+        "source-handler"
+      ],
+      "acceptance": [
+        "template:data-report:native",
+        "template:data-report:mixed",
+        "template:data-report:bilingual"
+      ],
+      "build_defaults": []
+    },
+    {
+      "id": "annotated-note",
+      "recipe_revision": 1,
+      "title": {
+        "he": "סיכום עם הערות",
+        "en": "Annotated note"
+      },
+      "use": "Annotated note",
+      "starters": [
+        {
+          "language": "hebrew",
+          "asset_path": "assets/starter_annotated_note.tex",
+          "sha256": "8dcef7703da9423cf1c73a00ef23944250e6239e4240f39e603e5eebd036c543",
+          "declared_hooks": {
+            "lakitdocumentclass": "article",
+            "lakitclassoptions": "11pt,a4paper",
+            "lakitgeometryoptions": "margin=2.2cm,headheight=14pt",
+            "lakitlinespread": "1.18"
+          }
+        },
+        {
+          "language": "english",
+          "asset_path": "assets/starter_annotated_note_english.tex",
+          "sha256": "7d9924578b91166496a6930b300795a3a5ee159f2c82a18719a45bc597a10335",
+          "declared_hooks": {
+            "lakitdocumentclass": "article",
+            "lakitclassoptions": "11pt,a4paper",
+            "lakitgeometryoptions": "margin=2.2cm,headheight=14pt",
+            "lakitlinespread": "1.18"
+          }
+        }
+      ],
+      "content_profile": "generic",
+      "default_layout": "standard",
+      "default_theme": "reader",
+      "bilingual_composer_id": "paired-bodies",
+      "minority_composer_id": "append-note",
+      "source_handlers": [
+        "declare-note-language"
+      ],
+      "copy_extra": [
+        "assets/deferred_notes.tex"
+      ],
+      "docs": [
+        "references/template-catalog.md",
+        "references/catalog-development.md"
+      ],
+      "glossary_refs": [
+        "template",
+        "starter",
+        "document-kind",
+        "content-profile",
+        "recipe-revision",
+        "composer",
+        "source-handler"
+      ],
+      "acceptance": [
+        "template:annotated-note:native",
+        "template:annotated-note:mixed",
+        "template:annotated-note:bilingual"
+      ],
+      "build_defaults": []
+    },
+    {
+      "id": "paper",
+      "recipe_revision": 1,
+      "title": {
+        "he": "מאמר אקדמי",
+        "en": "Academic paper"
+      },
+      "use": "Academic paper",
+      "starters": [
+        {
+          "language": "hebrew",
+          "asset_path": "assets/starter_paper.tex",
+          "sha256": "4b77651ad6f3aba198ade3804b50ce62211760049101feb24ce17558c5b19bf0",
+          "declared_hooks": {
+            "lakitdocumentclass": "article",
+            "lakitclassoptions": "11pt,a4paper",
+            "lakitgeometryoptions": "margin=2.7cm,headheight=14pt",
+            "lakitlinespread": "1.08",
+            "lakitsecnumdepth": "2"
+          }
+        },
+        {
+          "language": "english",
+          "asset_path": "assets/starter_paper_english.tex",
+          "sha256": "f089243ba62f742360938fb78aef1147cbcc677fdc22cc0344d9d4d7a838918e",
+          "declared_hooks": {
+            "lakitdocumentclass": "article",
+            "lakitclassoptions": "11pt,a4paper",
+            "lakitgeometryoptions": "margin=2.7cm,headheight=14pt",
+            "lakitlinespread": "1.08",
+            "lakitsecnumdepth": "2"
+          }
+        }
+      ],
+      "content_profile": "generic",
+      "default_layout": "standard",
+      "default_theme": "academic",
+      "bilingual_composer_id": "paper-shared-frontmatter",
+      "minority_composer_id": "paper-summary",
+      "source_handlers": [
+        "declare-note-language"
+      ],
+      "copy_extra": [],
+      "docs": [
+        "references/template-catalog.md",
+        "references/catalog-development.md"
+      ],
+      "glossary_refs": [
+        "template",
+        "starter",
+        "document-kind",
+        "content-profile",
+        "recipe-revision",
+        "composer",
+        "source-handler"
+      ],
+      "acceptance": [
+        "template:paper:native",
+        "template:paper:mixed",
+        "template:paper:bilingual"
+      ],
+      "build_defaults": [
+        [
+          "EXPECTED_PAPER",
+          "a4"
+        ],
+        [
+          "PDF_FOLIO_LAYOUT",
+          "center"
+        ],
+        [
+          "PDF_FOLIO_BAND",
+          "footer"
+        ]
+      ]
+    }
+  ],
+  "layouts": [
+    {
+      "id": "standard",
+      "recipe_revision": 1,
+      "title": {
+        "he": "עימוד רגיל",
+        "en": "Standard layout"
+      },
+      "allowed_kinds": [
+        "note",
+        "general",
+        "letter",
+        "report",
+        "technical",
+        "formula-sheet",
+        "data-report",
+        "annotated-note",
+        "paper"
+      ],
+      "starter_overrides": [],
+      "default_theme": null,
+      "bilingual_composer_id": null,
+      "minority_composer_id": null,
+      "hook_overrides": [],
+      "components": [],
+      "build_defaults": [],
+      "docs": [
+        "references/template-catalog.md",
+        "references/catalog-development.md"
+      ],
+      "glossary_refs": [
+        "layout",
+        "preset",
+        "default"
+      ],
+      "acceptance": [
+        "layout:standard:runtime"
+      ]
+    },
+    {
+      "id": "reference-compact",
+      "recipe_revision": 1,
+      "title": {
+        "he": "דף עזר צפוף",
+        "en": "Compact reference"
+      },
+      "allowed_kinds": [
+        "formula-sheet"
+      ],
+      "starter_overrides": [
+        {
+          "language": "hebrew",
+          "asset_path": "assets/starter_reference_sheet.tex",
+          "sha256": "5e9f37dead42193e2e2aeb1aec449d557b36b3b12a19c13c89531f2212e8b14d",
+          "declared_hooks": {
+            "lakitdocumentclass": "article",
+            "lakitclassoptions": "10pt,a4paper",
+            "lakitgeometryoptions": "left=8mm,right=8mm,top=12mm,bottom=16mm,headheight=10pt,headsep=3mm,footskip=7mm",
+            "lakitlinespread": "1",
+            "lakitsecnumdepth": "2",
+            "lakittocdepth": "2",
+            "ReferenceColumnCount": "3",
+            "ReferenceColumnGap": "5mm",
+            "ReferenceColumnRule": "0.3pt",
+            "ReferenceBodyFontSize": "6.3",
+            "ReferenceBodyBaseline": "7.8",
+            "ReferenceMathFontSize": "6.25",
+            "ReferenceMathScriptSize": "4.375",
+            "ReferenceMathScriptScriptSize": "3.125"
+          }
+        },
+        {
+          "language": "english",
+          "asset_path": "assets/starter_reference_sheet_english.tex",
+          "sha256": "d1ce1a4a456ebc31185a0a38fc8c8435f9d4fe169f8765f156087171bc5d3edf",
+          "declared_hooks": {
+            "lakitdocumentclass": "article",
+            "lakitclassoptions": "10pt,a4paper",
+            "lakitgeometryoptions": "left=8mm,right=8mm,top=12mm,bottom=16mm,headheight=10pt,headsep=3mm,footskip=7mm",
+            "lakitlinespread": "1",
+            "lakitsecnumdepth": "2",
+            "lakittocdepth": "2",
+            "ReferenceColumnCount": "3",
+            "ReferenceColumnGap": "5mm",
+            "ReferenceColumnRule": "0.3pt",
+            "ReferenceBodyFontSize": "6.3",
+            "ReferenceBodyBaseline": "7.8",
+            "ReferenceMathFontSize": "6.25",
+            "ReferenceMathScriptSize": "4.375",
+            "ReferenceMathScriptScriptSize": "3.125"
+          }
+        }
+      ],
+      "default_theme": "reference",
+      "bilingual_composer_id": "reference-paired-pages",
+      "minority_composer_id": "reference-topic-note",
+      "hook_overrides": [
+        {
+          "name": "ReferenceColumnCount",
+          "value": "3",
+          "owner": "assets/reference_columns.tex",
+          "unit": "columns",
+          "phase": "before-owner"
+        },
+        {
+          "name": "ReferenceBodyFontSize",
+          "value": "6.3",
+          "owner": "assets/reference_columns.tex",
+          "unit": "TeX-pt",
+          "phase": "before-owner"
+        },
+        {
+          "name": "ReferenceBodyBaseline",
+          "value": "7.8",
+          "owner": "assets/reference_columns.tex",
+          "unit": "TeX-pt",
+          "phase": "before-owner"
+        },
+        {
+          "name": "ReferenceMathFontSize",
+          "value": "6.25",
+          "owner": "assets/reference_columns.tex",
+          "unit": "TeX-pt",
+          "phase": "before-owner"
+        },
+        {
+          "name": "ReferenceMathScriptSize",
+          "value": "4.375",
+          "owner": "assets/reference_columns.tex",
+          "unit": "TeX-pt",
+          "phase": "before-owner"
+        },
+        {
+          "name": "ReferenceMathScriptScriptSize",
+          "value": "3.125",
+          "owner": "assets/reference_columns.tex",
+          "unit": "TeX-pt",
+          "phase": "before-owner"
+        }
+      ],
+      "components": [
+        "assets/reference_components.tex",
+        "assets/reference_columns.tex",
+        "assets/reference_shell.tex"
+      ],
+      "build_defaults": [
+        [
+          "EXPECTED_PAPER",
+          "a4"
+        ],
+        [
+          "PDF_FOLIO_LAYOUT",
+          "center"
+        ],
+        [
+          "PDF_FOLIO_BAND",
+          "footer"
+        ]
+      ],
+      "docs": [
+        "references/reference-sheets.md",
+        "references/template-catalog.md"
+      ],
+      "glossary_refs": [
+        "layout",
+        "preset",
+        "layout-extension",
+        "hook",
+        "page-shell"
+      ],
+      "acceptance": [
+        "layout:reference-compact:runtime"
+      ]
+    },
+    {
+      "id": "reference-readable",
+      "recipe_revision": 1,
+      "title": {
+        "he": "דף עזר קריא",
+        "en": "Readable reference"
+      },
+      "allowed_kinds": [
+        "formula-sheet"
+      ],
+      "starter_overrides": [
+        {
+          "language": "hebrew",
+          "asset_path": "assets/starter_reference_sheet.tex",
+          "sha256": "5e9f37dead42193e2e2aeb1aec449d557b36b3b12a19c13c89531f2212e8b14d",
+          "declared_hooks": {
+            "lakitdocumentclass": "article",
+            "lakitclassoptions": "10pt,a4paper",
+            "lakitgeometryoptions": "left=8mm,right=8mm,top=12mm,bottom=16mm,headheight=10pt,headsep=3mm,footskip=7mm",
+            "lakitlinespread": "1",
+            "lakitsecnumdepth": "2",
+            "lakittocdepth": "2",
+            "ReferenceColumnCount": "3",
+            "ReferenceColumnGap": "5mm",
+            "ReferenceColumnRule": "0.3pt",
+            "ReferenceBodyFontSize": "6.3",
+            "ReferenceBodyBaseline": "7.8",
+            "ReferenceMathFontSize": "6.25",
+            "ReferenceMathScriptSize": "4.375",
+            "ReferenceMathScriptScriptSize": "3.125"
+          }
+        },
+        {
+          "language": "english",
+          "asset_path": "assets/starter_reference_sheet_english.tex",
+          "sha256": "d1ce1a4a456ebc31185a0a38fc8c8435f9d4fe169f8765f156087171bc5d3edf",
+          "declared_hooks": {
+            "lakitdocumentclass": "article",
+            "lakitclassoptions": "10pt,a4paper",
+            "lakitgeometryoptions": "left=8mm,right=8mm,top=12mm,bottom=16mm,headheight=10pt,headsep=3mm,footskip=7mm",
+            "lakitlinespread": "1",
+            "lakitsecnumdepth": "2",
+            "lakittocdepth": "2",
+            "ReferenceColumnCount": "3",
+            "ReferenceColumnGap": "5mm",
+            "ReferenceColumnRule": "0.3pt",
+            "ReferenceBodyFontSize": "6.3",
+            "ReferenceBodyBaseline": "7.8",
+            "ReferenceMathFontSize": "6.25",
+            "ReferenceMathScriptSize": "4.375",
+            "ReferenceMathScriptScriptSize": "3.125"
+          }
+        }
+      ],
+      "default_theme": "reference",
+      "bilingual_composer_id": "reference-paired-pages",
+      "minority_composer_id": "reference-topic-note",
+      "hook_overrides": [
+        {
+          "name": "ReferenceColumnCount",
+          "value": "2",
+          "owner": "assets/reference_columns.tex",
+          "unit": "columns",
+          "phase": "before-owner"
+        },
+        {
+          "name": "ReferenceBodyFontSize",
+          "value": "9",
+          "owner": "assets/reference_columns.tex",
+          "unit": "TeX-pt",
+          "phase": "before-owner"
+        },
+        {
+          "name": "ReferenceBodyBaseline",
+          "value": "11",
+          "owner": "assets/reference_columns.tex",
+          "unit": "TeX-pt",
+          "phase": "before-owner"
+        },
+        {
+          "name": "ReferenceMathFontSize",
+          "value": "8.75",
+          "owner": "assets/reference_columns.tex",
+          "unit": "TeX-pt",
+          "phase": "before-owner"
+        },
+        {
+          "name": "ReferenceMathScriptSize",
+          "value": "6.125",
+          "owner": "assets/reference_columns.tex",
+          "unit": "TeX-pt",
+          "phase": "before-owner"
+        },
+        {
+          "name": "ReferenceMathScriptScriptSize",
+          "value": "4.375",
+          "owner": "assets/reference_columns.tex",
+          "unit": "TeX-pt",
+          "phase": "before-owner"
+        }
+      ],
+      "components": [
+        "assets/reference_components.tex",
+        "assets/reference_columns.tex",
+        "assets/reference_shell.tex"
+      ],
+      "build_defaults": [
+        [
+          "EXPECTED_PAPER",
+          "a4"
+        ],
+        [
+          "PDF_FOLIO_LAYOUT",
+          "center"
+        ],
+        [
+          "PDF_FOLIO_BAND",
+          "footer"
+        ]
+      ],
+      "docs": [
+        "references/reference-sheets.md",
+        "references/template-catalog.md"
+      ],
+      "glossary_refs": [
+        "layout",
+        "preset",
+        "layout-extension",
+        "hook",
+        "page-shell"
+      ],
+      "acceptance": [
+        "layout:reference-readable:runtime"
+      ]
+    }
+  ],
+  "themes": [
+    {
+      "id": "reader",
+      "title": {
+        "he": "קריאה",
+        "en": "Reader"
+      },
+      "exposure": "generator-supported",
+      "mode": "asset",
+      "asset_path": "assets/reader_theme.tex",
+      "copy_stage": "before-layout",
+      "local_filename": null,
+      "caption_contract": {
+        "label_color": "555555",
+        "label_weight": "bold"
+      },
+      "build_defaults": [],
+      "docs": [
+        "references/template-catalog.md",
+        "references/architecture.md"
+      ],
+      "glossary_refs": [
+        "theme",
+        "ownership"
+      ],
+      "acceptance": [
+        "theme:reader:runtime"
+      ]
+    },
+    {
+      "id": "core",
+      "title": {
+        "he": "ליבה",
+        "en": "Core"
+      },
+      "exposure": "generator-supported",
+      "mode": "none",
+      "asset_path": null,
+      "copy_stage": "none",
+      "local_filename": null,
+      "caption_contract": {
+        "label_color": "555555",
+        "label_weight": "bold"
+      },
+      "build_defaults": [],
+      "docs": [
+        "references/template-catalog.md",
+        "references/architecture.md"
+      ],
+      "glossary_refs": [
+        "theme",
+        "ownership"
+      ],
+      "acceptance": [
+        "theme:core:runtime"
+      ]
+    },
+    {
+      "id": "custom",
+      "title": {
+        "he": "עיצוב מקומי",
+        "en": "Custom"
+      },
+      "exposure": "generator-supported",
+      "mode": "local-file",
+      "asset_path": null,
+      "copy_stage": "none",
+      "local_filename": "theme.tex",
+      "caption_contract": {
+        "label_color": "555555",
+        "label_weight": "bold"
+      },
+      "build_defaults": [],
+      "docs": [
+        "references/template-catalog.md",
+        "references/architecture.md"
+      ],
+      "glossary_refs": [
+        "theme",
+        "ownership"
+      ],
+      "acceptance": [
+        "theme:custom:runtime"
+      ]
+    },
+    {
+      "id": "academic",
+      "title": {
+        "he": "אקדמי",
+        "en": "Academic"
+      },
+      "exposure": "generator-supported",
+      "mode": "asset",
+      "asset_path": "assets/academic_theme.tex",
+      "copy_stage": "before-layout",
+      "local_filename": null,
+      "caption_contract": {
+        "label_color": "000000",
+        "label_weight": "normal"
+      },
+      "build_defaults": [
+        [
+          "PDF_CAPTION_COLOR",
+          "000000"
+        ],
+        [
+          "PDF_CAPTION_LABEL_WEIGHT",
+          "normal"
+        ]
+      ],
+      "docs": [
+        "references/template-catalog.md",
+        "references/architecture.md"
+      ],
+      "glossary_refs": [
+        "theme",
+        "ownership"
+      ],
+      "acceptance": [
+        "theme:academic:runtime"
+      ]
+    },
+    {
+      "id": "reference",
+      "title": {
+        "he": "דף עזר",
+        "en": "Reference"
+      },
+      "exposure": "generator-supported",
+      "mode": "asset",
+      "asset_path": "assets/reference_theme.tex",
+      "copy_stage": "after-layout",
+      "local_filename": null,
+      "caption_contract": {
+        "label_color": "000000",
+        "label_weight": "normal"
+      },
+      "build_defaults": [
+        [
+          "PDF_CAPTION_COLOR",
+          "000000"
+        ],
+        [
+          "PDF_CAPTION_LABEL_WEIGHT",
+          "normal"
+        ]
+      ],
+      "docs": [
+        "references/template-catalog.md",
+        "references/architecture.md"
+      ],
+      "glossary_refs": [
+        "theme",
+        "ownership"
+      ],
+      "acceptance": [
+        "theme:reference:runtime"
+      ]
+    },
+    {
+      "id": "clean",
+      "title": {
+        "he": "בחינות נקי",
+        "en": "Clean"
+      },
+      "exposure": "manual-supported",
+      "mode": "asset",
+      "asset_path": "assets/clean_theme.tex",
+      "copy_stage": "none",
+      "local_filename": null,
+      "caption_contract": {
+        "label_color": "555555",
+        "label_weight": "bold"
+      },
+      "build_defaults": [],
+      "docs": [
+        "references/template-catalog.md",
+        "references/architecture.md"
+      ],
+      "glossary_refs": [
+        "theme",
+        "ownership"
+      ],
+      "acceptance": [
+        "theme:clean:runtime"
+      ]
+    },
+    {
+      "id": "legacy-clean",
+      "title": {
+        "he": "תאימות לעיצוב נקי",
+        "en": "Legacy-Clean"
+      },
+      "exposure": "legacy",
+      "mode": "asset",
+      "asset_path": "assets/clean_variant.tex",
+      "copy_stage": "none",
+      "local_filename": null,
+      "caption_contract": {
+        "label_color": "555555",
+        "label_weight": "bold"
+      },
+      "build_defaults": [],
+      "docs": [
+        "references/template-catalog.md",
+        "references/architecture.md"
+      ],
+      "glossary_refs": [
+        "theme",
+        "ownership",
+        "backward-compatibility"
+      ],
+      "acceptance": [
+        "theme:legacy-clean:runtime"
+      ]
+    }
+  ],
+  "examples": [
+    {
+      "id": "bibliography",
+      "asset_path": "assets/example_bibliography.tex",
+      "architecture_assets": [
+        "assets/preamble.tex",
+        "assets/document_components.tex",
+        "assets/reader_theme.tex"
+      ],
+      "language_profile": "hebrew",
+      "docs": [
+        "references/template-catalog.md"
+      ],
+      "glossary_refs": [
+        "starter",
+        "public-api"
+      ],
+      "acceptance": [
+        "example:bibliography:runtime"
+      ]
+    },
+    {
+      "id": "boxes",
+      "asset_path": "assets/example_boxes.tex",
+      "architecture_assets": [
+        "assets/preamble.tex"
+      ],
+      "language_profile": "hebrew",
+      "docs": [
+        "references/template-catalog.md"
+      ],
+      "glossary_refs": [
+        "starter",
+        "public-api"
+      ],
+      "acceptance": [
+        "example:boxes:runtime"
+      ]
+    },
+    {
+      "id": "exam",
+      "asset_path": "assets/example_exam.tex",
+      "architecture_assets": [
+        "assets/preamble.tex",
+        "assets/exam_components.tex",
+        "assets/clean_theme.tex"
+      ],
+      "language_profile": "hebrew",
+      "docs": [
+        "references/template-catalog.md"
+      ],
+      "glossary_refs": [
+        "starter",
+        "public-api"
+      ],
+      "acceptance": [
+        "example:exam:runtime"
+      ]
+    },
+    {
+      "id": "figures",
+      "asset_path": "assets/example_figures.tex",
+      "architecture_assets": [
+        "assets/preamble.tex"
+      ],
+      "language_profile": "hebrew",
+      "docs": [
+        "references/template-catalog.md"
+      ],
+      "glossary_refs": [
+        "starter",
+        "public-api"
+      ],
+      "acceptance": [
+        "example:figures:runtime"
+      ]
+    },
+    {
+      "id": "flow-tables",
+      "asset_path": "assets/example_flow_tables.tex",
+      "architecture_assets": [
+        "assets/preamble.tex",
+        "assets/document_components.tex",
+        "assets/flow_tables.tex",
+        "assets/reader_theme.tex"
+      ],
+      "language_profile": "hebrew",
+      "docs": [
+        "references/template-catalog.md"
+      ],
+      "glossary_refs": [
+        "starter",
+        "public-api"
+      ],
+      "acceptance": [
+        "example:flow-tables:runtime"
+      ]
+    },
+    {
+      "id": "listings",
+      "asset_path": "assets/example_listings.tex",
+      "architecture_assets": [
+        "assets/preamble.tex"
+      ],
+      "language_profile": "hebrew",
+      "docs": [
+        "references/template-catalog.md"
+      ],
+      "glossary_refs": [
+        "starter",
+        "public-api"
+      ],
+      "acceptance": [
+        "example:listings:runtime"
+      ]
+    },
+    {
+      "id": "math",
+      "asset_path": "assets/example_math.tex",
+      "architecture_assets": [
+        "assets/preamble.tex"
+      ],
+      "language_profile": "hebrew",
+      "docs": [
+        "references/template-catalog.md"
+      ],
+      "glossary_refs": [
+        "starter",
+        "public-api"
+      ],
+      "acceptance": [
+        "example:math:runtime"
+      ]
+    },
+    {
+      "id": "notes",
+      "asset_path": "assets/example_notes.tex",
+      "architecture_assets": [
+        "assets/preamble.tex",
+        "assets/document_components.tex",
+        "assets/deferred_notes.tex",
+        "assets/reader_theme.tex"
+      ],
+      "language_profile": "hebrew",
+      "docs": [
+        "references/template-catalog.md"
+      ],
+      "glossary_refs": [
+        "starter",
+        "public-api"
+      ],
+      "acceptance": [
+        "example:notes:runtime"
+      ]
+    },
+    {
+      "id": "reader",
+      "asset_path": "assets/example_reader.tex",
+      "architecture_assets": [
+        "assets/preamble.tex",
+        "assets/document_components.tex",
+        "assets/reader_theme.tex"
+      ],
+      "language_profile": "hebrew",
+      "docs": [
+        "references/template-catalog.md"
+      ],
+      "glossary_refs": [
+        "starter",
+        "public-api"
+      ],
+      "acceptance": [
+        "example:reader:runtime"
+      ]
+    },
+    {
+      "id": "references",
+      "asset_path": "assets/example_references.tex",
+      "architecture_assets": [
+        "assets/preamble.tex",
+        "assets/reader_theme.tex",
+        "assets/document_components.tex"
+      ],
+      "language_profile": "hebrew",
+      "docs": [
+        "references/template-catalog.md"
+      ],
+      "glossary_refs": [
+        "starter",
+        "public-api"
+      ],
+      "acceptance": [
+        "example:references:runtime"
+      ]
+    },
+    {
+      "id": "tables",
+      "asset_path": "assets/example_tables.tex",
+      "architecture_assets": [
+        "assets/preamble.tex"
+      ],
+      "language_profile": "hebrew",
+      "docs": [
+        "references/template-catalog.md"
+      ],
+      "glossary_refs": [
+        "starter",
+        "public-api"
+      ],
+      "acceptance": [
+        "example:tables:runtime"
+      ]
+    },
+    {
+      "id": "topicrail",
+      "asset_path": "assets/example_topicrail.tex",
+      "architecture_assets": [
+        "assets/preamble.tex",
+        "assets/topicrail.tex"
+      ],
+      "language_profile": "hebrew",
+      "docs": [
+        "references/template-catalog.md"
+      ],
+      "glossary_refs": [
+        "starter",
+        "public-api"
+      ],
+      "acceptance": [
+        "example:topicrail:runtime"
+      ]
+    }
+  ]
+}

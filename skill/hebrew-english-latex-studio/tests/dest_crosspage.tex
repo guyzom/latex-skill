@@ -1,0 +1,51 @@
+% PROOF-OF-FAILURE fixture for R6c (DEST-CROSS-PAGE-CAPTION, v3.82, BLD-38).
+%
+% THE SHAPE: a measured figure island whose \figcap lands on the NEXT page.
+% \figcap raises the anchor by the island's measured height (+ the cushion),
+% so when the caption starts a new page the raise carries the destination
+% ABOVE that page's top edge — a NEGATIVE top-down y.  Measured on the fleet:
+% 15 such dests, all fig., -56.01..-286.75pt.
+%
+% WHY IT NEEDED A RULE OF ITS OWN.  Every other gate is silent here:
+%   * build.sh prints "✓ clean build" — nothing is overfull, nothing warns;
+%   * R6a only judges tbl. dests against a tablebox frame, and this is a fig.;
+%   * R6b compares the dest to its own caption top, and the gap is then the
+%     whole raise (~124pt against a 30pt floor) — the WORSE the break, the
+%     more comfortably it passes.  A cross-page dest could not fail R6b even
+%     in principle, so before v3.82 this population was invisible: the fleet
+%     could have gone 15 -> 20 and no rule anywhere would have said so.
+%
+% THE BREAK IS FORCED, ON PURPOSE, but the source contract stays valid:
+% \aftergroup schedules \newpage from inside the measured island, so \figcap
+% remains lexically adjacent to \end{tikzpic}. A fixture that relied on filling
+% a page to just the right height would be pinned to \textheight; the first font
+% or paper change could silently turn it into a same-page destination. The
+% geometry the render gate reads is identical to a natural split.
+%
+% The document also carries ONE healthy figure (same island form, caption on
+% the same page) so the fixture proves the rule DISCRIMINATES rather than
+% firing on every fig. dest in the file.
+\input{../assets/preamble.tex}
+\begin{document}
+\chapter{שער היעדים}
+
+\section{איור בריא — הכיתוב באותו עמוד}
+\begin{tikzpic}
+\begin{tikzpicture}
+\draw[fill=black] (0,0) rectangle (7,3.2);
+\end{tikzpicture}
+\end{tikzpic}
+\figcap{\label{fig:same}איור שלם — היעד מעל האיור, באותו עמוד}
+
+\section{איור שהכיתוב שלו נשבר לעמוד הבא}
+\begin{tikzpic}
+\begin{tikzpicture}
+\draw[fill=black] (0,0) rectangle (7,5.6);
+\end{tikzpicture}
+\aftergroup\newpage
+\end{tikzpic}
+\figcap{\label{fig:split}איור שהכיתוב נשבר — היעד מעל ראש העמוד}
+
+ראו איור \ref{fig:same}.
+ראו איור \ref{fig:split}.
+\end{document}

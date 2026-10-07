@@ -1,0 +1,298 @@
+\def\lakitlanguageprofile{english}
+\def\lakitmainlanguage{english}
+\def\lakitdocumentclass{article}
+\def\lakitclassoptions{10pt,a4paper}
+\def\lakitgeometryoptions{left=8mm,right=8mm,top=12mm,bottom=16mm,headheight=10pt,headsep=3mm,footskip=7mm}
+\def\lakitlinespread{1}
+\def\lakitsecnumdepth{2}
+\def\lakittocdepth{2}
+\def\ReferenceColumnCount{3}
+\def\ReferenceColumnGap{5mm}
+\def\ReferenceColumnRule{0.3pt}
+\def\ReferenceBodyFontSize{6.3}
+\def\ReferenceBodyBaseline{7.8}
+\def\ReferenceMathFontSize{6.25}
+\def\ReferenceMathScriptSize{4.375}
+\def\ReferenceMathScriptScriptSize{3.125}
+\def\ReferenceTitle{Mathematical physics reference}
+\def\ReferenceShortTitle{Mathematical physics}
+\input{preamble.tex}
+\usepackage{colortbl} % Local shaded table headers; no change to the core.
+\input{document_components.tex}
+\input{reference_components.tex}
+\input{reference_columns.tex}
+\input{reference_shell.tex}
+\input{reference_theme.tex}
+\hypersetup{pdftitle={Mathematical physics reference},pdfauthor={}}
+\begin{document}
+% Replace the sample scope, facts and metadata with the actual reference material.
+\makereferencetitle
+\begin{referencecolumns}
+\begin{referenceentry}
+\section{Vectors and complex numbers}
+For real vectors, $\mathbf a\cdot\mathbf b=\sum_i a_i b_i$; for complex vectors,
+$\langle u,v\rangle=u^\dagger v$.
+\[
+\|v\|=\sqrt{v^\dagger v},\qquad
+P_u v=u\frac{u^\dagger v}{u^\dagger u},\quad u\neq0.
+\]
+The residual $r=v-P_u v$ is orthogonal to $u$: $u^\dagger r=0$.
+\subsection{Complex form}
+For $z=x+\mathrm i y$, with $\mathrm i^2=-1$,
+\[
+|z|^2=x^2+y^2,\qquad z^*=x-\mathrm i y,
+\]
+\[
+\mathrm e^{\mathrm i\theta}=\cos\theta+\mathrm i\sin\theta.
+\]
+In $z=r\mathrm e^{\mathrm i\theta}$, $r\geq0$ and the phase is defined modulo
+$2\pi$; it is undefined at $r=0$.
+\end{referenceentry}
+
+\begin{referenceentry}
+\section{Matrices and eigenvalues}
+\[
+(AB)^\dagger=B^\dagger A^\dagger,\qquad
+\operatorname{tr}(AB)=\operatorname{tr}(BA).
+\]
+The trace identity requires compatible dimensions. An eigenpair obeys
+$Av=\lambda v$, $v\neq0$. For a Hermitian matrix,
+\[
+A=U\Lambda U^\dagger,\qquad U^\dagger U=I,
+\]
+where $\Lambda$ is real diagonal. A square matrix is invertible iff
+$\det A\neq0$; then $A^{-1}A=I$ and $\det(A^{-1})=1/\det A$.
+\end{referenceentry}
+
+\begin{referenceentry}
+\section{Differentiation and integration}
+\[
+\frac{\mathrm d}{\mathrm dx}f(g(x))=f'(g(x))\,g'(x),
+\]
+\[
+\int u\,\mathrm dv=uv-\int v\,\mathrm du.
+\]
+The chain rule requires differentiability. In a definite integral, evaluate
+$uv$ at both endpoints.
+\begin{referencetable}
+\centering
+\setlength{\arrayrulewidth}{0.4pt}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.05}
+\begin{tabular}{|c|c|}
+\hline
+\rowcolor{black!10}
+$\boldsymbol{f(x)}$ & $\boldsymbol{f'(x)}$\\\hline
+$x^n$ & $nx^{n-1}$\\\hline
+$\mathrm e^{ax}$ & $a\mathrm e^{ax}$\\\hline
+$\sin(ax)$ & $a\cos(ax)$\\\hline
+$\log x$ & $1/x,\ x>0$\\\hline
+\end{tabular}
+\end{referencetable}
+\subsection{Local approximation}
+For a smooth $f$ near $x_0$, let $h=x-x_0$:
+\[
+f(x_0+h)=f(x_0)+f'(x_0)h+O(h^2).
+\]
+The error is local as $h\to0$; higher orders require corresponding smoothness.
+\end{referenceentry}
+
+\begin{referenceentry}
+\section{Vector calculus}
+For scalar $f$ and vector $\mathbf F$,
+\[
+\nabla f=(\partial_x f,\partial_y f,\partial_z f),
+\]
+\[
+\nabla\cdot\mathbf F=\partial_x F_x+\partial_y F_y+\partial_z F_z.
+\]
+The gradient gives steepest increase; divergence measures local outflow.
+For a sufficiently regular field on a bounded region,
+\[
+\int_V\nabla\cdot\mathbf F\,\mathrm dV
+=\oint_{\partial V}\mathbf F\cdot\mathbf n\,\mathrm dS,
+\]
+where $\mathbf n$ is the outward unit normal.
+\end{referenceentry}
+
+\begin{referenceentry}
+\section{Probability and uncertainty}
+For discrete values $x_i$ and probabilities $p_i$,
+\[
+p_i\geq0,\quad\sum_i p_i=1,\quad\mu=\sum_i p_i x_i,
+\]
+\[
+\sigma^2=\sum_i p_i(x_i-\mu)^2.
+\]
+For real $X,Y$ with finite variances and real $a,b$,
+\[
+\begin{aligned}
+\operatorname{Var}(aX+bY)
+={}&a^2\operatorname{Var}(X)\\
+ &+b^2\operatorname{Var}(Y)\\
+ &+2ab\operatorname{Cov}(X,Y).
+\end{aligned}
+\]
+Independence implies $\operatorname{Cov}(X,Y)=0$. For $a=b=1$, independent
+variances add.
+\end{referenceentry}
+
+\begin{referenceentry}
+\section{Dimensions and units}
+Equations must balance dimensions; keep a quantity's unit beside its value.
+\begin{referencetable}
+\centering
+\setlength{\arrayrulewidth}{0.4pt}
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.05}
+\begin{tabular}{|l|c|c|}
+\hline
+\rowcolor{black!10}
+\textbf{Quantity} & \textbf{Unit} & \textbf{Dimensions}\\\hline
+Force & $\mathrm N$ & $\mathrm{kg\,m\,s^{-2}}$\\\hline
+Energy & $\mathrm J$ & $\mathrm{kg\,m^2\,s^{-2}}$\\\hline
+Frequency & $\mathrm{Hz}$ & $\mathrm{s^{-1}}$\\\hline
+\end{tabular}
+\end{referencetable}
+Angles in analytic formulas are in radians. Consistent units are necessary,
+but do not establish that a model is correct.
+\end{referenceentry}
+
+\begin{referenceentry}
+\section{Motion and force}
+\[
+\mathbf v=\frac{\mathrm d\mathbf r}{\mathrm dt},\qquad
+\mathbf a=\frac{\mathrm d\mathbf v}{\mathrm dt}.
+\]
+For constant acceleration in one dimension,
+\[
+v=v_0+at,\qquad x=x_0+v_0t+\tfrac12 at^2.
+\]
+\begin{referenceformula}
+\begin{equation}\label{eq:force}
+\mathbf F_{\mathrm{net}}=m\mathbf a.
+\end{equation}
+Inertial frame; particle of constant mass.
+\end{referenceformula}
+In~\eqref{eq:force}, count each external interaction once. Zero net force
+allows constant nonzero velocity.
+\subsection{A one-dimensional spring}
+Measure $x$ from equilibrium for an ideal spring with $k>0$; its force restores
+the mass toward equilibrium.
+\[
+F_x=-kx,\qquad U(x)=\tfrac12 kx^2.
+\]
+\begin{referencefigure}
+\begin{tikzpic}
+\begin{tikzpicture}[x=0.9cm,y=0.8cm,>=Stealth]
+\draw[thick] (0,0)--(0,1.1);
+\foreach \y in {0.1,0.3,0.5,0.7,0.9} {\draw (-0.12,\y-0.12)--(0,\y);}
+\draw[thick] (0,0.55)--(0.25,0.55)--(0.4,0.75)--(0.6,0.35)--(0.8,0.75)--(1,0.35)--(1.2,0.75)--(1.35,0.55)--(1.6,0.55);
+\draw[thick,fill=black!5] (1.6,0.25) rectangle (2.2,0.85);
+\node at (1.9,0.55) {$m$};
+\draw[->] (1.2,-0.1)--(2.8,-0.1) node[right] {$x$};
+\draw[->] (1.9,1)--(1,1) node[midway,above] {$F_x$};
+\end{tikzpicture}
+\end{tikzpic}
+\referencefigcap{\label{fig:spring}Restoring force for a positive displacement.}
+\end{referencefigure}
+For $x>0$, the force in \autoref{fig:spring} points toward equilibrium.
+\end{referenceentry}
+
+\begin{referenceentry}
+\section{Work, energy and momentum}
+\[
+W=\int_C\mathbf F\cdot\mathrm d\mathbf r,\qquad K=\tfrac12 mv^2,
+\]
+\[
+\mathbf p=m\mathbf v,\qquad
+\frac{\mathrm d\mathbf p}{\mathrm dt}=\mathbf F_{\mathrm{net}}.
+\]
+The work--energy theorem gives $W_{\mathrm{net}}=\Delta K$. For conservative
+forces, $\mathbf F=-\nabla U$; $K+U$ is constant if nonconservative forces do no work.
+\begin{referencenote}[Conservation]
+Choose the system boundary: zero net external impulse conserves momentum.
+Conservation of total energy need not conserve mechanical energy.
+\end{referencenote}
+\end{referenceentry}
+
+\begin{referenceentry}
+\section{Harmonic motion}
+For an ideal undamped spring, $m,k>0$,
+\[
+\ddot x+\omega^2x=0,\qquad \omega=\sqrt{k/m},
+\]
+\[
+x(t)=A\cos(\omega t+\phi),\qquad T=\frac{2\pi}{\omega}.
+\]
+\begin{referenceqa}
+\referencequestion{$m=1\,\mathrm{kg}$, $k=4\,\mathrm{N/m}$: find $\omega$ and $T$.}
+\referencesolution{$\omega=2\,\mathrm{s^{-1}}$, $T=\pi\,\mathrm s$.}
+\end{referenceqa}
+\end{referenceentry}
+
+\begin{referenceentry}
+\section{Waves and phase}
+\[
+y(x,t)=A\cos(kx-\omega t+\phi),
+\]
+\[
+k=\frac{2\pi}{\lambda},\qquad f=\frac{\omega}{2\pi},\qquad
+v_{\mathrm{ph}}=\frac{\omega}{k}.
+\]
+The sign $kx-\omega t$ gives propagation toward increasing $x$.
+In a dispersive medium, $v_{\mathrm g}=\mathrm d\omega/\mathrm dk$, when defined,
+can differ from the phase velocity.
+\end{referenceentry}
+
+\begin{referenceentry}
+\section{Quantum state and measurement}
+A pure state assigns complex amplitudes to a chosen orthonormal two-state basis.
+\begin{referenceformula}
+\begin{equation}\label{eq:qubit}
+\ket{\psi}=\alpha\ket0+\beta\ket1,
+\end{equation}
+\[
+|\alpha|^2+|\beta|^2=1.
+\]
+A common global phase is unobservable.
+\end{referenceformula}
+Measuring~\eqref{eq:qubit} gives outcomes $0$ and $1$ with probabilities
+$|\alpha|^2$ and $|\beta|^2$, respectively.
+\subsection{Operators and expectation}
+For Hermitian $A$ and normalized $\ket\psi$,
+\[
+\langle A\rangle=\bra\psi A\ket\psi,
+\]
+\[
+(\Delta A)^2=\langle A^2\rangle-\langle A\rangle^2.
+\]
+An eigenstate of $A$ has $(\Delta A)^2=0$.
+\end{referenceentry}
+
+\begin{referenceentry}
+\section{Pauli gates and a circuit}
+\[
+X=\begin{pmatrix}0&1\\1&0\end{pmatrix},\qquad
+Z=\begin{pmatrix}1&0\\0&-1\end{pmatrix},
+\]
+\[
+H=\frac1{\sqrt2}\begin{pmatrix}1&1\\1&-1\end{pmatrix}.
+\]
+The Hadamard gate gives $H\ket0=(\ket0+\ket1)/\sqrt2$.
+\begin{referencefigure}
+\begin{tikzpic}
+\begin{quantikz}[column sep=0.3cm]
+\lstick{$\ket0$} & \gate{H} & \meter{} & \cw
+\end{quantikz}
+\end{tikzpic}
+\referencefigcap{\label{fig:qubit}Equal superposition followed by measurement.}
+\end{referencefigure}
+In \autoref{fig:qubit}, $H$ acts before computational-basis measurement.
+\begin{referenceqa}
+\referencequestion{What probabilities result from this circuit?}
+\referencesolution{Each outcome has probability $1/2$.}
+\end{referenceqa}
+\end{referenceentry}
+\end{referencecolumns}
+\end{document}

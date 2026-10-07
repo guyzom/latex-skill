@@ -1,0 +1,38 @@
+% codebox_numbers.tex — pins codebox's in-frame line numbers (v4.5.0).
+% Page 1: a listing INSIDE codebox carries all five margin numbers, drawn
+% clear of the box rule rather than on it. Page 2: the identical code UNBOXED
+% still carries five, proving the shared listing path did not change.
+% The box carries NO title here on purpose: like every other box in the
+% preamble, codebox defaults to frametitle={} and the bar appears only when
+% the author names one.
+% Measured by scripts/probe_lstnum.py --inside-rule, never by eye.
+\input{../assets/preamble.tex}
+\begin{document}
+\section{codebox}
+
+\begin{codebox}
+\begin{asmblock}
+\begin{lstlisting}[style=pystyle]
+def boxed(items):
+    total = 0
+    for i in items:
+        total += i
+    return total
+\end{lstlisting}
+\end{asmblock}
+\end{codebox}
+
+\clearpage
+\section{ללא תיבה}
+
+\begin{asmblock}
+\begin{lstlisting}[style=pystyle]
+def plain(items):
+    total = 0
+    for i in items:
+        total += i
+    return total
+\end{lstlisting}
+\end{asmblock}
+
+\end{document}

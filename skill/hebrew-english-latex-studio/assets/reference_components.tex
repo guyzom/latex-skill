@@ -1,0 +1,189 @@
+% reference_components.tex — reusable semantic blocks for reference documents.
+% Requires preamble.tex; independent of language, column layout and theme.
+% <hllpdf:architecture-guard>
+\ifdefined\hllpdfcoreloaded\else
+  \errmessage{hllpdf: reference_components.tex requires preamble.tex first}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdfreferencecomponentsloaded
+  \errmessage{hllpdf: reference_components.tex loaded more than once}
+  \expandafter\endinput
+\fi
+\def\hllpdfreferencecomponentsloaded{1}
+% </hllpdf:architecture-guard>
+%
+% All individual frames are atomic. A short note, central formula or short
+% question/answer fits in one column. A long solution is an explicitly authored
+% referenceqaseries of referencesolutionpart frames. The sequence can flow
+% between columns/pages, while each mathematical step stays intact. Split any
+% part that is taller than a full column; do not ask mdframed to replace the
+% multicols output routine or shrink a document merely to force one page.
+% A referenceentry keeps a SHORT complete topic or opening chunk intact without
+% drawing a frame. Put the native heading inside it. Longer topics flow outside
+% the wrapper or use explicitly authored short chunks; never box a whole chapter.
+%
+% Four mutable presentation hooks supply neutral defaults. A presentation theme
+% can override them before or after this file is loaded. They contain mdframed
+% key options, never geometry, language, mathematical semantics or page policy.
+\providecommand{\referencenotestyle}{linecolor=cRule,backgroundcolor=white}
+\providecommand{\referencewarningstyle}{linecolor=cRule,backgroundcolor=white}
+\providecommand{\referenceformulastyle}{linecolor=cRule,backgroundcolor=white}
+\providecommand{\referenceqastyle}{linecolor=cRule,backgroundcolor=white}
+
+\mdfdefinestyle{hllpdfreferenceblock}{%
+  frametitle={},nobreak=true,everyline=true,roundcorner=0pt,
+  leftline=true,rightline=true,topline=true,bottomline=true,linewidth=.6pt,
+  innerleftmargin=4pt,innerrightmargin=4pt,
+  innertopmargin=3pt,innerbottommargin=3pt,
+  skipabove=5pt,skipbelow=5pt,
+  beforesingleframe={\csname hllpdf@referencecheckheight\endcsname},
+  frametitlebackgroundcolor=white,frametitlefontcolor=black,
+  frametitlefont=\normalfont\rmfamily\bfseries,
+  frametitleaboveskip=2pt,frametitlebelowskip=2pt}
+
+\makeatletter
+\newif\ifhllpdf@referenceqaseries
+\newif\ifhllpdf@referenceframespacingpatched
+% mdframed has already measured the body, title, padding and rule at this
+% documented pre-output hook. Reject an intrinsically impossible atomic part;
+% merely lacking room in the current column is left to the native column/page
+% builder. A series can continue on the next page, so no remaining-space
+% heuristic or automatic mathematical split is used here.
+\newcommand{\hllpdf@referencecheckheight}{%
+  \ifdim\mdf@verticalmarginwhole@length>\textheight
+    \PackageError{hebrew-english-latex-studio}%
+      {Reference block exceeds one full column}%
+      {Split the content into shorter semantic blocks. For a long solution,
+       use referenceqaseries with separate referencesolutionpart steps.}%
+  \fi}
+\newcommand{\hllpdf@referencefield}[2]{%
+  \par\noindent\textbf{#1}\enspace #2\par}
+\newcommand{\hllpdf@referencebegin}[2]{%
+  % mdframed's unconditional \needspace{0pt} injects a negative break penalty
+  % even though it reserves no space. Immediately after a native section this
+  % can strand the heading at a column's foot. Reference blocks rely on native
+  % list/column keeping instead; omit that package reservation locally, without
+  % touching the core, the global command or any output routine.
+  \ifhllpdf@referenceframespacingpatched\else
+    \patchcmd{\mdf@preenvsetting}{\needspace{\mdf@needspace@length}}{}%
+      {\hllpdf@referenceframespacingpatchedtrue}%
+      {\PackageError{hebrew-english-latex-studio}%
+        {Cannot initialize reference frame spacing}%
+        {The installed mdframed pre-environment routine is unsupported.}}%
+  \fi
+  \mdfsetup{style=hllpdfreferenceblock}%
+  \expandafter\mdfsetup\expandafter{#1}%
+  % Presentation can change local palette, font, padding and rules, while the
+  % semantic contract always keeps the individual part atomic and measured.
+  \begin{mdframed}[nobreak=true,frametitle={},%
+    beforesingleframe={\hllpdf@referencecheckheight}]%
+  % Titles are ordinary inline content on the same background as the body.
+  % The measured atomic unit includes them, without a separate title strip.
+  \if\relax\detokenize{#2}\relax\else
+    \noindent\textbf{#2}\enspace
+  \fi}
+
+\newenvironment{referencenote}[1][\iflanguage{english}{Note}{הערה}]
+  {\hllpdf@referencebegin{\referencenotestyle}{#1}}
+  {\end{mdframed}}
+\newenvironment{referencewarning}[1][\iflanguage{english}{Caution}{זהירות}]
+  {\hllpdf@referencebegin{\referencewarningstyle}{#1}}
+  {\end{mdframed}}
+\newenvironment{referenceformula}[1][]
+  {\hllpdf@referencebegin{\referenceformulastyle}{#1}}
+  {\end{mdframed}}
+\newenvironment{referenceqa}[1][]
+  {\hllpdf@referenceqaseriesfalse
+   \hllpdf@referencebegin{\referenceqastyle}{#1}}
+  {\end{mdframed}}
+
+% The series owns no outer box. Its optional topic belongs to the first
+% question's frame title, so it cannot be stranded at a column boundary. All
+% switches are local to the LaTeX environment group; nested language islands
+% retain the core policy. No page-builder Needspace is used inside columns.
+\newenvironment{referenceqaseries}[1][]
+  {\par\hllpdf@referenceqaseriestrue
+   \def\hllpdf@referenceseriestitle{#1}}
+  {\par}
+\newenvironment{referencesolutionpart}[1][\iflanguage{english}{Solution}{פתרון}]
+  {\hllpdf@referencebegin{\referenceqastyle}{#1}}
+  {\end{mdframed}}
+
+\newcommand{\referencequestion}[1]{%
+  \ifhllpdf@referenceqaseries
+    \hllpdf@referencebegin{\referenceqastyle}%
+      {\iflanguage{english}{Question}{שאלה}%
+       \ifx\hllpdf@referenceseriestitle\@empty\else
+         :\space\hllpdf@referenceseriestitle
+       \fi}#1\par\end{mdframed}%
+  \else
+    \hllpdf@referencefield{\iflanguage{english}{Question:}{שאלה:}}{#1}%
+  \fi}
+\newcommand{\referencesolution}[1]{%
+  \ifhllpdf@referenceqaseries
+    \begin{referencesolutionpart}#1\end{referencesolutionpart}%
+  \else
+    \hllpdf@referencefield{\iflanguage{english}{Solution:}{פתרון:}}{#1}%
+  \fi}
+\newcommand{\referencepurpose}[1]{%
+  \hllpdf@referencefield{\iflanguage{english}{Use:}{שימוש:}}{#1}}
+\newcommand{\referenceconditions}[1]{%
+  \hllpdf@referencefield{\iflanguage{english}{Conditions:}{תנאים:}}{#1}}
+% Thin local-size caption delegates. The core remains the sole owner of
+% counters, actual named anchors, measured-object raises, localized labels,
+% nameref metadata and optional list entries. Keep \label inside the caption
+% argument, exactly as for the core \figcap/\tabcap commands. Only \small is
+% disabled in this local group: a compact column must not enlarge
+% its caption to the article class's 9-point \small preset.
+\newcommand{\referencefigcap}[2][]{%
+  \begingroup\let\small\relax\figcap[#1]{#2}\endgroup}
+\newcommand{\referencetabcap}[2][]{%
+  \begingroup\let\small\relax\tabcap[#1]{#2}\endgroup}
+% Keep the complete local-width object AND its caption in one column. Bare
+% nonfloating diagrams/tables followed by a caption can otherwise balance into
+% different columns, making a correct measured core anchor land on the wrong
+% object. These neutral wrappers are ordinary minipages, not floats: no frame,
+% autoscaling, duplicate caption state, output routine or counter is introduced.
+% Entry capture has its own box, so a short topic can contain a referencefigure
+% or referencetable with the existing measured caption/anchor mechanism intact.
+\newsavebox{\hllpdf@referenceentrybox}
+\newif\ifhllpdf@referenceentryactive
+\providecommand{\hllpdf@referenceentrysetup}{}
+\newenvironment{referenceentry}
+  {\par\addvspace{.35\baselineskip}%
+   \ifhllpdf@referenceentryactive
+     \PackageError{hebrew-english-latex-studio}%
+       {Reference entries cannot be nested}%
+       {Close the current referenceentry before starting another.
+        Use short sibling entries, or let a long topic flow normally.}%
+   \fi
+   \hllpdf@referenceentryactivetrue
+   \begin{lrbox}{\hllpdf@referenceentrybox}%
+   \begin{minipage}[t]{\linewidth}%
+   \hllpdf@referenceentrysetup}
+  {\end{minipage}\end{lrbox}%
+   \ifdim\dimexpr\ht\hllpdf@referenceentrybox+\dp\hllpdf@referenceentrybox\relax>\textheight
+     \PackageError{hebrew-english-latex-studio}%
+       {Reference entry exceeds one full column}%
+       {Keep only a short complete topic or its opening inside referenceentry.
+        Let the remaining content flow, or author smaller semantic chunks.}%
+   \fi
+   \noindent\usebox{\hllpdf@referenceentrybox}\par}
+\newsavebox{\hllpdf@referenceobjectbox}
+\newcommand{\hllpdf@referenceobjectbegin}{%
+  \par\begin{lrbox}{\hllpdf@referenceobjectbox}%
+  \begin{minipage}{\linewidth}}
+\newcommand{\hllpdf@referenceobjectend}{%
+  \end{minipage}\end{lrbox}%
+  \ifdim\dimexpr\ht\hllpdf@referenceobjectbox+\dp\hllpdf@referenceobjectbox\relax>\textheight
+    \PackageError{hebrew-english-latex-studio}%
+      {Reference object exceeds one full column}%
+      {Use a shorter object, or put a genuinely wide object in referencewide.
+       Keep each complete object and caption together.}%
+  \fi
+  \noindent\usebox{\hllpdf@referenceobjectbox}\par}
+\newenvironment{referencefigure}
+  {\hllpdf@referenceobjectbegin}{\hllpdf@referenceobjectend}
+\newenvironment{referencetable}
+  {\hllpdf@referenceobjectbegin}{\hllpdf@referenceobjectend}
+\makeatother

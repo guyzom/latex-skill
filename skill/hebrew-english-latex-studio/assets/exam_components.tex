@@ -1,0 +1,76 @@
+% ============================================================================
+% exam_components.tex — semantic exam/document helper extension.
+% Requires assets/preamble.tex first. Independent of the selected theme.
+% OWNERSHIP: question labels, point annotations, final-answer helper and source
+% figures. It MUST NOT own page geometry, document class, theme colors or box
+% presentation.
+% ============================================================================
+% Runtime architecture guard: generated from scripts/architecture_contract.py.
+% <hllpdf:architecture-guard>
+\ifdefined\hllpdfcoreloaded\else
+  \errmessage{hllpdf: exam_components.tex requires preamble.tex first}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdfcleanvariantloaded
+  \errmessage{hllpdf: exam_components.tex conflicts with clean_variant.tex}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdfexamcomponentsloaded
+  \errmessage{hllpdf: exam_components.tex loaded more than once}
+  \expandafter\endinput
+\fi
+\def\hllpdfexamcomponentsloaded{1}
+% </hllpdf:architecture-guard>
+\usepackage{graphicx}
+% <hllpdf:exam-components-body>
+% ---- עזרי מבחן (נקודות-ההתאמה מתועדות בראש הקובץ) ----
+% v3.73: \qlabel — the ONLY safe way to label a question heading here. Under
+% secnumdepth=-2 \chapter steps NO counter (report.cls guards \refstepcounter
+% with \ifnum\c@secnumdepth>\m@ne), so a plain \label after \chapter captures
+% whatever stepped last — measured: \newlabel{ch:q2}{{1}...{fig.0.1}} = the
+% preceding FIGURE's number, and \ref printed 1 for question 2; with nothing
+% stepped, an EMPTY number. Same family as BLD-13/BIDI-50/BIDI-56, in the layer
+% those fixes never reached. \qlabel owns the label state:
+%   \chapter{שאלה 2 — נושא}\qlabel{שאלה 2}{ch:q2}   ->  \ref{ch:q2} = "שאלה 2"
+% (\nameref{ch:q2} and \hyperref[ch:q2]{...} also work without \qlabel.)
+\makeatletter
+\newcommand{\qlabel}[2]{\def\@currentlabel{#1}\phantomsection\label{#2}}
+\makeatother
+\newcommand{\pts}[1]{{\small(#1)}}                               % ניקוד: \pts{30\%}
+\newcommand{\finalans}[1]{\boxed{#1}}                            % תשובה סופית במסגרת דקה
+% איור שנחתך מהמקור: \srcfig{width-fraction}{file}{כיתוב}
+\providecommand{\srcfigdir}{figures}
+% v3.73: the caption now goes through \figcap. The old hand-written gray line
+% was byte-for-byte the BLD-13 idiom inside a shipped macro: no \refstepcounter,
+% so a \label in #3 bound to the ambient anchor — measured: \newlabel{fig:src}
+% {{}...{tbl.0.1}} (EMPTY number, hyperlink jumping to the preceding TABLE) and
+% "ראה איור  לעיל" with a hole where the number belongs. \figcap steps the real
+% fig counter: number prints, \ref works, the anchor is the figure's own.
+% v3.80 (BLD-37, the fig side this layer never got): the image is now a
+% MEASURED object. \figcap raises its anchor by \lakinfigraise+42pt, and
+% \lakinfigraise is written ONLY by \lakin@grabfig, which preamble.tex runs in
+% the tikzpic/qcirc end-hook. A bare \begin{center} never triggered it, so
+% every \srcfig hit the 0pt sentinel, \figcap fell back to the plain
+% \refstepcounter, and hyperref dropped the anchor ON the caption line —
+% clicking "איור N" scrolled the whole image off the top. Measured fleet-wide
+% before this fix: 13 of 127 fig dests sat 12.9pt (or 3.2pt, caption on the
+% next page) above their own caption, in three exam collections; the 275pt
+% datapath figure on computer-architecture-exams p.76 was fully hidden after
+% the jump. And because \lakinfigraise is deliberately NOT cleared except at
+% an island's BEGIN (a captionless island must keep its height for the next
+% \figcap), a \srcfig following a captionless tikzpic inherited that island's
+% STALE height and landed inside its own image anyway — 7 further sites, none
+% of them below the DEST-AT-CAPTION floor, i.e. invisible to R6b. Hence BOTH
+% tokens below: the clear makes the sentinel honest, the grab measures THIS
+% image. Zero reflow BY CONSTRUCTION — v3.74b's \lakin@grabfig only READS the
+% tail node's dimensions (it removes and re-inserts nothing), so no box, glue
+% or penalty is added; A/B over the four exam collections that carry this
+% layer: 0 differing glyph records and 0 differing drawing records out of
+% 579,594 + 6,447. Of their 30 fig destinations 24 moved — the 20 broken ones
+% plus 4 whose stale raise happened to land clear anyway — and the dest NAMES
+% normalize from fig.0.N to fig.N, i.e. onto the name the measured path in the
+% same documents already used (particles-nuclei-exams shipped both spellings).
+\newcommand{\srcfig}[3]{\global\lakinfigraise 0pt\relax%
+  \begin{center}\includegraphics[width=#1\linewidth]{\srcfigdir/#2}%
+    \csname lakin@grabfig\endcsname\end{center}\figcap{#3}}
+% </hllpdf:exam-components-body>

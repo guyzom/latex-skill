@@ -1,0 +1,13 @@
+% tex_errors_real.log — error-discriminator POSITIVE control (v4.1.4, +v4.2.1).
+% Five shapes a real log uses to open an error. All five MUST be counted;
+% "!  ==> Fatal error occurred" is why the rule cannot be "^! [A-Za-z]", and
+% the "! Font \TU/..." line is BLD-57: a genuine error that QUOTES a font
+% selector, which the v4.1.4 dump filter swallowed.
+This is ordinary log chatter.
+! Undefined control sequence.
+l.42 \Bias
+         :\ +0.009
+! LaTeX Error: File `nope.sty' not found.
+! Package inputenc Error: Unicode character (U+05D0).
+!  ==> Fatal error occurred, no output PDF file produced!
+! Font \TU/FrankRuhlLibre(0)/m/n/10.95=[FrankRuhlLibre-Regular.ttf]:mode=node;script=hebr;+tlig; at 10.95pt not loadable: metric data not found or bad.

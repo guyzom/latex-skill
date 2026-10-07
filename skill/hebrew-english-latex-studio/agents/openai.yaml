@@ -1,0 +1,13 @@
+interface:
+  display_name: "Hebrew English LaTeX Studio"
+  short_description: "Hebrew, English and bilingual PDFs with visual QA"
+  default_prompt: "Use $hebrew-english-latex-studio to create, repair, render and visually verify a professional Hebrew, English or bilingual LuaLaTeX document, academic paper or compact reference sheet with correct typography, direction, selective equation numbering when appropriate, columns, tables and navigation."
+  icon_small: assets/icon.svg
+  icon_large: assets/icon.svg
+policy:
+  allow_implicit_invocation: true
+  products:
+  - chatgpt
+  - codex
+  - api
+  - atlas

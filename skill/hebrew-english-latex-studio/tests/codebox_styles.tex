@@ -1,0 +1,47 @@
+% codebox_styles.tex — codebox must behave the same under ALL FOUR listing
+% styles, not just the one its first fixture happened to use. Each style
+% carries a different frame (leftline for asm, single for the rest), a
+% different background and a different xleftmargin, and codebox neutralises
+% all of them at PreInit. Measured: identical digit x and exactly two vertical
+% rules (the box's own sides) in every one.
+% One style per PAGE: probe_lstnum's --anchor selects a page, not a listing.
+\input{../assets/preamble.tex}
+\begin{document}
+\begin{codebox}
+\begin{asmblock}
+\begin{lstlisting}[style=asm]
+loop:   lw   $t0, 0($s1)      # asmProbe
+        add  $t2, $t2, $t0
+\end{lstlisting}
+\end{asmblock}
+\end{codebox}
+\clearpage
+\begin{codebox}
+\begin{asmblock}
+\begin{lstlisting}[style=cstyle]
+int cProbe(int *a, int n) {
+    return a[n];
+}
+\end{lstlisting}
+\end{asmblock}
+\end{codebox}
+\clearpage
+\begin{codebox}
+\begin{asmblock}
+\begin{lstlisting}[style=pystyle]
+def pyProbe(x):
+    return x
+\end{lstlisting}
+\end{asmblock}
+\end{codebox}
+\clearpage
+\begin{codebox}
+\begin{asmblock}
+\begin{lstlisting}[style=htmlstyle]
+<div id="htmlProbe">
+  <p>hello</p>
+</div>
+\end{lstlisting}
+\end{asmblock}
+\end{codebox}
+\end{document}

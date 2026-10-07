@@ -1,0 +1,29 @@
+\def\lakitlanguageprofile{english}
+\def\lakitmainlanguage{english}
+\def\lakitdocumentclass{article}
+\def\lakitclassoptions{11pt,a4paper}
+\def\lakitgeometryoptions{margin=2.2cm,headheight=14pt}
+\def\lakitlinespread{1.18}
+\input{preamble.tex}
+\input{document_components.tex}
+\input{deferred_notes.tex}
+\input{reader_theme.tex}
+\hypersetup{pdftitle={Annotated note},pdfauthor={}}
+\DeclareDocNote[english]{scope}{Clarify the relevant assumption or identify the actual source here.}
+\begin{document}
+% Replace sample content, title, and metadata before delivery.
+{\LARGE\sffamily\bfseries Annotated note}\par\medskip
+The opening paragraph introduces the main idea and the scope of the discussion.
+An ordinary footnote can add supporting detail\footnote{This is a sample note;
+replace it with information relevant to the document.}.
+\section{Claim and assumptions}
+Explain the assumption needed for the discussion.
+\begin{notebox}[frametitle={An assumption to clarify}]
+State the assumption here\DocNoteMark{scope}. Its note body is kept outside the box.
+\end{notebox}
+\PrintDocNotes
+\section{Implication}
+The same clarification can be cited again\DocNoteMark{scope} without allocating
+another note. Ordinary numbering continues after it\footnote{A second ordinary
+sample note, following the deferred note.}.
+\end{document}

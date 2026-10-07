@@ -1,0 +1,21 @@
+% Regression: explicit hyphens in narrow table cells must not create the
+% discretionary that crashes babel bidi=basic. The table hook is observable in
+% the log; no callback exception may be swallowed into unreordered output.
+\input{../assets/preamble.tex}
+\begin{document}
+\directlua{
+  local d = node.new('disc', 2)
+  local h = Babel.bidi(d, false, 'TLT')
+  texio.write_nl('term and log', 'BIDI-NIL-DISC-PROBE=OK')
+  node.flush_list(h)
+}
+\begin{tablebox}\centering\small
+\begin{tabular}{@{}p{3.2cm}p{7.2cm}@{}}
+\typeout{TABULAR-EXHYPHENPENALTY=\the\exhyphenpenalty}%
+\en{state-of-the-art} & תיאור עברי בתא צר עם מונח לטיני מפורש.\\
+\en{write-through} & שורה נוספת שמפעילה שבירת פסקה מלאה בתוך התא.\\
+\en{two-way set-associative} & תיאור ארוך דיו כדי לבדוק את מסלול השבירה.\\
+\end{tabular}
+\tabcap{טבלת רגרסיה למקפים מפורשים.}
+\end{tablebox}
+\end{document}

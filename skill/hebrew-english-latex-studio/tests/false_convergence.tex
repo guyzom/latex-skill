@@ -1,0 +1,18 @@
+\documentclass[a4paper]{article}
+\newcount\buildstate
+\makeatletter
+\AtEndDocument{%
+  \begingroup
+  \count@=\buildstate
+  \advance\count@ by 1
+  \immediate\write\@auxout{\global\buildstate=\the\count@}%
+  \endgroup
+}
+\makeatother
+\begin{document}
+\ifnum\buildstate<2
+Stable output.
+\else
+Changed only on the third pass.
+\fi
+\end{document}

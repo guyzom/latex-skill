@@ -1,0 +1,30 @@
+% tex_errors_ctx_contour_lua.log.txt — BLD-69/BLD-70 context POSITIVE control (v4.26.0).
+% Real pass-1 log tail: pgfplots contour lua under the gate. require() cannot find
+% the module pgfplots wrote to -output-directory; the error is raised inside a
+% pgfplots macro, so TeX context lines sit between the traceback and l.6.
+\openout3 = doc_contourtmp0.dat
+
+\openout3 = doc_contourtmp0.lua
+[\directlua]:1: module 'doc_contourtmp0' not found:
+	no field package.preload['doc_contourtmp0']
+	[kpse lua searcher] file not found: 'doc_contourtmp0'
+stack traceback:
+	[C]: in function 'require'
+	[\directlua]:1: in main chunk.
+\pgfplotsplothandlersurveyend ...ur external/cmd}}
+                                                  \else \pgfplots@error {Cal...
+l.6 ...s={1,2}}, domain=-2:2, samples=21] {x^2+y^2};
+                                                  
+
+Here is how much of LuaTeX's memory you used:
+ 42932 strings out of 476553
+ 125167,1977958 words of node,token memory allocated
+ 935 words of node memory still in use:
+   7 hlist, 1 vlist, 2 rule, 1 local_par, 3 dir, 5 glue, 4 kern, 6 glyph, 42 att
+ribute, 99 glue_spec, 18 attribute_list, 3 temp, 3 if_stack, 2 write, 5 pdf_lite
+ral, 1 pdf_dest, 1 pdf_colorstack nodes
+   avail lists: 1:1,2:21,3:1,4:1,8:1,9:2,10:1
+ 63820 multiletter control sequences out of 65536+600000
+ 51 fonts using 7138431 bytes
+ 107i,3n,131p,1970b,1534s stack positions out of 10000i,1000n,20000p,200000b,200000s
+!  ==> Fatal error occurred, no output PDF file produced!

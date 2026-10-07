@@ -1,0 +1,34 @@
+\def\lakitlanguageprofile{english}
+\def\lakitmainlanguage{english}
+\def\lakitdocumentclass{article}
+\def\lakitclassoptions{11pt,a4paper}
+\def\lakitgeometryoptions{margin=2.2cm,headheight=14pt}
+\def\lakitlinespread{1.18}
+\input{preamble.tex}
+\input{document_components.tex}
+\input{reader_theme.tex}
+\hypersetup{pdftitle={Formula sheet},pdfauthor={}}
+\begin{document}
+% Replace sample content, title, and metadata before delivery.
+{\LARGE\sffamily\bfseries Formula sheet}\par\medskip
+Keep each formula together with its symbols and conditions of use.
+\section{Arithmetic progression}
+\[
+S_n=\frac{n}{2}(a_1+a_n),\qquad a_n=a_1+(n-1)d.
+\]
+Here $n$ is the number of terms, $a_1$ the first term, and $d$ the common difference.
+\section{Finite geometric progression}
+\[
+S_n=a_1\frac{1-q^n}{1-q},\qquad q\neq1.
+\]
+For $q=1$, use $S_n=n a_1$.
+\section{Chain rule}
+\[
+\frac{d}{dx}f(g(x))=f'(g(x))\,g'(x).
+\]
+The functions must be differentiable at the relevant points.
+\begin{notebox}[frametitle={Before sharing}]
+Verify every formula against the intended source, define every symbol, and retain
+conditions of use. Do not shrink the font simply to fill one page.
+\end{notebox}
+\end{document}

@@ -1,0 +1,100 @@
+% example_math.tex — minimal smoke-test document.
+% It \input{}s the SAME preamble you will actually use (assets/preamble.tex),
+% so compiling this verifies the real environment — not a reduced copy.
+% Exercises every edge that hides bugs: named operators + Latin-in-math (the
+% [no-math] bug), a lone Latin word inside Hebrew (the fallback), braket macros
+% vs. quantikz, a hyperref bookmark with math (\texorpdfstring), a colored box,
+% and a SWAP circuit in the LTR island.
+%
+% Build:  bash scripts/build.sh example_math.tex (run from a dir holding preamble.tex)
+\input{preamble.tex}
+\lakithead{דוגמאות עברית ומתמטיקה}
+\renewcommand{\thesection}{\arabic{section}}  % report class, but this demo has no \chapter
+
+\begin{document}
+
+\begin{center}\Large\textbf{מסמך לדוגמה — עברית עם מתמטיקה}\end{center}
+\foreignlanguage{english}{N. D. Mermin, \mbox{“Quantum Computer Science”} (2007)}
+
+% Keep the COMPLETE symbolic expression in one math island, including its minus.
+% מתמטיקה בכותרת: הארגומנט השני (לבוקמרק) חייב להיות נקי מ-^ _ $ פעילים
+\section{אומדן פאזה ל-\texorpdfstring{$n$}{n} סיביות ושער
+  \texorpdfstring{$c^n-Z$}{c\textasciicircum n-Z}}
+
+\noindent
+נתון אוסצילטור עם $H_0 = \hbar\omega(a^\dagger a + \tfrac12)$, ומצב qubit כללי.
+אופרטורים: $\sin\theta$, $\cos\theta$, $\Tr(\dyad{\psi})=1$ — אם יוצאים tofu, חסר \code{[no-math]}.
+
+\[ i\hbar\frac{\partial}{\partial t}\ket{\psi} = H\ket{\psi},\qquad
+   \sigma_y = \begin{pmatrix} 0 & -i \\ i & 0 \end{pmatrix}. \]
+
+\begin{defbox}[frametitle={הגדרה — שער הדמרד}]
+$H=\tfrac1{\sqrt2}(X+Z)$, ומקיים $HXH=Z$. לטינית במתמטיקה: $\det(H)=-1$.
+\end{defbox}
+
+\noindent אופרטור הזהות נכתב $\id$, ומצב מעורב כללי הוא
+$\rho=\half(\id+\vec a\cdot\vec\sigma)$ — אם במקום $\id$ מופיע סימן turnstile, מישהו
+שבר את ה-macro \code{\textbackslash id} ב-preamble.
+
+% v3.35 \punit — physical units: number AND unit in ONE math island. Never
+% siunitx (\SI scrambles under RTL: "eV 3.5"), never a bare-prose number next
+% to a unit island ("5 mm" reorders to "mm5" — adjacent-LTR-runs class).
+\noindent\textbf{יחידות פיזיקליות} עם \code{\textbackslash punit}: פער האנרגיה $E_g = 1.12\punit{eV}$
+בטמפרטורה $300\punit{K}$, מהירות רוויה $v_{sat} \approx 10^{7}\punit{cm/s}$,
+ותת־סף של $80\punit{mV/decade}$ — המספר והיחידה באי־מתמטיקה אחד.
+
+\noindent\textbf{מעגל (זוג בל) עם SWAP:}
+\begin{qcirc}
+\begin{quantikz}
+\lstick{$\ket0$} & \gate{H} & \ctrl{1} & \swap{1} & \meter{} \\
+\lstick{$\ket0$} & \qw      & \targ{}  & \targX{} & \qw
+\end{quantikz}
+\end{qcirc}
+
+\begin{itemize}
+\item[(\textbf{א})] סעיף ראשון, עם $\langle x\rangle=0$.
+\item[(\textbf{ב})] סעיף שני: the energy is $E_n=\hbar\omega(n+\tfrac12)$.
+\end{itemize}
+
+% v3.8 — text INSIDE math: Hebrew label under a brace, a Latin name (never bare
+% \en), Latin-WITH-parens (\en forces LTR so the parens do not mirror), and a
+% function on a Hebrew argument (parens at math level). If a paren here mirrors
+% ("(TNR(") or a label tofus, the v3.8 math-text rule regressed.
+\noindent\textbf{\h{טקסט בתוך מתמטיקה (גרסה 3.8):}}
+\[ X \sim \text{\en{Normal}}(\mu,\sigma^2), \qquad
+   \underbrace{mc^2}_{\text{\h{אנרגיית מנוחה}}} \]
+\[ \text{\en{Specificity (TNR)}} = \frac{\text{TN}}{\text{TN}+\text{FP}}, \qquad
+   \text{\en{Entropy}}(\text{\h{קבוצה}}) \]
+
+% v3.24/v3.25 — the display-code line and solutions-style numbering, exercised
+% here so the harness locks them: (a) \codeline renders centered/LTR with
+% display rhythm; (b) under showonlyrefs a REFERENCED align row keeps its tag
+% with CORRECT paren order — if it renders ")N.N(" the \maketag@@@ LTR patch
+% regressed (BIDI-18); an unreferenced equation shows no tag; the flag toggles
+% back off cleanly mid-document.
+\noindent\textbf{\h{שורת קוד תצוגתית ומספור־למאוזכרות:}}
+המשפט מציג אטום \code{\$s0} בשורה, ואז ביטוי מלא:
+\codeline{lw \$t1, -4(\$t0)}
+\mathtoolsset{showonlyrefs=true}
+\begin{align}
+E &= mc^2. \label{eq:exm:sor}
+\end{align}
+\begin{equation} p = q. \end{equation}
+לפי \eqref{eq:exm:sor} — התג מוצג והסוגריים בכיוון נכון.
+\mathtoolsset{showonlyrefs=false}
+
+% v3.45.0 — inline math is ATOMIC (\binoppenalty=\relpenalty=10000): it never
+% breaks across a line, so a torn RTL island ("P(y |" one line, "x_0)" the next)
+% is impossible. A short inline island (mu=E[X]) stays inline; a wide RESULT goes
+% in a DISPLAY, never inline — a wide inline island cannot break, so forced inline
+% it would either overflow the margin or jump whole and leave a loose line.
+% This is a DOCTRINE-ADHERENCE exemplar, not a regression test: atomicity has no
+% checker ("the preamble is the guarantee"). It shows the two correct forms — a
+% short inline reference and a wide result as a display — both rendering clean.
+\noindent\textbf{\h{מתמטיקה־inline אטומית — תוצאה רחבה יורדת ל-display:}}
+התוחלת $\mu=\mathbb{E}[X]$ קצרה ונשארת inline; תוצאה רחבה יורדת לשורה משלה:
+\begin{equation}
+E(\vec r,t)=K_1\,E(\vec r_1,t_1)+K_2\,E(\vec r_2,t_2).
+\end{equation}
+
+\end{document}

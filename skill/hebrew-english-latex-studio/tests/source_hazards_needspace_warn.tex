@@ -1,0 +1,8 @@
+% Static fixture: the heading macro expands to Needspace inside multicols.
+\newcommand{\fssec}[1]{\par\Needspace{5\baselineskip}\textbf{#1}}
+\begin{multicols}{2}
+\fssec{כותרת}
+\[
+a\qquad b
+\]
+\end{multicols}

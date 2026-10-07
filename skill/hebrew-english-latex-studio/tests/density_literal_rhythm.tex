@@ -1,0 +1,29 @@
+% Static, intentionally non-compilable rhythm probe for article/section mode.
+% The commented opener must not arm literal mode:
+% \begin{lstlisting}
+\section{קוד שמפריד רצף פרוזה}
+פסקת מבוא ראשונה.
+
+פסקת מבוא שנייה.
+
+\begin{asmblock}
+\begin{lstlisting}
+def probe(value):
+
+    # Blank lines and 100% are literal code, not prose paragraphs.
+    return value
+\end{lstlisting}
+\end{asmblock}
+
+פסקת סיכום ראשונה.
+
+פסקת סיכום שנייה.
+
+\section{רצף פרוזה אמיתי}
+פסקה ראשונה.
+
+פסקה שנייה.
+
+פסקה שלישית.
+
+פסקה רביעית.

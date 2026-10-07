@@ -1,0 +1,26 @@
+% tex_errors_ctx_lua_callback.log.txt — context POSITIVE control (v4.26.0).
+% Real log tail: error() inside a pre_linebreak_filter callback. LuaTeX reports
+% it as a node-filter warning line with the chunk name mid-line and no traceback.
+
+\openout4 = s17_callback.out
+Inserting `boomcb' in `pre_linebreak_filter'.
+warning  (node filter): error: [\directlua]:1: cb boom
+
+.
+<argument> ...ype:D \tex_hskip:D \c_zero_dim \fi: \tex_par:D 
+                                                  \hook_use:n {para/after}\@...
+l.5 x\par
+       
+
+Here is how much of LuaTeX's memory you used:
+ 42668 strings out of 476553
+ 125167,1977958 words of node,token memory allocated
+ 852 words of node memory still in use:
+   7 hlist, 1 vlist, 2 rule, 1 local_par, 1 dir, 5 glue, 4 kern, 1 penalty, 7 gl
+yph, 24 attribute, 97 glue_spec, 12 attribute_list, 1 temp, 2 write, 1 pdf_dest,
+ 1 pdf_colorstack nodes
+   avail lists: 1:1,2:8,3:1,4:1,5:3,8:1,9:2,10:1
+ 63560 multiletter control sequences out of 65536+600000
+ 51 fonts using 7138431 bytes
+ 107i,3n,131p,1979b,271s stack positions out of 10000i,1000n,20000p,200000b,200000s
+!  ==> Fatal error occurred, no output PDF file produced!

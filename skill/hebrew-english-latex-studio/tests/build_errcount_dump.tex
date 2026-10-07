@@ -1,0 +1,21 @@
+% build_errcount_dump.tex — error-count discriminator NEGATIVE control (v4.1.4).
+% A deliberately overfull \to chain, written FLAT: no \bigl...\bigr, because a
+% delimiter pair nests the material in a box that the dump elides as "[]"
+% instead of spelling out, and it is the spelled-out form that carries the
+% defect. TeX dumps the offending material with the fonts inline and hard-wraps
+% it at ~79 chars; \to is cmsy slot 33, which the dump prints as "!", so a wrap
+% landing before one starts the line with "!".
+%
+% That shape must NOT be counted as a LaTeX error. This build still FAILS — the
+% overfull box is a real finding — so the assertion is not the exit code but
+% that the run never prints "✗ LaTeX error(s)" while its own log does carry a
+% "^!" line. See tests/tex_errors_real.log.txt for the positive canned-log twin.
+\input{../assets/preamble.tex}
+\begin{document}
+שרשרת רחבה בכוונה, כדי לייצר דוח \en{overfull} שנשבר לפני חץ:
+\[
+\mathrm{B}:\ +0.009\to-0.002\to-0.016,\qquad
+\frac{k-2}{k-1}:\ 0.750\to0.889\to0.947,\qquad
+k:\ 5\to10\to20\to40\to80 .
+\]
+\end{document}

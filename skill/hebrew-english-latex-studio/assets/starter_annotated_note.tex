@@ -1,0 +1,24 @@
+\def\lakitdocumentclass{article}
+\def\lakitclassoptions{11pt,a4paper}
+\def\lakitgeometryoptions{margin=2.2cm,headheight=14pt}
+\def\lakitlinespread{1.18}
+\input{preamble.tex}
+\input{document_components.tex}
+\input{deferred_notes.tex}
+\input{reader_theme.tex}
+\hypersetup{pdftitle={סיכום עם הערות},pdfauthor={}}
+\DeclareDocNote{scope}{כאן יופיע פירוט קצר של ההנחה או של מקור המידע.}
+\begin{document}
+{\LARGE\sffamily\bfseries סיכום עם הערות}\par\medskip
+% Replace this example with verified content; do not treat it as a factual report.
+פסקת הפתיחה מציגה את הרעיון המרכזי ואת תחום הדיון. אפשר להוסיף לה הערה רגילה\footnote{זו הערת דוגמה; יש להחליף אותה בתוכן המתאים למסמך.}.
+\section{הטענה וההנחות}
+הסבר קצר מוביל אל ההנחה שנחוצה להמשך.
+\begin{notebox}[frametitle={הנחה שדורשת הבהרה}]
+כאן תופיע ההנחה עצמה\DocNoteMark{scope}. גוף ההערה נשמר מחוץ לקופסה.
+\end{notebox}
+\PrintDocNotes
+\section{המשמעות}
+אפשר להפנות שוב לאותה הבהרה\DocNoteMark{scope}, בלי ליצור הערה נוספת.
+המספור הרגיל ממשיך מן המספר הבא\footnote{הערת דוגמה נוספת, אחרי ההערה שבקופסה.}.
+\end{document}

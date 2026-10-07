@@ -1,0 +1,437 @@
+#!/usr/bin/env python3
+"""Real-engine language profiles: base locale, native fonts, labels and RTL/LTR.
+
+HLLPDF_LANGUAGE_EVIDENCE_DIR preserves the measured sources, logs and PDFs in a
+new directory. Otherwise the controls run in a temporary directory. These are
+synthetic fixtures; their PDF text checks do not replace visual review.
+"""
+from __future__ import annotations
+import os
+from pathlib import Path
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+import unittest
+sys.dont_write_bytecode = True
+import fitz
+from font_paths import font_dir
+
+ROOT = Path(__file__).resolve().parent.parent
+ASSETS = ('preamble.tex', 'reader_theme.tex', 'clean_theme.tex', 'flow_tables.tex',
+          'deferred_notes.tex', 'document_components.tex')
+HEADER = r'''\def\lakitdocumentclass{article}
+\def\lakitclassoptions{11pt,a4paper}
+\def\lakitgeometryoptions{margin=2.2cm,headheight=14pt}
+\def\lakitlinespread{1.12}
+\input{preamble.tex}
+\input{reader_theme.tex}
+\input{flow_tables.tex}
+\input{deferred_notes.tex}
+\input{document_components.tex}
+\lakithead{\en{Language Audit}}
+\hypersetup{pdftitle={Language profile controls},pdfauthor={Synthetic QA}}
+'''
+ENGLISH = r'''\section{Native English heading}\label{sec:english}
+\noindent Native English body with \emph{ItalicMarker} and ``quotation''.
+\typeout{HLLCHECK-EN|\languagename|\the\exhyphenpenalty}
+\begin{proof}An English proof with $1+1=2$.\end{proof}
+\begin{enumerate}\item ListAlpha.\item ListBeta.\end{enumerate}
+\begin{equation}\label{eq:main}E=mc^2\end{equation}
+\noindent REFSTART \eqref{eq:main} REFEND. See \autoref{sec:english}.
+\figcap[English figure]{\label{fig:en}English figure caption.}
+\tabcap[English table]{\label{tab:en}English table caption.}
+\begin{notebox}[frametitle={English callout}]Reader callout in English.\end{notebox}
+\DeclareDocNote{en}{English note body.}
+A deferred note\DocNoteMark{en}.\PrintDocNotes
+\sourcelink{https://example.org}{SourceLabel}{Source context.}
+'''
+HEBREW = r'''\section{כותרת בעברית}\label{sec:hebrew}
+\noindent פסקה בעברית עם \en{English (term)} ועם נוסחה $x=2$.
+\typeout{HLLCHECK-HE|\languagename|\the\exhyphenpenalty}
+\begin{proof}זוהי הוכחה בעברית.\end{proof}
+\begin{enumerate}\item סעיף ראשון.\item סעיף שני.\end{enumerate}
+\figcap{כיתוב איור בעברית.}
+\tabcap{כיתוב טבלה בעברית.}
+\begin{notebox}[frametitle={הערה בעברית}]תוכן קצר בעברית.\end{notebox}
+\DeclareDocNote{he}{הערה בעברית עם \en{HEBREWNOTE}.}
+הערה\DocNoteMark{he}.\PrintDocNotes
+'''
+
+
+def profile_header(profile, main):
+    profile_line = '' if profile == 'default' else fr'\def\lakitlanguageprofile{{{profile}}}'+'\n'
+    base_line = fr'\def\lakitmainlanguage{{{main}}}'+'\n' if profile == 'bilingual' else ''
+    return profile_line + base_line + HEADER
+
+
+def body(main):
+    native, other = (ENGLISH, HEBREW) if main == 'english' else (HEBREW, ENGLISH)
+    env = 'hebrewprose' if main == 'english' else 'englishprose'
+    return (r'\begin{document}'+'\n'+
+            r'\typeout{HLLCHECK-BASE|\languagename|\the\exhyphenpenalty}'+'\n'+
+            r'\tableofcontents'+'\n'+native+r'\clearpage'+'\n'+
+            fr'\begin{{{env}}}'+'\n'+other+fr'\end{{{env}}}'+'\n'+
+            r'\typeout{HLLCHECK-RETURN|\languagename|\the\exhyphenpenalty}'+'\n'+
+            r'\clearpage\noindent\doclang{\en{HeaderCheck}}\end{document}')
+
+
+class LanguageRuntime(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        keep = os.environ.get('HLLPDF_LANGUAGE_EVIDENCE_DIR')
+        cls.tmp = None if keep else tempfile.TemporaryDirectory(prefix='hllpdf-language-')
+        cls.root = Path(keep) if keep else Path(cls.tmp.name)
+        if keep: cls.root.mkdir(parents=True, exist_ok=False)
+        fonts = str(font_dir())
+        cls.env = os.environ.copy()
+        cls.env.pop('HEBREW_LATEX_PROJECT_ROOT', None)
+        cls.env.update(OSFONTDIR=fonts, TTFONTS=fonts+'//:', HEBREW_LATEX_FONT_DIR=fonts,
+                       SOURCE_DATE_EPOCH='1700000000', TZ='UTC', PYTHONDONTWRITEBYTECODE='1')
+        cls.profiles = [('default','hebrew'), ('hebrew','hebrew'), ('english','english'),
+                        ('hebrew-with-english','hebrew'), ('english-with-hebrew','english'),
+                        ('bilingual','hebrew'), ('bilingual','english')]
+        cls.results = {}
+        for profile, main in cls.profiles:
+            cls.results[profile,main] = cls.compile(profile_header(profile,main)+body(main),
+                                                    profile+'-'+main, passes=3)
+
+    @classmethod
+    def tearDownClass(cls):
+        if cls.tmp: cls.tmp.cleanup()
+
+    @classmethod
+    def compile(cls, source, name, passes=1, mutate=None, mutate_flow=None,
+                local_sources=None):
+        directory = cls.root/name
+        directory.mkdir()
+        for name in ASSETS: shutil.copyfile(ROOT/'assets'/name, directory/name)
+        if mutate:
+            p = directory/'preamble.tex'; old=p.read_text(); new=mutate(old)
+            if old == new: raise AssertionError('mutation did not alter preamble')
+            p.write_text(new)
+        if mutate_flow:
+            p = directory/'flow_tables.tex'; old=p.read_text(); new=mutate_flow(old)
+            if old == new: raise AssertionError('mutation did not alter flow_tables')
+            p.write_text(new)
+        (directory/'main.tex').write_text(source, encoding='utf-8')
+        for local_name, local_source in (local_sources or {}).items():
+            path = directory / local_name
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(local_source, encoding='utf-8')
+        for n in range(passes):
+            result = subprocess.run(['lualatex','--no-shell-escape','-halt-on-error',
+                                     '-interaction=nonstopmode','main.tex'], cwd=directory,
+                                    env=cls.env, text=True, capture_output=True, timeout=180)
+            (directory/f'pass-{n+1}.txt').write_text(result.stdout+result.stderr)
+            if result.returncode: break
+        return result, directory
+
+    def test_every_profile_has_real_base_locale_and_restores_it(self):
+        for (profile,main),(result,directory) in self.results.items():
+            with self.subTest(profile=profile,main=main):
+                self.assertEqual(result.returncode,0,result.stdout[-5000:])
+                penalty = 50 if main == 'english' else 10000
+                self.assertIn(f'HLLCHECK-BASE|{main}|{penalty}',result.stdout)
+                self.assertIn(f'HLLCHECK-RETURN|{main}|{penalty}',result.stdout)
+                self.assertIn('HLLCHECK-EN|english|50',result.stdout)
+                self.assertIn('HLLCHECK-HE|hebrew|10000',result.stdout)
+                self.assertNotIn('Missing character:',result.stdout)
+                with fitz.open(directory/'main.pdf') as doc:
+                    self.assertEqual(doc.xref_get_key(doc.pdf_catalog(),'Lang'),
+                                     ('string','en' if main == 'english' else 'he'))
+                    all_text='\n'.join(page.get_text() for page in doc)
+                    for token in ('Contents' if main=='english' else 'תוכן',
+                                  'Figure','Table','Proof','ListAlpha','ListBeta',
+                                  'English note body','HEBREWNOTE','Source:'):
+                        self.assertIn(token,all_text)
+                    self.assertNotIn('??',all_text)
+                    self.assertIn('Native English heading',[x[1] for x in doc.get_toc()])
+
+    def test_english_font_and_real_italic_for_explicit_modern_profiles(self):
+        for (profile,main),(result,directory) in self.results.items():
+            if profile in {'default','hebrew'}: continue
+            with self.subTest(profile=profile,main=main):
+                self.assertEqual(result.returncode,0,result.stdout[-4000:])
+                with fitz.open(directory/'main.pdf') as doc:
+                    spans=[s for p in doc for b in p.get_text('dict')['blocks']
+                           for l in b.get('lines',[]) for s in l['spans']]
+                    italic=[s for s in spans if 'ItalicMarker' in s['text']]
+                    self.assertTrue(italic)
+                    self.assertTrue(all('LMRoman' in s['font'] and 'Italic' in s['font']
+                                        for s in italic),italic)
+                    english=[s for s in spans if 'Native English body' in s['text']]
+                    self.assertTrue(english)
+                    self.assertTrue(all('LMRoman' in s['font'] for s in english),english)
+                    self.assertTrue(any('FrankRuhlLibre' in s['font'] and
+                                        re.search('[\u0590-\u05ff]',s['text']) for s in spans))
+
+    def test_default_hebrew_preserves_profile_compatibility(self):
+        a=self.results['default','hebrew'][1]/'main.pdf'
+        b=self.results['hebrew','hebrew'][1]/'main.pdf'
+        self.assertTrue(a.exists() and b.exists())
+        self.assertEqual(a.read_bytes(),b.read_bytes())
+
+    def test_supported_babel_forms_have_real_locale_and_restore_caller(self):
+        forms = [r'\foreignlanguage[]{LANG}{BODY}',
+                 r'\foreignlanguage[date]{LANG}{BODY}',
+                 r'\foreignlanguage*{LANG}{BODY}',
+                 r'\begin{otherlanguage*}[]{LANG}BODY\par\end{otherlanguage*}',
+                 r'\begin{otherlanguage*}[date]{LANG}BODY\par\end{otherlanguage*}']
+        for main, secondary in [('english', 'hebrew'), ('hebrew', 'english')]:
+            blocks = []
+            for number, form in enumerate(forms):
+                prose = ('English range 2020–2023.' if secondary == 'english'
+                         else 'פסקה בעברית עם טווח ' + r'\en{2020–2023}.')
+                inside = fr'\typeout{{HLLBABEL-INNER-{number}|\languagename}}' + prose
+                blocks.append(form.replace('LANG', secondary).replace('BODY', inside)
+                              + fr'\typeout{{HLLBABEL-RETURN-{number}|\languagename}}\par')
+            source = (profile_header(main+'-with-'+secondary, main)
+                      + r'\begin{document}' + '\n'.join(blocks) + r'\end{document}')
+            result, directory = self.compile(source, 'babel-forms-'+main)
+            self.assertEqual(result.returncode, 0, result.stdout[-5000:])
+            self.assertNotIn('Missing character:', result.stdout)
+            for number in range(len(forms)):
+                self.assertIn(f'HLLBABEL-INNER-{number}|{secondary}', result.stdout)
+                self.assertIn(f'HLLBABEL-RETURN-{number}|{main}', result.stdout)
+            from language_context import LanguageContext
+            context = LanguageContext(source)
+            for number in range(len(forms)):
+                marker = 'HLLBABEL-INNER-'+str(number)
+                self.assertEqual(context.is_english(*context.line_column(context.text.index(marker))),
+                                 secondary == 'english')
+
+    def test_literal_include_and_child_groups_restore_real_caller_locale(self):
+        for main, secondary in [('english', 'hebrew'), ('hebrew', 'english')]:
+            environment = secondary+'prose'
+            child = (r'\typeout{HLLINCLUDE-ENTRY|\languagename}' + '\n'
+                     + fr'\begingroup\selectlanguage{{{main}}}'
+                     + r'\typeout{HLLINCLUDE-INNER|\languagename}Grouped text.\endgroup'
+                     + '\n' + r'\input{leaf}'
+                     + r'\typeout{HLLINCLUDE-CHILD-RETURN|\languagename}')
+            source = (profile_header(main+'-with-'+secondary, main)
+                      + r'\begin{document}' + fr'\begin{{{environment}}}\input{{child}}'
+                      + r'\typeout{HLLINCLUDE-CALLER-RETURN|\languagename}'
+                      + fr'\end{{{environment}}}'
+                      + r'\typeout{HLLINCLUDE-BASE-RETURN|\languagename}\end{document}')
+            result, directory = self.compile(source, 'literal-include-'+main,
+                local_sources={'child.tex': child,
+                               'leaf.tex': r'\typeout{HLLINCLUDE-LEAF|\languagename}Leaf text.'})
+            self.assertEqual(result.returncode, 0, result.stdout[-5000:])
+            self.assertNotIn('Missing character:', result.stdout)
+            for marker in ('ENTRY', 'LEAF', 'CHILD-RETURN', 'CALLER-RETURN'):
+                self.assertIn(f'HLLINCLUDE-{marker}|{secondary}', result.stdout)
+            for marker in ('INNER', 'BASE-RETURN'):
+                self.assertIn(f'HLLINCLUDE-{marker}|{main}', result.stdout)
+            import check_bidi_figures as bidi
+            contexts, findings = bidi.document_language_contexts(directory/'main.tex')
+            self.assertFalse(findings)
+            for filename in ('child.tex', 'leaf.tex'):
+                context = contexts[directory/filename][0]
+                self.assertEqual(context.entry_language, secondary)
+                self.assertEqual(context.exit_language, secondary)
+                self.assertEqual(context.config.main, main)
+
+    def test_flowtable_supports_both_reading_orders_and_repeat_labels(self):
+        for main,table_language in [('english','english'),('hebrew','hebrew'),
+                                    ('english','hebrew'),('hebrew','english')]:
+            with self.subTest(main=main, table_language=table_language):
+                rows='\n'.join(fr'ROW{i} & \h{{שורה}} & {i}\\' for i in range(1,70))
+                switch = table_language+'prose' if main != table_language else None
+                before = fr'\begin{{{switch}}}' if switch else ''
+                after = fr'\end{{{switch}}}' if switch else ''
+                source=(profile_header(main,main)+r'\begin{document}'+before+'\n'+
+                        r'\begin{flowtable}{3}{E{.35\flowtablewidth}H{.35\flowtablewidth}N{.3\flowtablewidth}}{\en{Flow caption}}{tab:flow}{FLOWFIRST & \h{תיאור} & FLOWLAST}'+'\n'+rows+'\n'+
+                        r'\end{flowtable}'+after+r'\end{document}')
+                result,directory=self.compile(source,'flow-'+main+'-'+table_language,passes=3)
+                self.assertEqual(result.returncode,0,result.stdout[-5000:])
+                self.assertNotIn('Missing character:',result.stdout)
+                with fitz.open(directory/'main.pdf') as doc:
+                    self.assertGreaterEqual(len(doc),2)
+                    for page in doc:
+                        first=page.search_for('FLOWFIRST');last=page.search_for('FLOWLAST')
+                        self.assertTrue(first and last)
+                        if table_language=='english': self.assertLess(first[0].x0,last[0].x0)
+                        else: self.assertGreater(first[0].x0,last[0].x0)
+                    text='\n'.join(p.get_text() for p in doc)
+                    if table_language=='english':
+                        self.assertIn('continued',text)
+                        self.assertIn('Continued on next page',text)
+                    for i in range(1,70): self.assertEqual(len(re.findall(rf'(?<![A-Z0-9])ROW{i}(?![0-9])',text)),1)
+                if main != table_language:
+                    result,broken=self.compile(source,'flow-mutant-'+main,passes=2,
+                        mutate_flow=lambda t:t.replace(
+                            r'\pretocmd{\LT@output}{\bodydir\pagedir}',
+                            r'\pretocmd{\LT@output}{}'))
+                    self.assertEqual(result.returncode,0,result.stdout[-5000:])
+                    with fitz.open(broken/'main.pdf') as doc:
+                        self.assertFalse(doc[0].search_for('FLOWFIRST') and
+                                         doc[0].search_for('FLOWLAST'))
+
+
+    def test_flowtable_destinations_include_the_reset_parent(self):
+        table=r"""\begin{flowtable}{2}{E{.6\flowtablewidth}N{.4\flowtablewidth}}
+{\en{Records}}{KEY}{Name & Count}
+value & 12\\
+\end{flowtable}
+"""
+        source=(profile_header('bilingual','hebrew')+r'\begin{document}'+'\n'+
+                r'\section{נתונים בעברית}'+'\n'+table.replace('KEY','table:first')+
+                r'\begin{englishprose}\section{English data}'+'\n'+
+                table.replace('KEY','table:second')+
+                r'\end{englishprose}\end{document}')
+        result,directory=self.compile(source,'flow-destinations',passes=3)
+        self.assertEqual(result.returncode,0,result.stdout[-5000:])
+        self.assertNotIn('ignoring duplicate destination',result.stdout)
+        with fitz.open(directory/'main.pdf') as doc:
+            names=doc.resolve_names()
+            self.assertIn('table.1.1',names)
+            self.assertIn('table.2.1',names)
+        result,directory=self.compile(source,'flow-destinations-mutant',passes=2,
+            mutate_flow=lambda t:t.replace(r'\let\theHtable\theHtbl',
+                r'\def\theHtable{\arabic{tbl}}'))
+        self.assertEqual(result.returncode,0,result.stdout[-5000:])
+        self.assertIn('ignoring duplicate destination',result.stdout)
+
+    def test_report_has_native_english_chapter_and_appendix_labels(self):
+        source=(profile_header('english','english').replace(
+                r'\def\lakitdocumentclass{article}',r'\def\lakitdocumentclass{report}')+
+                r"""\begin{document}\tableofcontents
+\chapter{Chapter heading}\label{ch:en}
+English report body. \begin{proof}English proof.\end{proof}
+\appendix\chapter{Appendix heading}\label{app:en}
+See \autoref{ch:en} and \autoref{app:en}.
+\end{document}""")
+        result,directory=self.compile(source,'english-report',passes=3)
+        self.assertEqual(result.returncode,0,result.stdout[-5000:])
+        with fitz.open(directory/'main.pdf') as doc:
+            text='\n'.join(p.get_text() for p in doc)
+            for value in ['Chapter 1','Appendix A','English report body','Proof.']:
+                self.assertIn(value,text)
+            self.assertNotIn('??',text)
+            self.assertNotRegex(text,'[\u0590-\u05ff]')
+
+    def test_list_geometry_follows_the_paragraph_language(self):
+        # Text extraction alone passed the old broken list: its label was in the
+        # page margin and the body had no indentation. Measure actual glyphs.
+        listing=r"""\noindent\en{BASELINE}\par
+\begin{enumerate}
+\item \en{FIRST}
+\begin{enumerate}\item \en{NESTED}\end{enumerate}
+\item \en{SECOND}
+\end{enumerate}
+\begin{itemize}\item \en{BULLET}\end{itemize}
+\begin{description}\item[\en{TERM}] \en{DESCRIPTION}\end{description}
+"""
+        def metrics(directory,language):
+            with fitz.open(directory/'main.pdf') as doc:
+                self.assertEqual(len(doc),1)
+                page=doc[0]
+                hits={key:page.search_for(key)[0] for key in
+                      ('BASELINE','FIRST','NESTED','SECOND','BULLET','DESCRIPTION')}
+                first=hits['FIRST']
+                labels=[w for w in page.get_text('words') if w[4]=='1.' and
+                        abs((w[1]+w[3])/2-(first.y0+first.y1)/2)<3]
+                self.assertEqual(len(labels),1)
+                label=fitz.Rect(labels[0][:4])
+                if language=='english':
+                    indent=first.x0-hits['BASELINE'].x0
+                    nested=hits['NESTED'].x0-first.x0
+                    label_inside=label.x0-hits['BASELINE'].x0
+                    gap=first.x0-label.x1
+                else:
+                    indent=hits['BASELINE'].x1-first.x1
+                    nested=first.x1-hits['NESTED'].x1
+                    label_inside=hits['BASELINE'].x1-label.x1
+                    gap=label.x0-first.x1
+                glyphs=[(s['text'],tuple(round(v,2) for v in s['bbox']))
+                        for b in page.get_text('dict')['blocks']
+                        for l in b.get('lines',[]) for s in l['spans']]
+                return indent,nested,label_inside,gap,hits,glyphs
+        for main in ('english','hebrew'):
+            for language in ('english','hebrew'):
+                with self.subTest(main=main,language=language):
+                    env=language+'prose'
+                    source=(profile_header('bilingual',main)+r'\begin{document}'+
+                            fr'\begin{{{env}}}'+listing+fr'\end{{{env}}}'+
+                            r'\end{document}')
+                    result,directory=self.compile(source,f'lists-{main}-{language}')
+                    self.assertEqual(result.returncode,0,result.stdout[-5000:])
+                    indent,nested,label_inside,gap,hits,glyphs=metrics(directory,language)
+                    self.assertGreater(indent,15)
+                    self.assertGreater(nested,15)
+                    self.assertGreater(label_inside,3)
+                    self.assertGreater(gap,2)
+                    # Enumerate and itemize share the same logical body inset.
+                    coord='x0' if language=='english' else 'x1'
+                    self.assertAlmostEqual(getattr(hits['FIRST'],coord),
+                                           getattr(hits['SECOND'],coord),delta=.2)
+                    self.assertAlmostEqual(getattr(hits['FIRST'],coord),
+                                           getattr(hits['BULLET'],coord),delta=.2)
+                    result,broken=self.compile(source,f'lists-mutant-{main}-{language}',
+                        mutate=lambda t:t.replace(r'\usepackage[bidi=basic,layout=lists]{babel}',
+                                                  r'\usepackage[bidi=basic]{babel}'))
+                    self.assertEqual(result.returncode,0,result.stdout[-5000:])
+                    old=metrics(broken,language)
+                    if main==language:
+                        # Enabling the upstream option must not move native lists.
+                        self.assertEqual(glyphs,old[-1])
+                    else:
+                        self.assertLess(old[0],2)
+                        self.assertLess(old[2],0)
+
+    def test_bad_profiles_fail_before_document_loading(self):
+        cases=[('unknown',r'\def\lakitlanguageprofile{french}','unsupported language profile'),
+               ('bilingual-missing',r'\def\lakitlanguageprofile{bilingual}','requires explicit lakitmainlanguage'),
+               ('wrong-base',r'\def\lakitlanguageprofile{english}\def\lakitmainlanguage{hebrew}','conflicts'),
+               ('bad-base',r'\def\lakitlanguageprofile{bilingual}\def\lakitmainlanguage{french}','must be hebrew or english')]
+        for name,config,phrase in cases:
+            with self.subTest(name=name):
+                result,_=self.compile(config+HEADER+r'\begin{document}Never printed.\end{document}',name)
+                self.assertNotEqual(result.returncode,0)
+                self.assertIn(phrase,result.stdout)
+                self.assertNotIn('Document Class:',result.stdout)
+
+    def test_english_codebox_keeps_two_digit_labels_inside_rule(self):
+        source=(profile_header('english','english')+r'\begin{document}'+
+                r'\begin{codebox}\begin{asmblock}\begin{lstlisting}[style=pystyle]'+'\n'+
+                '\n'.join('print(value)' for _ in range(12))+'\n'+
+                r'\end{lstlisting}\end{asmblock}\end{codebox}\end{document}')
+        def clearance(directory):
+            with fitz.open(directory/'main.pdf') as doc:
+                page=doc[0]
+                rules=[x['rect'] for x in page.get_drawings()
+                       if x['color'] and x['rect'].width < 1 and x['rect'].height > 40]
+                self.assertTrue(rules)
+                rule=min(rules,key=lambda r:r.x0)
+                words=page.get_text('words')
+                code=min(w[0] for w in words if 'print' in w[4])
+                labels=[w for w in words if w[4].isdigit() and
+                        rule.y0 < w[1] < rule.y1 and w[2] < code]
+                self.assertEqual([w[4] for w in labels],[str(i) for i in range(1,13)])
+                return min(w[0] for w in labels)-rule.x0
+        result,directory=self.compile(source,'codebox-en',passes=2)
+        self.assertEqual(result.returncode,0,result.stdout[-5000:])
+        self.assertGreater(clearance(directory),8)
+        result,directory=self.compile(source,'codebox-en-mutant',passes=2,
+            mutate=lambda t:t.replace(r'\lstset{xleftmargin=26pt,xrightmargin=0pt}', ''))
+        self.assertEqual(result.returncode,0,result.stdout[-5000:])
+        self.assertLess(clearance(directory),0)
+
+    def test_clean_exam_labels_localize_in_english(self):
+        source=(profile_header('english','english').replace(r'\input{reader_theme.tex}',r'\input{clean_theme.tex}')+
+                r'''\begin{document}\section{Question}
+\begin{exbox}Question text.\end{exbox}
+\begin{keybox}Takeaway text.\end{keybox}
+\begin{notebox}Note body.\end{notebox}
+\end{document}''')
+        result,directory=self.compile(source,'clean-english',passes=3)
+        self.assertEqual(result.returncode,0,result.stdout[-5000:])
+        with fitz.open(directory/'main.pdf') as doc:
+            text='\n'.join(p.get_text() for p in doc)
+            for value in ('Solution:','Exam takeaway.','Note.'):
+                self.assertIn(value,text)
+            self.assertNotRegex(text,'[\u0590-\u05ff]')
+
+if __name__=='__main__': unittest.main()

@@ -1,0 +1,240 @@
+% reference_theme.tex — compact, monochrome serif reference presentation.
+% Requires preamble.tex. Optional semantic blocks and page shells are separate.
+% No class, page geometry, base font size, line spread, column count, direction,
+% running furniture, title content or build policy is owned by this theme.
+% <hllpdf:architecture-guard>
+\ifdefined\hllpdfcoreloaded\else
+  \errmessage{hllpdf: reference_theme.tex requires preamble.tex first}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdfreaderthemeloaded
+  \errmessage{hllpdf: reference_theme.tex conflicts with reader_theme.tex}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdfacademicthemeloaded
+  \errmessage{hllpdf: reference_theme.tex conflicts with academic_theme.tex}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdfcleanthemeloaded
+  \errmessage{hllpdf: reference_theme.tex conflicts with clean_theme.tex}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdfcleanvariantloaded
+  \errmessage{hllpdf: reference_theme.tex conflicts with clean_variant.tex}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdfreferencethemeloaded
+  \errmessage{hllpdf: reference_theme.tex loaded more than once}
+  \expandafter\endinput
+\fi
+\def\hllpdfreferencethemeloaded{1}
+% </hllpdf:architecture-guard>
+
+% The core's pinned Hebrew Frank Ruhl Libre serif is retained. English uses
+% the already verified TeX-distribution Latin Modern Roman faces/fallbacks.
+\babelfont[english]{rm}[Ligatures=TeX,RawFeature={fallback=hebfb},
+  BoldFeatures={RawFeature={fallback=hebfbbf}},
+  BoldItalicFeatures={RawFeature={fallback=hebfbbf}}]{Latin Modern Roman}
+
+% Professional selective numbering: only referenced equations receive an
+% automatic number. Explicitly mark a central unreferenced equation through
+% \noeqref{label}; use starred environments for intermediate calculations.
+\mathtoolsset{showonlyrefs=true,showmanualtags=false}
+\lakitcaptionnumbering{continuous}
+\renewcommand{\lakitcaptionlabelstyle}[1]{\normalfont\color{black}#1}
+\renewcommand{\lakitcaptionpunctuation}{:}
+
+\definecolor{cBlue}{HTML}{000000}   \definecolor{cBlueBg}{HTML}{F2F2F2}
+\definecolor{cGreen}{HTML}{000000}  \definecolor{cGreenBg}{HTML}{F2F2F2}
+\definecolor{cAmber}{HTML}{000000}  \definecolor{cAmberBg}{HTML}{F2F2F2}
+\definecolor{cPurple}{HTML}{000000} \definecolor{cPurpleBg}{HTML}{F2F2F2}
+\definecolor{cTeal}{HTML}{000000}   \definecolor{cTealBg}{HTML}{FFFFFF}
+\definecolor{cRed}{HTML}{000000}    \definecolor{cRedBg}{HTML}{F2F2F2}
+\definecolor{cSlate}{HTML}{000000}  \definecolor{cSlateBg}{HTML}{F2F2F2}
+\definecolor{cRule}{HTML}{000000}
+\definecolor{cTblLine}{HTML}{000000}\definecolor{cTblBg}{HTML}{FFFFFF}
+
+% The proven default mdframed renderer preserves both native directions.
+% Its Q/A frames deliberately use square corners: its renderer does not draw
+% roundcorner, while the TikZ alternative displaced complete frames in RTL.
+
+% Mutable semantic-block hooks; provide+renew permits either preamble load
+% order and also makes the theme useful without the semantic extension.
+% The default renderer's leftline is the local paragraph's reading edge:
+% physical right in Hebrew and physical left in English. Keep that native
+% behavior inside language blocks as well as in either document main language.
+\providecommand{\referencenotestyle}{}
+\providecommand{\referencewarningstyle}{}
+\providecommand{\referenceformulastyle}{}
+\providecommand{\referenceqastyle}{}
+\renewcommand{\referencenotestyle}{%
+  linecolor=black,backgroundcolor=cAmberBg,
+  leftline=true,rightline=false,topline=false,bottomline=false,
+  roundcorner=0pt,innerleftmargin=3pt,innerrightmargin=3pt,
+  innertopmargin=2pt,innerbottommargin=2pt,skipabove=3pt,skipbelow=3pt,
+  startinnercode=\raggedright}
+\renewcommand{\referencewarningstyle}{%
+  linecolor=black,backgroundcolor=cRedBg,
+  leftline=true,rightline=false,topline=false,bottomline=false,
+  roundcorner=0pt,innerleftmargin=3pt,innerrightmargin=3pt,
+  innertopmargin=2pt,innerbottommargin=2pt,skipabove=3pt,skipbelow=3pt,
+  startinnercode=\raggedright}
+\renewcommand{\referenceformulastyle}{%
+  linecolor=black!65,backgroundcolor=white,
+  leftline=true,rightline=true,topline=true,bottomline=true,
+  roundcorner=0pt,innerleftmargin=3pt,innerrightmargin=3pt,
+  innertopmargin=2pt,innerbottommargin=2pt,skipabove=3pt,skipbelow=3pt,
+  startinnercode=\raggedright}
+\renewcommand{\referenceqastyle}{%
+  linecolor=black!65,backgroundcolor=cPurpleBg,
+  leftline=true,rightline=true,topline=true,bottomline=true,
+  roundcorner=0pt,innerleftmargin=3pt,innerrightmargin=3pt,
+  innertopmargin=2pt,innerbottommargin=2pt,skipabove=3pt,skipbelow=3pt,
+  startinnercode=\raggedright}
+% Natural word spacing is easier to scan in a narrow reference column. In
+% LuaLaTeX, rightskip follows the actual paragraph direction: \raggedright
+% aligns English at physical left and Hebrew at physical right. It never
+% changes pardir/bodydir or mirrors a mathematical object. The environment
+% groups retain ordinary document justification outside reference columns.
+\AtBeginEnvironment{referencecolumns}{%
+  \raggedright
+  \def\columnseprulecolor{\color{black!40}}}
+% Compact scientific objects keep their measured core caption/anchor behavior.
+% Reduce only this grouped reference-figure presentation's list/paragraph gaps;
+% ordinary figures, standalone diagrams and tables retain their existing skips.
+\AtBeginEnvironment{referencefigure}{%
+  \setlength{\medskipamount}{.25\baselineskip}%
+  \setlength{\topsep}{.2\baselineskip}%
+  \setlength{\partopsep}{0pt}}
+
+% Heading sizes follow the actual selected body size, including a compact
+% layout's local size. Native \@startsection still owns counters, stars,
+% bookmarks, marks and keeping each heading with the following paragraph.
+\makeatletter
+% Heading text sizes may be fractional, but the native Computer Modern math
+% families have discrete design sizes. Choose those faces deliberately rather
+% than asking NFSS for unavailable 8.775/7.41-point faces or sub-5-point scripts.
+\newcommand{\hllpdf@referencemathface}[1]{%
+  \@tempdima=#1pt\relax\def\hllpdf@referencemathchosen{5}%
+  \ifdim\@tempdima>5.5pt\def\hllpdf@referencemathchosen{6}\fi
+  \ifdim\@tempdima>6.5pt\def\hllpdf@referencemathchosen{7}\fi
+  \ifdim\@tempdima>7.5pt\def\hllpdf@referencemathchosen{8}\fi
+  \ifdim\@tempdima>8.5pt\def\hllpdf@referencemathchosen{9}\fi
+  \ifdim\@tempdima>9.5pt\def\hllpdf@referencemathchosen{10}\fi
+  \ifdim\@tempdima>10.475pt\def\hllpdf@referencemathchosen{10.95}\fi
+  \ifdim\@tempdima>11.475pt\def\hllpdf@referencemathchosen{12}\fi
+  \ifdim\@tempdima>13.2pt\def\hllpdf@referencemathchosen{14.4}\fi
+  \ifdim\@tempdima>15.84pt\def\hllpdf@referencemathchosen{17.28}\fi
+  \ifdim\@tempdima>19.01pt\def\hllpdf@referencemathchosen{20.74}\fi
+  \ifdim\@tempdima>22.81pt\def\hllpdf@referencemathchosen{24.88}\fi}
+\newcommand{\hllpdf@referencedeclaremathsize}[2]{%
+  \@tempdima=\dimexpr#1pt*#2/100\relax
+  \edef\hllpdf@referenceheadingmathsize{\strip@pt\@tempdima}%
+  \hllpdf@referencemathface{\hllpdf@referenceheadingmathsize}%
+  \let\hllpdf@referenceheadingmathtext\hllpdf@referencemathchosen
+  \@tempdima=\dimexpr\hllpdf@referenceheadingmathsize pt*7/10\relax
+  \edef\hllpdf@referenceheadingmathscript{\strip@pt\@tempdima}%
+  \hllpdf@referencemathface{\hllpdf@referenceheadingmathscript}%
+  \let\hllpdf@referenceheadingmathscript\hllpdf@referencemathchosen
+  \@tempdima=\dimexpr\hllpdf@referenceheadingmathsize pt/2\relax
+  \edef\hllpdf@referenceheadingmathscriptscript{\strip@pt\@tempdima}%
+  \hllpdf@referencemathface{\hllpdf@referenceheadingmathscriptscript}%
+  \DeclareMathSizes{\hllpdf@referenceheadingmathsize}%
+    {\hllpdf@referenceheadingmathtext}{\hllpdf@referenceheadingmathscript}%
+    {\hllpdf@referencemathchosen}}
+\newcommand{\hllpdf@referencedeclareheadingmath}[1]{%
+  \hllpdf@referencedeclaremathsize{#1}{135}%
+  \hllpdf@referencedeclaremathsize{#1}{114}}
+\forcsvlist{\hllpdf@referencedeclareheadingmath}%
+  {5,6,6.5,7,7.2,8,9,10,10.95,11,12}
+\@ifundefined{ReferenceBodyFontSize}{}{%
+  \hllpdf@referencedeclareheadingmath{\ReferenceBodyFontSize}}
+% A minipage resets paragraph glue; restore this theme's natural reading edge
+% after entry capture starts, without changing language or direction.
+\providecommand{\hllpdf@referenceentrysetup}{}
+\renewcommand{\hllpdf@referenceentrysetup}{\raggedright}
+% The optional layout invokes this presentation hook after selecting its local
+% body font, so every skip follows the actual compact/readable baseline. It
+% affects only that grouped reference scope, never ordinary document displays.
+\providecommand{\hllpdf@referencebodysetup}{}
+\renewcommand{\hllpdf@referencebodysetup}{%
+  \setlength{\abovedisplayskip}{.35\baselineskip plus .1\baselineskip minus .07\baselineskip}%
+  \setlength{\belowdisplayskip}{.35\baselineskip plus .1\baselineskip minus .07\baselineskip}%
+  \setlength{\abovedisplayshortskip}{.12\baselineskip plus .1\baselineskip}%
+  \setlength{\belowdisplayshortskip}{.2\baselineskip plus .1\baselineskip minus .05\baselineskip}%
+  \setlength{\jot}{.18\baselineskip}}
+% Match bold heading text only inside the optional scalable reference scope.
+% A standalone theme retains its existing Computer Modern sizing/version.
+\newcommand{\hllpdf@referenceheadingmath}{%
+  \@ifundefined{ifhllpdf@referencemathactive}{}{%
+    \ifhllpdf@referencemathactive\boldmath\fi}}
+\newcommand{\hllpdf@referencelocalhead}[1]{%
+  \fontsize{\dimexpr\f@size pt*135/100\relax}%
+    {\dimexpr\f@size pt*155/100\relax}\selectfont
+  \hllpdf@referenceheadingmath
+  #1\par\nobreak\vskip 1pt\hrule height .6pt\relax}
+% A genuinely wide topic uses the same native ruled heading at its full local
+% linewidth. No invented colored family or separate numbering is introduced.
+\newcommand{\hllpdf@referencewidehead}[1]{%
+  \hllpdf@referencelocalhead{#1}}
+\newcommand{\hllpdf@referencesecondaryhead}{%
+  \fontsize{\dimexpr\f@size pt*114/100\relax}%
+    {\dimexpr\f@size pt*136/100\relax}\selectfont
+  \hllpdf@referenceheadingmath}
+\newcommand{\hllpdf@referencehead}[1]{%
+  \@ifundefined{ifhllpdf@referencewideactive}{%
+    \hllpdf@referencelocalhead{#1}%
+  }{%
+    \ifhllpdf@referencewideactive
+      \hllpdf@referencewidehead{#1}%
+    \else
+      \hllpdf@referencelocalhead{#1}%
+    \fi}}
+\renewcommand{\section}{\@startsection{section}{1}{\z@}%
+  {-1.3ex\@plus-.3ex\@minus-.2ex}{.8ex\@plus.2ex}%
+  {\normalfont\rmfamily\bfseries\color{black}\hllpdf@referencehead}}
+\renewcommand{\subsection}{\@startsection{subsection}{2}{\z@}%
+  {-1.1ex\@plus-.2ex\@minus-.2ex}{.5ex\@plus.1ex}%
+  {\normalfont\rmfamily\bfseries\color{black}\hllpdf@referencesecondaryhead}}
+\renewcommand{\subsubsection}{\@startsection{subsubsection}{3}{\z@}%
+  {-1ex\@plus-.2ex\@minus-.2ex}{.4ex\@plus.1ex}%
+  {\normalfont\rmfamily\bfseries\color{black}}}
+% Report's native \chapter still owns the page transition, counter and marks.
+% Only its typeset heading is compacted; starred chapters retain native
+% numbering semantics. Article has no chapter formatter to override.
+\@ifclassloaded{report}{%
+  \renewcommand{\@makechapterhead}[1]{%
+    \vspace*{8pt}%
+    {\parindent\z@\normalfont\rmfamily\bfseries\color{black}%
+     \ifnum\c@secnumdepth>\m@ne
+       \@chapapp\space\thechapter\par\nobreak\vskip 3pt
+     \fi
+     \hllpdf@referencehead{#1}\nobreak\vskip 8pt}}%
+  \renewcommand{\@makeschapterhead}[1]{%
+    \vspace*{8pt}%
+    {\parindent\z@\normalfont\rmfamily\bfseries\color{black}%
+     \hllpdf@referencehead{#1}\nobreak\vskip 8pt}}%
+}{}
+\makeatother
+
+% Existing core callouts also receive the same restrained palette when this
+% theme is used on an ordinary document, with no forced column layout.
+\mdfdefinestyle{hllpdfreferencetheme}{%
+  frametitle={},leftline=true,rightline=true,topline=true,bottomline=true,
+  linewidth=.6pt,roundcorner=0pt,
+  innerleftmargin=4pt,innerrightmargin=4pt,
+  innertopmargin=3pt,innerbottommargin=3pt,
+  skipabove=5pt,skipbelow=5pt,everyline=true,
+  startinnercode=\raggedright,
+  splitbottomskip=3pt,splittopskip=5pt,
+  frametitlebackgroundcolor=white,frametitlefontcolor=black,
+  frametitlefont=\normalfont\rmfamily\bfseries,
+  frametitleaboveskip=2pt,frametitlebelowskip=2pt}
+\renewmdenv[style=hllpdfreferencetheme,linecolor=black,backgroundcolor=cBlueBg]{defbox}
+\renewmdenv[style=hllpdfreferencetheme,linecolor=black,backgroundcolor=cGreenBg]{thmbox}
+\renewmdenv[style=hllpdfreferencetheme,linecolor=black,backgroundcolor=cAmberBg]{notebox}
+\renewmdenv[style=hllpdfreferencetheme,linecolor=black,backgroundcolor=cPurpleBg]{exbox}
+\renewmdenv[style=hllpdfreferencetheme,linecolor=black,backgroundcolor=cRedBg]{warnbox}
+\renewmdenv[style=hllpdfreferencetheme,linecolor=black,backgroundcolor=cTealBg]{keybox}
+% Keep the core table container's tested atomic/anchor behavior and existing
+% codebox number geometry; only the palette and ordinary callouts change.

@@ -1,0 +1,126 @@
+% ============================================================================
+% clean_theme.tex — pure clean presentation/presentation-policy layer.
+% Requires assets/preamble.tex to have been loaded first.
+% OWNERSHIP: colors, box presentation, numbering visibility and equation/table
+% presentation policy only. It MUST NOT define exam/content helper APIs.
+% ============================================================================
+% Runtime architecture guard: generated from scripts/architecture_contract.py.
+% <hllpdf:architecture-guard>
+\ifdefined\hllpdfcoreloaded\else
+  \errmessage{hllpdf: clean_theme.tex requires preamble.tex first}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdfcleanvariantloaded
+  \errmessage{hllpdf: clean_theme.tex conflicts with clean_variant.tex}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdfreaderthemeloaded
+  \errmessage{hllpdf: clean_theme.tex conflicts with reader_theme.tex}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdfacademicthemeloaded
+  \errmessage{hllpdf: clean_theme.tex conflicts with academic_theme.tex}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdfreferencethemeloaded
+  \errmessage{hllpdf: clean_theme.tex conflicts with reference_theme.tex}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdfcleanthemeloaded
+  \errmessage{hllpdf: clean_theme.tex loaded more than once}
+  \expandafter\endinput
+\fi
+\def\hllpdfcleanthemeloaded{1}
+% </hllpdf:architecture-guard>
+% <hllpdf:clean-theme-body>
+% ============================================================================
+% הסגנון הנקי (בהשראת מסמך-הייחוס של המשתמש): מונוכרום, בלי קופסאות צבע,
+% בלי מספור משוואות. הממשק לסוכנים לא משתנה (exbox/keybox/notebox/equation/align)
+% — רק ההגדרות כאן קובעות את המראה. חובה אחרי preamble.tex.
+% ============================================================================
+
+% ---- בלי "פרק N" ובלי "חלק I": הכותרות נושאות את השם המלא ("שאלה 1 — נושא") ----
+\setcounter{secnumdepth}{-2}
+
+% ---- פלטה מונוכרומית לכל הרכיבים, גם לסביבות שאינן מוגדרות מחדש כאן ----
+\definecolor{cBlue}{HTML}{1A1A1A}   \definecolor{cBlueBg}{HTML}{F7F7F7}
+\definecolor{cGreen}{HTML}{333333}  \definecolor{cGreenBg}{HTML}{F7F7F7}
+\definecolor{cAmber}{HTML}{333333}  \definecolor{cAmberBg}{HTML}{F7F7F7}
+\definecolor{cPurple}{HTML}{333333} \definecolor{cPurpleBg}{HTML}{F7F7F7}
+\definecolor{cTeal}{HTML}{333333}   \definecolor{cTealBg}{HTML}{F7F7F7}
+\definecolor{cRed}{HTML}{333333}    \definecolor{cRedBg}{HTML}{F7F7F7}
+\definecolor{cRule}{HTML}{333333}
+\definecolor{cTblLine}{HTML}{C8C8C8}\definecolor{cTblBg}{HTML}{FFFFFF}
+
+% ---- קליטת [frametitle={...},nobreak=true,...] בלי mdframed ----
+\pgfkeys{/cleanq/.is family,
+  /cleanq/frametitle/.store in=\cleanqtitle,
+  /cleanq/.unknown/.code={}}
+
+% נוסח השאלה: כותרת מודגשת -> גוף -> קו מפריד -> "פתרון:"
+% (כותרת ה-frametitle מדוכאת — כותרת הפרק כבר נושאת את שם השאלה)
+\newif\ifcleanqwarned
+\renewenvironment{exbox}[1][]{%
+  \par\medskip
+  \def\cleanqtitle{}\pgfkeys{/cleanq/.cd,#1}%
+  % v3.73: the suppression above is DELIBERATE (the chapter heading already
+  % carries the question name — the live sites' titles duplicate it verbatim),
+  % but it used to be SILENT: author text vanished with zero diagnostic, against
+  % the file's own "interface does not change" contract. Warn once per document.
+  % NB @-free names: this file is \input where @ is NOT a letter — the
+  % first draft used \ifcleanq@warned and died with "Missing \begin{document}"
+  % (the stray @warned typeset as preamble text). Measured, then renamed.
+  \ifx\cleanqtitle\empty\else\ifcleanqwarned\else
+    \PackageWarning{clean-variant}{exbox frametitle is suppressed by the clean
+      style (the chapter heading carries the question name); this notice fires
+      once}\global\cleanqwarnedtrue\fi\fi
+  \noindent\ignorespaces
+}{%
+  \par\nobreak\smallskip\noindent\textcolor{cRule}{\rule{\linewidth}{0.4pt}}\par\smallskip
+  \noindent\textbf{\iflanguage{english}{Solution:}{פתרון:}}\par\nopagebreak\medskip
+}
+
+% "לקח למבחן": פסקה מודגשת-פתיח, בלי קופסה
+\renewenvironment{keybox}[1][]{%
+  \par\medskip
+  \def\cleanqtitle{}\pgfkeys{/cleanq/.cd,#1}%
+  \noindent\textbf{\ifx\cleanqtitle\empty\iflanguage{english}{Exam takeaway}{לקח למבחן}\else\cleanqtitle\fi.}\ \ignorespaces
+}{\par\medskip}
+
+% הערת-מקור/השלמה: פתיח מודגש + גוף בגופן קטן, בלי קופסה
+\renewenvironment{notebox}[1][]{%
+  \par\smallskip
+  \def\cleanqtitle{}\pgfkeys{/cleanq/.cd,#1}%
+  \noindent\small\textbf{\ifx\cleanqtitle\empty\iflanguage{english}{Note}{הערה}\else\cleanqtitle\fi.}\ \ignorespaces
+}{\par\smallskip}
+
+% ---- v3.78 (BLD-16 postscript): מספרי-שורות חוזרים בקופסאות שהשכבה הזו ----
+% ---- מרנדרת בלי מסגרת ----
+% The preamble's v3.37 hook blanks \thelstnumber inside the six colored
+% boxes because the mdframed BORDER cuts the digits — a rationale that dies
+% with the frame. But the etoolbox hook rides \begin{exbox} itself, not the
+% mdframed definition, so it outlived the \renewenvironment blocks above and
+% every exam-layer in-box listing shipped numberless (measured on the shipped
+% PDF with scripts/probe_lstnum.py: computer-architecture-exams p.7 statement
+% listing 0 margin digits vs. its unboxed p.8 solution listing 1..24 — 24, not
+% the "1..12" this comment claimed until v3.81; the digits hang at x=53.42 for
+% 1..9 and x=49.62 for 10..24, the two-digit \llap being wider).
+% Contract restore — the file header promises
+% "only the look changes": these LATER hooks (registration order wins — they
+% run after the preamble's blanking hook) put the number text back for
+% EXACTLY the environments this layer renders frameless: exbox/keybox/
+% notebox. defbox/thmbox/warnbox keep the preamble's mdframed look here, so
+% they stay blanked. Zero reflow by construction: v3.37 kept numbers=left
+% alive (the number box is still typeset, its text empty — code x frozen at
+% 75.26), so refilling the text moves no glyph (A/B word-position verified).
+\AtBeginEnvironment{exbox}{\def\thelstnumber{\arabic{lstnumber}}}
+\AtBeginEnvironment{keybox}{\def\thelstnumber{\arabic{lstnumber}}}
+\AtBeginEnvironment{notebox}{\def\thelstnumber{\arabic{lstnumber}}}
+
+% ---- ביטול מספור משוואות: מספר מופיע רק אם מפנים אליו (\eqref) בפועל ----
+% (דריסת align וכו' ישירות מתנגשת עם תיקוני babel/bidi — לכן showonlyrefs.)
+\mathtoolsset{showonlyrefs=true}
+
+% ---- "טבלה N" רציף (מונה הפרקים קפוא תחת secnumdepth=-2 — בלי קידומת 0.) ----
+\renewcommand{\thetbl}{\arabic{tbl}}
+% </hllpdf:clean-theme-body>

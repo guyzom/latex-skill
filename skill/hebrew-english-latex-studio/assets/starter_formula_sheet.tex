@@ -1,0 +1,31 @@
+\def\lakitdocumentclass{article}
+\def\lakitclassoptions{11pt,a4paper}
+\def\lakitgeometryoptions{margin=1.8cm,headheight=14pt}
+\def\lakitlinespread{1.08}
+\input{preamble.tex}
+\input{reader_theme.tex}
+\hypersetup{pdftitle={דף נוסחאות},pdfauthor={}}
+\begin{document}
+{\LARGE\sffamily\bfseries דף נוסחאות}\par\smallskip
+% Replace the examples with formulas verified against the user's source.
+נוסחה, משמעות הסימנים ותנאי השימוש — בלי להקטין את הגופן כדי לדחוס תוכן.
+\section{סכום סדרה חשבונית}
+\[
+S_n=\frac{n}{2}(a_1+a_n),\qquad a_n=a_1+(n-1)d.
+\]
+$n$ הוא מספר האיברים, $a_1$ האיבר הראשון ו־$d$ ההפרש הקבוע.
+\section{סכום סדרה הנדסית סופית}
+\[
+S_n=a_1\frac{1-q^n}{1-q},\qquad q\neq1.
+\]
+כאשר $q=1$, משתמשים בנוסחה $S_n=n a_1$.
+\section{נגזרת של פונקציה מורכבת}
+\[
+\frac{d}{dx}f(g(x))=f'(g(x))\,g'(x).
+\]
+תנאי השימוש: הפונקציות גזירות בנקודות המתאימות.
+\begin{notebox}[frametitle={בדיקה לפני מסירה}]
+יש לוודא שכל נוסחה הועתקה מן המקור הנכון, שכל סימן הוגדר ושלא חסרים תנאי
+שימוש. דף צפוף יותר אינו בהכרח דף שימושי יותר.
+\end{notebox}
+\end{document}
