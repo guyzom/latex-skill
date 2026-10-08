@@ -59,46 +59,51 @@
       "id": "starter",
       "hebrew": "קובץ התחלה",
       "english": "Starter",
-      "definition": "קובץ מקור לדוגמה שממנו מתחילים לערוך את התוכן. אינו מנגנון הבנייה ואינו כל העיצוב.",
-      "example": "`starter_paper.tex` מכיל תוכן התחלתי למאמר; המשתמש מחליף את הדוגמאות והמטא־נתונים.",
+      "definition": "קובץ מקור לדוגמה שממנו מתחילים לערוך את התוכן. מדגים הרכבה וסגנון מתאים לסוג המסמך; אינו מנגנון הבנייה ואינו מסמך מוגמר.",
+      "example": "תוכן `starter_letter.tex` מוחלף בפרטי הפנייה האמיתית. הוראות עריכה נשארות בהערות מקור או בתיעוד, ולא בגוף המכתב שנמסר.",
       "audience": "both",
       "status": "existing",
       "related_ids": [
         "template",
-        "document-kind"
+        "document-kind",
+        "paragraph-style",
+        "callout"
       ],
       "source_refs": [
         "references/architecture.md",
-        "scripts/new_document.py"
+        "scripts/new_document.py",
+        "references/content-style.md"
       ],
       "section": "composition",
       "owner": "skill-documentation",
       "aliases": [],
       "introduced_in": "5.4.0",
-      "updated_in": "5.4.0"
+      "updated_in": "5.4.5"
     },
     {
       "id": "document-kind",
       "hebrew": "סוג מסמך",
       "english": "Genre / Document kind",
-      "definition": "ייעוד המסמך כפי שבוחרים במחולל. אינו מחלקת LaTeX ואינו Theme.",
-      "example": "`--kind report` בוחר סוג דוח; `--kind paper` בוחר מאמר.",
+      "definition": "ייעוד המסמך כפי שבוחרים במחולל, כגון מכתב או מאמר. מסייע בבחירת מבנה וסגנון פסקאות מתאים; אינו מחלקת LaTeX ואינו Theme.",
+      "example": "`letter` בוחר פסקאות ללא הזחת שורה ראשונה; `paper` בוחר מדיניות הזחה רגילה. החלפת Theme אינה משנה לבדה את בחירת הסוג.",
       "audience": "both",
       "status": "existing",
       "related_ids": [
         "template",
         "document-class",
-        "content-profile"
+        "content-profile",
+        "paragraph-style"
       ],
       "source_refs": [
         "references/architecture.md",
-        "scripts/new_document.py"
+        "scripts/new_document.py",
+        "references/content-style.md"
       ],
       "section": "composition",
       "owner": "skill-documentation",
       "aliases": [],
       "introduced_in": "5.4.0",
-      "updated_in": "5.4.0"
+      "updated_in": "5.4.5"
     },
     {
       "id": "content-profile",
@@ -150,23 +155,26 @@
       "hebrew": "ערכת עיצוב",
       "english": "Theme",
       "definition": "שכבת הצגה: צבעים, קווים, טיפוגרפיה ועיצוב כותרות ותיבות, במסגרת החוזה שלה. אינה הבעלים של כיוון הקריאה או זרימת הטורים.",
-      "example": "`reference_theme.tex` מעצב כותרות והערות; בחירתו לבדה אינה יוצרת טורים.",
+      "example": "`reference_theme.tex` מציג כותרת אפורה וגוף לבן בתיבה רגילה; בחירתו לבדה אינה יוצרת טורים או משנה את סגנון הפסקאות שנבחר למסמך.",
       "audience": "both",
       "status": "existing",
       "related_ids": [
         "layout",
         "ownership",
-        "hook"
+        "hook",
+        "paragraph-style",
+        "callout"
       ],
       "source_refs": [
         "references/architecture.md",
-        "scripts/new_document.py"
+        "scripts/new_document.py",
+        "references/figures-boxes-listings.md"
       ],
       "section": "composition",
       "owner": "skill-documentation",
       "aliases": [],
       "introduced_in": "5.4.0",
-      "updated_in": "5.4.0"
+      "updated_in": "5.4.5"
     },
     {
       "id": "layout",
@@ -1223,24 +1231,26 @@
       "hebrew": "נקודת התאמה",
       "english": "Hook",
       "definition": "ממשק מפורש לשינוי ערך או התנהגות, בעל אחריות, מועד הגדרה, תחולה וסוג ערך מתועדים. אינו היתר לשנות כל מנגנון פנימי.",
-      "example": "`ReferenceMathFontSize` מוגדר לפני טעינת הפריסה ונמדד בנקודות TeX; גודל גוף הטקסט הוא Hook נפרד.",
+      "example": "הגדרת `\\lakitparagraphstyle{block}` באמצעות `\\def` לפני הליבה בוחרת פסקאות ללא הזחה ורווח מתון ביניהן; היא אינה מחליפה את בחירת שפת המסמך.",
       "audience": "both",
       "status": "existing",
       "related_ids": [
         "public-api",
         "scope",
-        "load-order"
+        "load-order",
+        "paragraph-style"
       ],
       "source_refs": [
         "scripts/architecture_contract.py",
         "references/architecture.md",
-        "references/catalog-development.md"
+        "references/catalog-development.md",
+        "references/content-style.md"
       ],
       "section": "infrastructure",
       "owner": "skill-documentation",
       "aliases": [],
       "introduced_in": "5.4.0",
-      "updated_in": "5.4.0"
+      "updated_in": "5.4.5"
     },
     {
       "id": "dependency",
@@ -1685,9 +1695,176 @@
       "aliases": [],
       "introduced_in": "5.4.0",
       "updated_in": "5.4.0"
+    },
+    {
+      "id": "paragraph-style",
+      "hebrew": "סגנון פסקאות",
+      "english": "Paragraph style",
+      "definition": "מדיניות עקבית להפרדת פסקאות: הזחת שורה ראשונה, רווח ביניהן והתאמה לסוג המסמך. שפת הפסקה קובעת את כיוון הקריאה; Theme אינו בוחר במקומה את המדיניות.",
+      "example": "מגדירים `\\lakitparagraphstyle{block}` באמצעות `\\def` לפני `preamble.tex` למכתב, או `indented` למאמר. הטורים ורצועות הרוחב של דף עזר שומרים על הריווח המקומי שלהם.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "document-kind",
+        "first-line-indent",
+        "paragraph-spacing",
+        "hook"
+      ],
+      "source_refs": [
+        "assets/preamble.tex",
+        "scripts/architecture_contract.py",
+        "references/content-style.md",
+        "references/language-design.md"
+      ],
+      "section": "typography",
+      "owner": "ליבת המנגנונים; פריסת דפי העזר בהקשר המקומי",
+      "aliases": [
+        "Block paragraphs",
+        "Indented paragraphs"
+      ],
+      "introduced_in": "5.4.5",
+      "updated_in": "5.4.5"
+    },
+    {
+      "id": "first-line-indent",
+      "hebrew": "הזחת שורה ראשונה",
+      "english": "First-line indent",
+      "definition": "הסטת השורה הראשונה של פסקה מן הצד המוביל של הטקסט. זו דרך להבחין בין פסקאות בפרוזה רציפה, ולא ברירת מחדל לכל כותרת, מכתב או חתימה.",
+      "example": "במכתב עברי או אנגלי ערך ההזחה הוא אפס. במאמר אפשר לשמור על הזחת הגוף הרגילה של המחלקה ועל התנהגותה אחרי כותרות.",
+      "audience": "both",
+      "status": "general",
+      "related_ids": [
+        "paragraph-style",
+        "paragraph-spacing",
+        "document-class",
+        "local-language"
+      ],
+      "source_refs": [
+        "assets/preamble.tex",
+        "references/content-style.md"
+      ],
+      "section": "typography",
+      "owner": "מדיניות הפסקאות של המסמך",
+      "aliases": [
+        "Paragraph indentation"
+      ],
+      "introduced_in": "5.4.5",
+      "updated_in": "5.4.5"
+    },
+    {
+      "id": "paragraph-spacing",
+      "hebrew": "רווח בין פסקאות",
+      "english": "Paragraph spacing",
+      "definition": "הרווח האנכי שמפריד בין פסקאות. נבחר יחד עם ההזחה כדי ליצור קצב קריאה ברור; אינו מרווח השורות בתוך פסקה ואינו מרווח ידני אחרי כל משפט.",
+      "example": "`block` מספק רווח מתון בין פסקאות בגוף רגיל. בתוך `referencecolumns` ו־`referencewide` הפריסה מפעילה רווח מקומי הדוק ושומרת על קריאות.",
+      "audience": "both",
+      "status": "general",
+      "related_ids": [
+        "paragraph-style",
+        "first-line-indent",
+        "layout-extension",
+        "scope"
+      ],
+      "source_refs": [
+        "assets/preamble.tex",
+        "assets/reference_columns.tex",
+        "references/content-style.md"
+      ],
+      "section": "typography",
+      "owner": "מדיניות הפסקאות ופריסת ההקשר",
+      "aliases": [
+        "Paragraph gap"
+      ],
+      "introduced_in": "5.4.5",
+      "updated_in": "5.4.5"
+    },
+    {
+      "id": "callout",
+      "hebrew": "תיבת הדגשה",
+      "english": "Callout",
+      "definition": "רכיב שמפריד נקודה בעלת תפקיד עבור הקורא, כגון אזהרה, הגדרה או תוצאה מרכזית. עצם זמינות הרכיב אינה סיבה להשתמש בו; מסמך יכול להיות שלם גם ללא תיבות.",
+      "example": "בעיצוב `reference`, תיבת `notebox` רגילה מקבלת גוף לבן ופס כותרת אפור כאשר יש כותרת. מכתב רגיל נכתב בפרוזה; גלריית תיבות אינה מכתיבה את כמות ההדגשות בו.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "theme",
+        "document-kind",
+        "starter",
+        "semantic-extension"
+      ],
+      "source_refs": [
+        "assets/preamble.tex",
+        "assets/reference_theme.tex",
+        "references/figures-boxes-listings.md",
+        "references/content-style.md"
+      ],
+      "section": "typography",
+      "owner": "ממשקי התיבות בליבה ושכבת ההצגה",
+      "aliases": [
+        "Highlight box"
+      ],
+      "introduced_in": "5.4.5",
+      "updated_in": "5.4.5"
+    },
+    {
+      "id": "ragged-alignment",
+      "hebrew": "יישור לשפת הקריאה",
+      "english": "Reading-edge / Ragged alignment",
+      "definition": "יישור שורות לצד שממנו מתחילים לקרוא, כאשר הצד הנגדי נשאר חופשי. המרווחים בין המילים אינם נמתחים כדי ליישר גם את הצד השני. כיוון היישור נקבע לפי השפה המקומית: שמאל באנגלית וימין בעברית.",
+      "example": "כותרת בתוך `referencecolumns` או `referencewide` מיושרת לשפת הקריאה שלה, גם כאשר מחליפים Theme. סדר הטורים עדיין נקבע לפי השפה הראשית, ומדיניות פסקאות הגוף נשארת נפרדת.",
+      "audience": "both",
+      "status": "general",
+      "related_ids": [
+        "local-language",
+        "layout-extension",
+        "scope",
+        "word-hyphenation"
+      ],
+      "source_refs": [
+        "assets/reference_columns.tex",
+        "references/reference-sheets.md",
+        "references/language-design.md"
+      ],
+      "section": "typography",
+      "owner": "assets/reference_columns.tex",
+      "aliases": [
+        "Ragged-right",
+        "Ragged-left",
+        "Reading-edge alignment"
+      ],
+      "introduced_in": "5.4.5",
+      "updated_in": "5.4.5"
+    },
+    {
+      "id": "word-hyphenation",
+      "hebrew": "חלוקת מילה בין שורות",
+      "english": "Hyphenation",
+      "definition": "חלוקת מילה בסוף שורה, לרוב באמצעות מקף מעבר ולפי כללי השפה. זהו מנגנון נפרד ממעבר שורה בין מילים וממקף שהמחבר כתב כחלק מהמילה.",
+      "example": "בכותרות בתוך `referencecolumns` ו־`referencewide` אין חלוקת מילים אוטומטית: כותרת אנגלית יכולה לעבור שורה בין מילים בלי לפצל `eigenvalues`. מקפים שנכתבו במקור נשמרים; פסקאות הגוף והכותרות מחוץ לפריסה שומרות על המדיניות שלהן.",
+      "audience": "both",
+      "status": "general",
+      "related_ids": [
+        "ragged-alignment",
+        "local-language",
+        "layout-extension",
+        "scope"
+      ],
+      "source_refs": [
+        "assets/reference_columns.tex",
+        "references/reference-sheets.md",
+        "references/language-design.md"
+      ],
+      "section": "typography",
+      "owner": "assets/reference_columns.tex",
+      "aliases": [
+        "Automatic hyphenation",
+        "Word splitting"
+      ],
+      "introduced_in": "5.4.5",
+      "updated_in": "5.4.5"
     }
   ],
-  "skill_version": "5.4.4",
+  "skill_version": "5.4.5",
   "paths": {
     "records": "references/glossary/terms.json",
     "markdown": "references/glossary-he-en.md"

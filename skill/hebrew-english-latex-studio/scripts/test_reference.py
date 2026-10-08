@@ -405,5 +405,40 @@ class ReferenceOwnership(unittest.TestCase):
                                 for finding in findings), findings)
 
 
+
+class ReferenceHeadingScope(unittest.TestCase):
+    """The layout owns heading flow, without replacing theme section styles."""
+    def test_heading_wrapper_preserves_native_arguments_and_precedes_title_consumer(self):
+        source = heading_source.clean_source((ROOT/'assets/reference_columns.tex').read_text())
+        wrapper = source.split(r'\newcommand{\hllpdf@referenceactivateheadings}',1)[1].split(
+            r'\providecommand{\hllpdf@referencebodysetup}',1)[0]
+        self.assertIn(r'\ifhllpdf@referenceheadingsactive\else',wrapper)
+        self.assertIn(r'\let\hllpdf@referenceoriginalstartsection\@startsection',wrapper)
+        self.assertIn(r'\hllpdf@referenceoriginalstartsection{##1}{##2}{##3}{##4}{##5}',wrapper)
+        self.assertIn(r'{\hllpdf@referenceheadingsetup ##6}',wrapper)
+        self.assertNotIn(r'{##6 \hllpdf@referenceheadingsetup}',wrapper,
+                         'a theme may consume the title at the end of style argument 6')
+        theme = heading_source.clean_source((ROOT/'assets/reference_theme.tex').read_text())
+        self.assertIn(r'\color{black}\hllpdf@referencehead}',theme,
+                      'the reference theme keeps its native title-consuming ruled style')
+
+    def test_heading_activation_is_guarded_by_actual_reference_layout_scope(self):
+        source = heading_source.clean_source((ROOT/'assets/reference_columns.tex').read_text())
+        select = source.split(r'\newcommand{\ReferenceSelectBodyFont}',1)[1].split(
+            r'\newcommand{\hllpdf@referenceoutercheck}',1)[0]
+        self.assertEqual(select.count(r'\hllpdf@referenceactivateheadings'),2)
+        self.assertRegex(select,re.escape(r'\ifhllpdf@referencecolumnsactive')+r'\s*'+
+            re.escape(r'\hllpdf@referenceactivateheadings'))
+        self.assertRegex(select,re.escape(r'\else\ifhllpdf@referencewideactive')+r'\s*'+
+            re.escape(r'\hllpdf@referenceactivateheadings'))
+        setup = source.split(r'\newcommand{\hllpdf@referenceheadingsetup}',1)[1].split(
+            r'\newcommand{\hllpdf@referenceactivateheadings}',1)[0]
+        self.assertIn(r'\raggedright',setup)
+        self.assertIn(r'\hyphenpenalty=10000\relax',setup)
+        self.assertNotIn(r'\exhyphenpenalty',setup,'authored compounds retain native break policy')
+        for prohibited in (r'\raggedleft',r'\pardir',r'\bodydir',r'\global'):
+            self.assertNotIn(prohibited,setup)
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)

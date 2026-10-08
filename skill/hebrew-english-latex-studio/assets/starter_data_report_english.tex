@@ -4,6 +4,7 @@
 \def\lakitclassoptions{11pt,a4paper}
 \def\lakitgeometryoptions{margin=2.2cm,headheight=14pt}
 \def\lakitlinespread{1.18}
+\def\lakitparagraphstyle{block}
 \input{preamble.tex}
 \input{document_components.tex}
 \input{flow_tables.tex}
@@ -11,9 +12,9 @@
 \hypersetup{pdftitle={Data report},pdfauthor={}}
 \begin{document}
 % Replace sample content, title, and metadata before delivery.
-{\LARGE\sffamily\bfseries Data report}\par\medskip
-These are synthetic example values. Before drawing conclusions from real data,
-record the source, define the units, and verify that each record is included once.
+{\LARGE\sffamily\bfseries\noindent Data report\par}\medskip
+The table contains six synthetic records of a dimensionless variable. Each record
+contributes equally to the unweighted mean.
 \section{Variable definitions}
 Let $x_i$ be the value of record $i$ and $n$ the number of records.
 For this example, use the unweighted mean:
@@ -24,15 +25,16 @@ For this example, use the unweighted mean:
 \section{Data}
 \begin{flowtable}{3}{N{.12\flowtablewidth} N{.18\flowtablewidth} E{.70\flowtablewidth}}
 {Example records}{tab:measurements}{ID & Value & Note}
-001 & -12.50 & Negative values retain their sign and decimal digits.\\
+001 & -12.50 & The negative value is included in the mean.\\
 002 & 0.00 & Zero is an observed value, not a missing-value marker.\\
-003 & 4.25 & Record the measurement conditions or other relevant context.\\
-004 & 8.00 & Longer descriptions can wrap without reducing the font size.\\
-005 & 13.75 & Adding rows allows the table to continue onto later pages.\\
-006 & 16.50 & The heading repeats on later pages; the list entry remains unique.\\
+003 & 4.25 & The record has the same weight as the other records.\\
+004 & 8.00 & The value refers to the dimensionless variable defined for this example; no additional weighting has been applied.\\
+005 & 13.75 & The identifier denotes one record in the example.\\
+006 & 16.50 & This is the final record in the sample.\\
 \end{flowtable}
 \section{Checks and conclusions}
 \autoref{tab:measurements} contains six records. Substitution in
-\eqref{eq:mean} gives $\bar{x}=5$. For real data, also check missing values,
-units, and provenance.
+\eqref{eq:mean} gives $\bar{x}=5$. This result describes only the example dataset.
+% For real data, verify provenance, units, missing values and unique record IDs.
+% Long descriptions may wrap, and flowtable can continue with repeated headers.
 \end{document}

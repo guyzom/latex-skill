@@ -15,7 +15,7 @@
 % Font binaries are external dependencies, pinned by assets/fonts/SHA256SUMS.
 % scripts/setup_fonts.sh imports a verified local installation or prior skill.
 %
-% PUBLIC DOCUMENT-SHELL / LAYOUT CONTRACT (introduced v4.3.1; architecture-owned v4.7.1).  These six hooks may be
+% PUBLIC DOCUMENT-SHELL / LAYOUT CONTRACT (introduced v4.3.1; architecture-owned v4.7.1). These hooks may be
 % defined BEFORE \input{preamble.tex}; if omitted, the historical canonical
 % defaults below are exact.  They deliberately control only the document shell
 % and page layout.  RTL/math semantics stay in this preamble, while visual
@@ -25,6 +25,7 @@
 %   \def\lakitclassoptions{11pt,a4paper}
 %   \def\lakitgeometryoptions{margin=1.8cm,headheight=14pt}
 %   \def\lakitlinespread{1.15}
+%   \def\lakitparagraphstyle{block} % letters/briefs; indented for continuous prose
 %   \def\lakittocdepth{1}
 %   \def\lakitsecnumdepth{2}
 %   \input{preamble.tex}
@@ -50,6 +51,18 @@
 \ifdefined\lakitlinespread\else\def\lakitlinespread{1.3}\fi
 \ifdefined\lakittocdepth\else\def\lakittocdepth{1}\fi
 \ifdefined\lakitsecnumdepth\else\def\lakitsecnumdepth{2}\fi
+% Paragraph organization belongs to the document layout, independently of its
+% language and theme. Preserve historical class dimensions unless explicitly
+% selecting block paragraphs; never suppress indentation with an everypar hack.
+\ifdefined\lakitparagraphstyle\else\def\lakitparagraphstyle{indented}\fi
+\edef\lakitparagraphstyle{\lakitparagraphstyle}
+\def\hllpdfparagraphblock{block}
+\def\hllpdfparagraphindented{indented}
+\ifx\lakitparagraphstyle\hllpdfparagraphblock\else
+  \ifx\lakitparagraphstyle\hllpdfparagraphindented\else
+    \errmessage{hllpdf: paragraph style must be block or indented}
+  \fi
+\fi
 % v4.3.1: the public class hook has a deliberately narrow support contract.
 % Before this guard, \def\lakitdocumentclass{book} silently compiled even though
 % every heading/TOC regression test targets report/article; an unsupported shell
@@ -319,6 +332,14 @@
 % impossible to publish as a clean default build.
 \usepackage[\lakitgeometryoptions]{geometry}
 \linespread{\lakitlinespread}       % layout hook; canonical default remains 1.3
+\ifx\lakitparagraphstyle\hllpdfparagraphblock
+  \setlength{\parindent}{0pt}
+  \setlength{\parskip}{6pt plus 1pt minus 1pt}
+\fi
+% These dimensions remain ordinary scoped TeX lengths: authors can customize
+% them after core input. Language switches inherit them; lists keep their own
+% indentation and narrow reference layouts establish their local paragraph gaps.
+\typeout{HLLPAR|\lakitparagraphstyle}
 \usepackage{xcolor}
 \usepackage{mdframed}
 \usepackage{listings}                 % code listings (assembly / C / pseudo-code)

@@ -1189,9 +1189,14 @@ class ReferenceRuntime(unittest.TestCase):
         if shutil.which('lualatex') is None:
             raise RuntimeError('lualatex is required for reference runtime controls')
         fonts = str(font_dir())
+        cache = cls.root / 'tex-cache'
+        variable = cls.root / 'tex-var'
+        cache.mkdir()
+        variable.mkdir()
         cls.env = dict(os.environ, HEBREW_LATEX_FONT_DIR=fonts, OSFONTDIR=fonts,
-            TTFONTS=fonts+'//:', SOURCE_DATE_EPOCH='1700000000', TZ='UTC',
-            PYTHONDONTWRITEBYTECODE='1')
+                       TTFONTS=fonts+'//:', SOURCE_DATE_EPOCH='1700000000', TZ='UTC',
+                       PYTHONDONTWRITEBYTECODE='1', TEXMFCACHE=str(cache),
+                       TEXMFVAR=str(variable), TEXMFOUTPUT=str(cls.root))
         cls.env.pop('HEBREW_LATEX_PROJECT_ROOT', None)
         cls.directories = {}
         def compile_profile(pair):
@@ -1608,8 +1613,10 @@ class ReferenceRuntime(unittest.TestCase):
             layout, profile, main = choice
             directory = self.root/('managed-'+layout+'-'+profile+'-'+main)
             create('formula-sheet', directory, language=profile, main_language=main, layout=layout)
+            environment=dict(self.env, HEBREW_LATEX_SKILL_ROOT=str(ROOT))
+            environment.pop('TEXMFOUTPUT', None)
             result = subprocess.run(['bash', str(directory/'build.sh')], cwd=directory,
-                env=dict(self.env, HEBREW_LATEX_SKILL_ROOT=str(ROOT)), text=True,
+                env=environment, text=True,
                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=240)
             (directory/'managed-build.txt').write_text(result.stdout, encoding='utf-8')
             return choice, directory, result
@@ -1879,6 +1886,275 @@ class ReferenceRuntime(unittest.TestCase):
                         self.assertEqual(p, page)
                         self.assertEqual(column_index(pdf[p], rect, 2, main),
                                          column_index(pdf[page], body, 2, main))
+
+
+def reference_heading_fixture(main, theme):
+    """Narrow/wide native headings with actual scope and typography probes."""
+    layers = ('reference_columns.tex', 'reference_components.tex', 'reference_shell.tex')
+    if theme != 'core':
+        layers += (theme+'_theme.tex',)
+    source = header(main,main,layers=layers,body_font_size='6.3',body_baseline='7.8',
+        extra=r'\def\lakitparagraphstyle{block}\def\lakitsecnumdepth{2}\def\lakittocdepth{2}')
+    source += r'''
+\makeatletter
+\let\ReferenceHeadingOriginalStartsection\@startsection
+\newcommand{\ReferenceHeadingScopeProbe}[1]{%
+  \typeout{REF-HEAD-SCOPE:#1:\ifx\@startsection\ReferenceHeadingOriginalStartsection ORIGINAL\else WRAPPED\fi:\the\hyphenpenalty:\the\exhyphenpenalty:\the\rightskip:\the\leftskip}}
+\newcommand{\ReferenceHeadingTitleProbe}[1]{%
+  \typeout{REF-HEAD-TITLE:#1:\f@size:\the\baselineskip:\the\hyphenpenalty:\the\exhyphenpenalty:\the\rightskip:\the\leftskip}}
+\makeatother
+\begin{document}
+\ReferenceHeadingScopeProbe{OUTERBEFORE}
+\ReferenceSelectBodyFont
+\ReferenceHeadingScopeProbe{PUBLICSELECT}
+\normalsize
+\begin{referencecolumns}[3]
+\ReferenceSelectBodyFont\ReferenceSelectBodyFont
+\ReferenceHeadingScopeProbe{COLUMNS}
+'''
+    def body(locale, token):
+        text='A bounded reference step.' if locale=='english' else 'צעד עזר מוגדר.'
+        return text+r'\par'+'\n'+marker(token)+r'\par'+'\n'
+    titles = ('Eigenvalues and uncertainty in expectation values',
+              'Measurements and probabilities', 'Phase-space measurements',
+              'Dynamics waves and single-qubit expectation values') if main=='english' else (
+              'הסתברות וערכים עצמיים במערכות קוונטיות',
+              'מדידות והסתברויות', 'שלב-מרחב ומדידות',
+              'דינמיקה גלים ותוחלת במערכת קוונטית')
+    source += marker('HEADINGBEFORECOLUMN')+r'\par'+'\n'
+    source += (r'\section[Column heading]{\texorpdfstring{\ReferenceHeadingTitleProbe{COLUMN}}{}'+
+        titles[0]+r'}\label{sec:heading-column}'+'\n')
+    source += marker('HEADINGAFTERCOLUMN')+r'\par'+'\n'+body(main,'HEADINGCOLUMNBODY')
+    source += r'\ReferenceHeadingScopeProbe{COLUMNBODY}'+'\n'
+    source += marker('HEADINGBEFORECHILD')+r'\par'+'\n'
+    source += (r'\subsection[Child heading]{\texorpdfstring{\ReferenceHeadingTitleProbe{CHILD}}{}'+
+        titles[1]+r' \texorpdfstring{$x_{y_z}$}{x}}\label{sec:heading-child}'+'\n')
+    source += marker('HEADINGAFTERCHILD')+r'\par'+'\n'+body(main,'HEADINGCHILDBODY')
+    source += (r'\section*{\texorpdfstring{\ReferenceHeadingTitleProbe{STAR}}{}'+
+        titles[2]+r'}'+body(main,'HEADINGSTARBODY'))
+    other = 'hebrew' if main=='english' else 'english'
+    minority = 'Minority reference heading' if other=='english' else 'כותרת עזר בשפה נוספת'
+    source += r'\par\columnbreak'+fr'\begin{{{other}prose}}'+'\n'
+    source += r'\ReferenceHeadingScopeProbe{MINORITYBODY}'+'\n'
+    source += r'\section*{\texorpdfstring{\ReferenceHeadingTitleProbe{MINORITY}}{}'+minority+r'}'+'\n'
+    source += body(other,'HEADINGMINORITYBODY')+fr'\end{{{other}prose}}'+'\n'
+    source += r'\par\columnbreak'+'\n'+body(main,'HEADINGTHIRDBODY')+'\n'
+    source += r'\end{referencecolumns}\ReferenceHeadingScopeProbe{AFTERCOLUMNS}'+'\n'
+    source += r'\begin{referencewide}\ReferenceSelectBodyFont\ReferenceHeadingScopeProbe{WIDE}'+'\n'
+    source += marker('HEADINGBEFOREWIDE')+r'\par'+'\n'
+    source += (r'\section[Wide heading]{\texorpdfstring{\ReferenceHeadingTitleProbe{WIDE}}{}'+
+        titles[3]+r'}\label{sec:heading-wide}'+'\n')
+    source += marker('HEADINGAFTERWIDE')+r'\par'+'\n'+body(main,'HEADINGWIDEBODY')
+    source += r'\ReferenceHeadingScopeProbe{WIDEBODY}'+'\n'
+    source += r'\end{referencewide}\ReferenceHeadingScopeProbe{OUTERAFTER}'+'\n'
+    source += r'\ref{sec:heading-column}, \ref{sec:heading-child}, \ref{sec:heading-wide}.'+'\n'
+    source += r'\[x_{y_z}+\frac{\alpha}{\sqrt{u}}=1\]'+'\n'
+    return source+r'\end{document}'+'\n'
+
+
+def reference_heading_probes(log, kind):
+    return {match[0]:match[1].split(':') for match in re.findall(
+        r'REF-HEAD-'+kind+r':([^:\n]+):([^\n]+)',log)}
+
+
+def reference_heading_word_geometry(pdf, phase):
+    before_page,before = exact_occurrence(pdf,'HEADINGBEFORE'+phase)
+    after_page,after = exact_occurrence(pdf,'HEADINGAFTER'+phase)
+    if before_page != after_page or after.y0 <= before.y1:
+        raise AssertionError(('heading probe region split or reordered',phase,before,after))
+    page = pdf[before_page]
+    region = fitz.Rect(MARGIN-1,before.y1-1,page.rect.width-MARGIN+1,after.y0+.2)
+    if phase in ('COLUMN','CHILD'):
+        physical = column_index(page,before,3,'english')
+        width = (page.rect.width-2*MARGIN-2*GAP)/3
+        region.x0=MARGIN+physical*(width+GAP)-1
+        region.x1=region.x0+width+2
+    words = [word for word in page.get_text('words') if region.contains(fitz.Rect(word[:4]))
+             and not re.fullmatch(r'[\d.]+',word[4])]
+    if not words:
+        raise AssertionError(('no native heading words in probe region',phase,region))
+    lines = {}
+    for word in words:
+        lines.setdefault((word[5],word[6]),[]).append(word)
+    gaps = []
+    for row in lines.values():
+        row.sort(key=lambda word:word[0])
+        gaps.extend(right[0]-left[2] for left,right in zip(row,row[1:]))
+    return {'page':before_page+1,'region':list(region),'words':[word[4] for word in words],
+            'lines':len(lines),'gaps':gaps,'rows':[[list(word[:5]) for word in row]
+                for row in lines.values()]}
+
+
+class ReferenceHeadingRuntime(unittest.TestCase):
+    """Fresh theme-independent heading flow and genuinely old-style controls."""
+    compile = classmethod(ReferenceRuntime.compile.__func__)
+    run_engine = classmethod(ReferenceRuntime.run_engine.__func__)
+
+    @classmethod
+    def setUpClass(cls):
+        preserve = os.environ.get('HLLPDF_REFERENCE_HEADING_EVIDENCE_DIR')
+        if preserve:
+            cls.root=Path(preserve).resolve()
+            if cls.root==ROOT or ROOT in cls.root.parents:
+                raise ValueError('heading evidence must be outside the skill')
+            cls.root.mkdir(parents=True,exist_ok=False)
+        else:
+            cls.tmp=tempfile.TemporaryDirectory(prefix='studio-reference-heading-runtime-')
+            cls.addClassCleanup(cls.tmp.cleanup)
+            cls.root=Path(cls.tmp.name)
+        if shutil.which('lualatex') is None:
+            raise RuntimeError('lualatex is required for heading runtime controls')
+        fonts=str(font_dir())
+        cache=cls.root/'tex-cache'
+        variable=cls.root/'tex-var'
+        cache.mkdir()
+        variable.mkdir()
+        cls.env=dict(os.environ,HEBREW_LATEX_FONT_DIR=fonts,OSFONTDIR=fonts,
+            TTFONTS=fonts+'//:',SOURCE_DATE_EPOCH='1700000000',TZ='UTC',PYTHONDONTWRITEBYTECODE='1',
+            TEXMFCACHE=str(cache),TEXMFVAR=str(variable),TEXMFOUTPUT=str(cls.root))
+        cls.env.pop('HEBREW_LATEX_PROJECT_ROOT',None)
+        cls.assets=ASSETS+('reader_theme.tex','academic_theme.tex')
+        cls.directories={}
+        def build(pair):
+            main,theme=pair
+            directory,result=cls.compile(main+'-'+theme,reference_heading_fixture(main,theme),
+                passes=3,assets=cls.assets)
+            if result.returncode:
+                raise AssertionError(main+'-'+theme+': '+result.stdout[-6000:])
+            for forbidden in ('Overfull ','Missing character:','LaTeX Font Warning:',
+                              'undefined references','Token not allowed in a PDF string'):
+                if forbidden in result.stdout:
+                    raise AssertionError(main+'-'+theme+': '+forbidden+'\n'+result.stdout[-6000:])
+            return pair,directory
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            for pair,directory in executor.map(build,[(main,theme)
+                    for main in ('english','hebrew') for theme in ('core','reader','academic','reference')]):
+                cls.directories[pair]=directory
+        cls.negative={}
+        # Remove the new title-only setup in copied assets, reproducing native
+        # old justified/hyphenated headings without changing body/font/theme.
+        target=r'''\newcommand{\hllpdf@referenceheadingsetup}{%
+  \raggedright
+  \hyphenpenalty=10000\relax}'''
+        asset=(ROOT/'assets/reference_columns.tex').read_text()
+        if asset.count(target)!=1:
+            raise AssertionError('negative control lost its exact layout owner target')
+        for theme in ('core','academic'):
+            name='old-justified-english-'+theme
+            directory=cls.root/name
+            directory.mkdir()
+            for item in cls.assets:
+                shutil.copyfile(ROOT/'assets'/item,directory/item)
+            (directory/'reference_columns.tex').write_text(asset.replace(
+                target,r'\newcommand{\hllpdf@referenceheadingsetup}{}',1))
+            (directory/'main.tex').write_text(reference_heading_fixture('english',theme))
+            result=cls.run_engine(directory,3)
+            if result.returncode:
+                raise AssertionError('old-style negative did not compile: '+result.stdout[-6000:])
+            cls.negative[theme]=directory
+        observations={}
+        for pair,directory in cls.directories.items():
+            with fitz.open(directory/'main.pdf') as pdf:
+                observations['-'.join(pair)]={'pdf_sha256':hashlib.sha256((directory/'main.pdf').read_bytes()).hexdigest(),
+                    'columns':reference_heading_word_geometry(pdf,'COLUMN'),
+                    'wide':reference_heading_word_geometry(pdf,'WIDE'),
+                    'child':reference_heading_word_geometry(pdf,'CHILD')}
+        for theme,directory in cls.negative.items():
+            with fitz.open(directory/'main.pdf') as pdf:
+                observations['old-justified-'+theme]={'pdf_sha256':hashlib.sha256((directory/'main.pdf').read_bytes()).hexdigest(),
+                    'columns':reference_heading_word_geometry(pdf,'COLUMN')}
+        (cls.root/'heading-measurements.json').write_text(json.dumps(observations,ensure_ascii=False,indent=2)+'\n')
+
+    def assert_scoped_heading_policy(self,directory):
+        log=(directory/'pass-3.txt').read_text()
+        titles=reference_heading_probes(log,'TITLE')
+        self.assertEqual(set(titles),{'COLUMN','CHILD','STAR','MINORITY','WIDE'})
+        for role,values in titles.items():
+            self.assertEqual(values[2],'10000',(role,values))
+            self.assertIn('fil',values[4],(role,values))
+            self.assertEqual(values[5],'0.0pt',(role,values))
+        scopes=reference_heading_probes(log,'SCOPE')
+        for role in ('COLUMNS','COLUMNBODY','WIDE','WIDEBODY'):
+            self.assertEqual(scopes[role][0],'WRAPPED',(role,scopes[role]))
+        for role in ('OUTERBEFORE','PUBLICSELECT','AFTERCOLUMNS','OUTERAFTER'):
+            self.assertEqual(scopes[role][0],'ORIGINAL',(role,scopes[role]))
+        # The paragraph body keeps its actual native hyphen penalty; locally
+        # ragged reference-theme prose remains its own distinct body policy.
+        for role,values in scopes.items():
+            if role=='MINORITYBODY':
+                continue
+            self.assertEqual(values[1],scopes['OUTERBEFORE'][1],(role,values))
+            self.assertEqual(values[2],scopes['OUTERBEFORE'][2],(role,values))
+        self.assertEqual(scopes['OUTERAFTER'][3:],scopes['OUTERBEFORE'][3:])
+        for role,values in titles.items():
+            native=scopes['MINORITYBODY'] if role=='MINORITY' else scopes['OUTERBEFORE']
+            self.assertEqual(values[3],native[2])
+        return titles
+
+    def test_active_columns_and_wide_headings_are_natural_while_outer_scope_restores(self):
+        for pair,directory in self.directories.items():
+            with self.subTest(language=pair[0],theme=pair[1]):
+                titles=self.assert_scoped_heading_policy(directory)
+                with fitz.open(directory/'main.pdf') as pdf:
+                    for phase in ('COLUMN','WIDE'):
+                        geometry=reference_heading_word_geometry(pdf,phase)
+                        size=float(titles[phase][0])*72/72.27
+                        self.assertTrue(all(gap<.7*size for gap in geometry['gaps']),geometry)
+                        self.assertTrue(all(not word.endswith('-') for word in geometry['words']),geometry)
+                        edges=[(min(word[0] for word in row) if pair[0]=='english'
+                            else max(word[2] for word in row)) for row in geometry['rows']]
+                        self.assertLess(max(edges)-min(edges),.15,geometry)
+                    for token,expected in (('HEADINGCOLUMNBODY',0),('HEADINGMINORITYBODY',1),('HEADINGTHIRDBODY',2)):
+                        page,rect=exact_occurrence(pdf,token)
+                        self.assertEqual(column_index(pdf[page],rect,3,pair[0]),expected)
+
+    def test_native_counters_stars_navigation_and_theme_font_sizes_survive(self):
+        for pair,directory in self.directories.items():
+            with self.subTest(language=pair[0],theme=pair[1]):
+                aux=(directory/'main.aux').read_text()
+                with fitz.open(directory/'main.pdf') as pdf:
+                    for label,number,level in (('sec:heading-column','1',1),
+                            ('sec:heading-child','1.1',2),('sec:heading-wide','2',1)):
+                        fields=label_fields(aux,label)
+                        self.assertEqual(fields[1],number)
+                        page,_,_=pdf.resolve_link('#nameddest='+fields[4])
+                        self.assertGreaterEqual(page,0)
+                        links=[(p,link) for p in pdf for link in p.get_links()
+                            if link.get('nameddest')==fields[4]]
+                        self.assertEqual(len(links),1)
+                        self.assertIn(number,reference_string(*links[0]))
+                    self.assertEqual([row[0] for row in pdf.get_toc()],[1,2,1])
+                if pair[0]=='english' and pair[1] in self.negative:
+                    current=reference_heading_probes((directory/'pass-3.txt').read_text(),'TITLE')
+                    old=reference_heading_probes((self.negative[pair[1]]/'pass-3.txt').read_text(),'TITLE')
+                    self.assertEqual({role:values[:2] for role,values in current.items()},
+                                     {role:values[:2] for role,values in old.items()},
+                                     'native theme heading font size and baseline must not change')
+                    def math_faces(path):
+                        with fitz.open(path/'main.pdf') as pdf:
+                            region=reference_heading_word_geometry(pdf,'CHILD')
+                            traces=pdf[region['page']-1].get_texttrace()
+                            faces=[(trace['font'],round(trace['size'],5),len(trace['chars']))
+                                for trace in traces if fitz.Rect(region['region']).contains(fitz.Rect(trace['bbox']))
+                                and trace['font'].startswith(('CM','MSAM','MSBM'))]
+                            self.assertTrue(faces,'actual nested heading mathematics is missing')
+                            self.assertGreaterEqual(len({face[1] for face in faces}),3,
+                                'nested heading math must retain three real script tiers')
+                            return sorted(faces)
+                    self.assertEqual(math_faces(directory),math_faces(self.negative[pair[1]]),
+                        'reading-edge setup must preserve actual heading math faces and point sizes')
+
+    def test_genuine_old_justified_headings_are_rejected_by_the_same_policy(self):
+        for theme,directory in self.negative.items():
+            with self.subTest(theme=theme):
+                with self.assertRaises(AssertionError):
+                    self.assert_scoped_heading_policy(directory)
+                with fitz.open(directory/'main.pdf') as pdf:
+                    old=reference_heading_word_geometry(pdf,'COLUMN')
+                size=float(reference_heading_probes((directory/'pass-3.txt').read_text(),'TITLE')['COLUMN'][0])*72/72.27
+                self.assertTrue(any(gap>=.7*size for gap in old['gaps'])
+                    or any(word.endswith('-') for word in old['words']),
+                    'negative must actually show stretched word gaps or automatic splits: '+str(old))
 
 
 if __name__ == '__main__':

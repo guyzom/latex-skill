@@ -4,26 +4,28 @@
 \def\lakitclassoptions{11pt,a4paper}
 \def\lakitgeometryoptions{margin=2.2cm,headheight=14pt}
 \def\lakitlinespread{1.18}
+\def\lakitparagraphstyle{block}
 \input{preamble.tex}
 \input{document_components.tex}
 \input{deferred_notes.tex}
 \input{reader_theme.tex}
-\hypersetup{pdftitle={Annotated note},pdfauthor={}}
-\DeclareDocNote[english]{scope}{Clarify the relevant assumption or identify the actual source here.}
+\hypersetup{pdftitle={Comparing values},pdfauthor={}}
+\DeclareDocNote[english]{scope}{The two values refer to the same quantity in the same units. Convert different units before subtracting the values.}
 \begin{document}
-% Replace sample content, title, and metadata before delivery.
-{\LARGE\sffamily\bfseries Annotated note}\par\medskip
-The opening paragraph introduces the main idea and the scope of the discussion.
-An ordinary footnote can add supporting detail\footnote{This is a sample note;
-replace it with information relevant to the document.}.
+% Synthetic mathematical example: replace the scope, text and metadata as needed.
+% Footnotes and deferred notes carry supporting content, not authoring guidance.
+{\LARGE\sffamily\bfseries\noindent Comparing values\par}\medskip
+Comparing two values requires a common definition of the measured quantity and
+its units\footnote{For example, one metre equals $100$ centimetres. Different
+units can describe the same length.}.
 \section{Claim and assumptions}
-Explain the assumption needed for the discussion.
-\begin{notebox}[frametitle={An assumption to clarify}]
-State the assumption here\DocNoteMark{scope}. Its note body is kept outside the box.
-\end{notebox}
+Assume that the values $x$ and $y$ can be compared directly\DocNoteMark{scope}.
+The difference $d=x-y$ describes the size and direction of their separation.
+% DeclareDocNote captures the note outside the prose; PrintDocNotes emits it here.
 \PrintDocNotes
 \section{Implication}
-The same clarification can be cited again\DocNoteMark{scope} without allocating
-another note. Ordinary numbering continues after it\footnote{A second ordinary
-sample note, following the deferred note.}.
+Under this assumption\DocNoteMark{scope}, a positive difference means $x>y$,
+a negative difference means $x<y$, and $d=0$ means that the values are
+equal\footnote{A difference describes a gap between values; it does not explain
+the cause of that gap.}.
 \end{document}

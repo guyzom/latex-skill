@@ -13,6 +13,7 @@ import sys
 import zlib
 sys.dont_write_bytecode = True
 from architecture_contract import ASSET_SPECS, HOOK_SPECS, REFERENCE_STYLE_HOOK_SPECS
+from heading_source import clean_source
 
 def core_body(lang):
     if lang == 'hebrew':
@@ -80,10 +81,10 @@ $i$ & $x_i$ \\
 def exam_body(lang):
     if lang=='hebrew':
         question='שאלה לדוגמה'; statement='חשבו את הנגזרת של הפונקציה. זו שאלת בדיקה סינתטית.'
-        solution='משתמשים בכלל החזקה.'; cap='איור מקור סינתטי'; ref='ראו שאלה~\\ref{q:sample} ואיור~\\ref{fig:source}.'
+        solution='משתמשים בכלל החזקה.'; cap='איור מקור סינתטי'; tablecap='ערכי הנגזרת'; ref='ראו שאלה~\\ref{q:sample} ואיור~\\ref{fig:source}.'
     else:
         question='Sample question'; statement='Differentiate the function. This is a synthetic test question.'
-        solution='Apply the power rule.'; cap='Synthetic source figure'; ref='See question~\\ref{q:sample} and figure~\\ref{fig:source}.'
+        solution='Apply the power rule.'; cap='Synthetic source figure'; tablecap='Derivative values'; ref='See question~\\ref{q:sample} and figure~\\ref{fig:source}.'
     minority=('\\begin{englishprose}The short English paragraph is local.\\end{englishprose}' if lang=='hebrew'
               else '\\begin{hebrewprose}הפסקה העברית קצרה ומקומית.\\end{hebrewprose}')
     return rf'''\section{{{question}}}
@@ -101,7 +102,7 @@ def exam_body(lang):
 {ref}
 \begin{{tablebox}}\centering
 \begin{{tabular}}{{rr}}$x$ & $f'(x)$ \\ 1 & 3 \\ 2 & 12\end{{tabular}}
-\tabcap{{\label{{tab:exam}}{cap}}}
+\tabcap{{\label{{tab:exam}}{tablecap}}}
 \end{{tablebox}}
 '''
 
@@ -229,6 +230,8 @@ def validate_fixture_source(metadata: dict, source: str) -> list[str]:
     indirect path whose actual labels must be present in the resulting PDF.
     """
     errors = []
+    raw_source = source
+    source = clean_source(source)
     tokens = set(re.findall(r'\\([A-Za-z]+)', source)) | set(re.findall(r'\\begin\{([A-Za-z]+)\}', source))
     by_path = {spec.path: spec for spec in ASSET_SPECS}
     for path in metadata['architecture_assets']:
@@ -243,11 +246,17 @@ def validate_fixture_source(metadata: dict, source: str) -> list[str]:
                         or r'\pagestyle{STtopic}' not in source or r'\STnames{' not in source
                         or r'\part{' not in source):
                     errors.append(f'{path}:{symbol}: loaded-only API claim lacks actual use')
+    hook_specs = {hook.name: hook for hook in HOOK_SPECS}
     for name in metadata['configuration_hooks']:
         declaration = rf'\\(?:def|newcommand|renewcommand|providecommand)\s*(?:\{{\\{name}\}}|\\{name}\b)'
-        if not re.search(declaration, source):
+        match = re.search(declaration, source)
+        if not match:
             errors.append(f'{name}: hook coverage lacks an authored declaration')
-    if any(ord(char) < 32 and char not in '\n\t' for char in source):
+        elif hook_specs[name].define_before:
+            owner_input = r'\input{' + Path(hook_specs[name].define_before).name + '}'
+            if owner_input not in source or match.start() > source.index(owner_input):
+                errors.append(f'{name}: authored hook declaration does not precede its owner')
+    if any(ord(char) < 32 and char not in '\n\t' for char in raw_source):
         errors.append('fixture contains an unintended control character')
     return errors
 
@@ -290,7 +299,8 @@ def write_fixture(root: Path, project: Path, family: str, language: str) -> dict
            + rf'\def\lakitdocumentclass{{{cls}}}' + '\n'
            + r'\def\lakitclassoptions{11pt,a4paper}' + '\n'
            + r'\def\lakitgeometryoptions{margin=2.3cm,headheight=14pt}' + '\n'
-           + r'\def\lakitlinespread{1.08}\def\lakittocdepth{1}\def\lakitsecnumdepth{2}' + '\n')
+           + r'\def\lakitlinespread{1.08}\def\lakittocdepth{1}\def\lakitsecnumdepth{2}' + '\n'
+           + rf'\def\lakitparagraphstyle{{{"indented" if family == "academic" else "block"}}}' + '\n')
     if family == 'flow-tables':
         # Repeated continuation text belongs above the footer's inspection
         # band, with ordinary centered folios kept below it. This is authored

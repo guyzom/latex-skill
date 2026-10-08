@@ -64,10 +64,10 @@ class GeneratedRuntimeTests(unittest.TestCase):
     def test_english_custom_design_and_extra_package(self):
         project, text, metadata = self.build('english-custom', 'general', language='english',
                                              theme='custom', packages=['microtype'])
-        self.assertIn('Document title', text)
+        self.assertIn('Proposed agenda', text)
         self.assertIn('Next step', text)
         self.assertNotRegex(text, '[\u0590-\u05ff]')
-        self.assertEqual(metadata['title'], 'Document title')
+        self.assertEqual(metadata['title'], 'Proposed agenda')
         source = (project / 'main.tex').read_text()
         self.assertIn(r'\input{theme.tex}', source)
         self.assertIn(r'\usepackage{microtype}', source)
@@ -87,8 +87,8 @@ class GeneratedRuntimeTests(unittest.TestCase):
 
     def test_bilingual_deferred_notes_keep_both_languages_and_keys(self):
         project, text, _ = self.build('bilingual-notes', 'annotated-note', language='bilingual', main_language='english')
-        self.assertIn('Annotated note', text)
-        self.assertIn('Clarify the relevant assumption', text)
+        self.assertIn('Comparing values', text)
+        self.assertIn('The two values refer to the same quantity', text)
         self.assertRegex(text, '[\u0590-\u05ff]')
         source = (project / 'main.tex').read_text()
         self.assertIn(r'\DeclareDocNote[english]{scope}', source)

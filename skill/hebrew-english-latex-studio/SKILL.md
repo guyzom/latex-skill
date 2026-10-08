@@ -23,6 +23,10 @@ Infer routine choices from the request. Ask only when missing information would 
 
 Choose a readable design when none is supplied. A4 is the default, not a constraint on authorized design work. Declare another paper size in both source and build configuration. Do not invent branding, authorship, evidence, or sources. Do not compress a document merely to eliminate a short or intentionally spacious page.
 
+Choose paragraph style for the genre, independently of theme and language. Letters and short practical documents use flush paragraphs with a modest gap; academic papers can retain conventional first-line indentation. New non-paper starters select `\lakitparagraphstyle{block}` with `\def` before the core; papers select `indented`, also the core's compatibility default. Reference columns and full-width reference bands own their tighter local spacing. Keep letters' recipient, salutation, body, closing and signature unindented. Do not copy repeated `\noindent`, manual spaces or forced line breaks as a paragraph policy. See [paragraphs and emphasis](references/content-style.md#paragraph-style-and-purposeful-emphasis).
+
+Treat every callout as an editorial decision: it must help the reader find a distinct warning, definition or central result. Zero callouts is a valid default. Component galleries demonstrate capabilities and regression cases; their frequency, nesting, placeholder URLs and formatting tutorials are not models for a finished letter, note or report.
+
 When text or mathematics appears flattened, inspect the actual PDF, embedded font design, declared sizes and rendering before changing the layout. Preserve each glyph's proportions; select and scale font designs uniformly rather than stretching text or mathematical expressions in a box. A screenshot alone does not establish geometric distortion. See [runtime typography](references/runtime-fonts.md).
 
 | `--language` | Base | Use |
@@ -82,7 +86,7 @@ Use `--language english` for a native English sheet; both mixed profiles and `bi
 
 Author reference sheets with two native heading levels: `\section` for a topic and `\subsection` for its subtopics. The presets number and bookmark these two levels; do not add a third numbered hierarchy. A topic inside columns receives a local underline. Put most formulas directly in the text with nearby assumptions; reserve frames for a few central results, notes and short Q&A. Note and caution rules follow the local prose language: right in Hebrew/RTL, left in English/LTR, including minority-language blocks. Wrap a short topic or its defining opening in `referenceentry` when it must stay together; allow long topics to flow or divide them into authored chunks. Keep counters, labels and bookmarks native. Use `referencewide` only for genuinely full-width content, outside columns, with topic/subtopic grouping when needed. The default separator is a thin gray 0.3 pt rule; define `\ReferenceColumnRule` before loading the layout, using `0pt` to omit it. Equation numbering remains selective. See [reference hierarchy](references/reference-sheets.md#author-native-heading-hierarchy) and [short-entry boundaries](references/reference-sheets.md#keep-short-entries-and-blocks-atomic).
 
-Replace sample text and metadata before delivery. Keep source, figures, and local styles together. The generator refuses an existing destination; inspect local customizations before updating an existing project.
+Replace sample text and metadata before delivery. Keep editing instructions in source comments or documentation, and remove visible placeholder advice, synthetic examples and unused demonstration components from the finished document. A mixed-language profile needs only meaningful minority-language content; add a complete translated counterpart only when the task calls for a bilingual document. Keep source, figures, and local styles together. The generator refuses an existing destination; inspect local customizations before updating an existing project.
 
 For an existing source, place language and layout hooks before the core:
 
@@ -91,6 +95,7 @@ For an existing source, place language and layout hooks before the core:
 \def\lakitdocumentclass{article}
 \def\lakitclassoptions{11pt,a4paper}
 \def\lakitgeometryoptions{margin=2.2cm,headheight=14pt}
+\def\lakitparagraphstyle{block}
 \input{preamble.tex}
 \input{document_components.tex}
 \input{reader_theme.tex}

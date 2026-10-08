@@ -2,22 +2,23 @@
 \def\lakitclassoptions{11pt,a4paper}
 \def\lakitgeometryoptions{margin=2.1cm,headheight=14pt}
 \def\lakitlinespread{1.18}
+\def\lakitparagraphstyle{block}
 \input{preamble.tex}
 \input{document_components.tex}
 \input{reader_theme.tex}
 \hypersetup{pdftitle={מסמך טכני},pdfauthor={}}
 \begin{document}
-{\LARGE\sffamily\bfseries מסמך טכני}\par\medskip
+{\LARGE\sffamily\bfseries\noindent מסמך טכני\par}\medskip
 % Replace all sample content and metadata before delivery.
 \section{השאלה והנחות העבודה}
-כאן מגדירים מה רוצים לחשב, מהם הנתונים ומה מחוץ לתחום המסמך. בדוגמה זו
-נגדיר סכום משוקלל ונניח שהמשקלים נתונים.
+נחשב סכום משוקלל של סדרת ערכים. נניח שהערכים והמשקלים נתונים ושמספר
+המשקלים שווה למספר הערכים.
 \section{הגדרה ופיתוח}
 \begin{equation}\label{eq:weighted}
 y=\sum_{i=1}^{n}w_i x_i.
 \end{equation}
-כל סימן ב־\eqref{eq:weighted} צריך לקבל פירוש: $x_i$ הוא האיבר, $w_i$ הוא
-המשקל ו־$n$ הוא מספר האיברים.
+ב־\eqref{eq:weighted}, $x_i$ הוא האיבר, $w_i$ הוא המשקל ו־$n$ הוא מספר
+האיברים.
 \begin{exbox}[frametitle={בדיקה פשוטה}]
 עבור $n=2$, אם $w_1=w_2=1$, נקבל $y=x_1+x_2$.
 \end{exbox}
@@ -33,5 +34,8 @@ def weighted_sum(values, weights):
 \end{asmblock}
 \end{codebox}
 \section{אימות ומגבלות}
-בדקו יחידות, סימנים ומקרי קצה. תוצאה שאפשר לקמפל אינה בהכרח תוצאה נכונה.
+המימוש דוחה סדרות שאורכיהן שונים. עבור שתי סדרות ריקות הוא מחזיר אפס,
+כמקובל בסכום ריק. אם המשקלים חסרי ממדים, יחידות התוצאה הן יחידות הערכים.
+% Compilation does not validate the domain content. Check real assumptions,
+% units, input types and boundary cases before using this example in a project.
 \end{document}

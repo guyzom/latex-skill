@@ -138,6 +138,10 @@ interfaces and follow [Direction and math](direction-and-math.md).
 
 A balanced document may be sequential (one language then the other), alternate
 sections, or pair short blocks. None implies automatic two-column typesetting.
+Use a complete translated counterpart only when it serves the authorized task.
+Mixed-language profiles need meaningful minority-language content, not a second
+copy of the entire document. Starter translations demonstrate the available
+compositions; remove unused bodies rather than reproducing them mechanically.
 Choose the structure for readability. The explicit reference-sheet column
 extension provides bounded flowing columns; selecting `bilingual` alone never
 activates it. Its column progression follows the document's resolved main
@@ -152,8 +156,8 @@ paragraph-spanning layouts need their own fixture and visual inspection.
 The bilingual `paper` starter uses paired front matter, then the full primary
 body and, after an explicit page break, the full translated body, followed by
 one primary-language bibliography. Standard bilingual reports, technical
-documents and formula sheets likewise begin their full translated body on a
-new page. Notes, general documents, letters, data reports and annotated notes
+documents, formula sheets and data reports likewise begin their full translated
+body on a new page. Notes, general documents, letters and annotated notes
 retain continuous paired-body flow; mixed-profile letters place the minority
 request before the closing and signature.
 The reference-sheet starter instead combines the authored primary/secondary
@@ -169,6 +173,24 @@ palette, a coherent type hierarchy, appropriate spacing and consistent tables.
 Keep source fidelity, readability and navigation above ornamental density.
 Sparse pages are acceptable when they serve the document; do not fill them
 artificially or reduce type automatically.
+
+Paragraph style is a genre/layout decision shared by both prose languages.
+Declare `\lakitparagraphstyle` before the core as `block` or `indented`.
+`block` uses zero first-line indent and a modest paragraph gap for standard
+body prose; `indented`, the compatibility default, retains the class's ordinary
+paragraph dimensions and heading behavior. New non-paper starters choose
+`block`, while paper starters choose `indented`. A Hebrew paragraph follows
+the same declared policy as an English paragraph; its reading edge changes
+with its local language. Reference columns and wide bands independently own
+their tight local paragraph spacing. A theme does not choose a new paragraph
+genre merely because it changes headings or callout colors. See
+[paragraphs and emphasis](content-style.md#paragraph-style-and-purposeful-emphasis).
+
+Within `referencecolumns` and `referencewide`, headings align at their local
+language's reading edge with a ragged opposite edge and no automatic word
+hyphenation. The layout owns this local policy across themes; body paragraphs,
+outer headings and main-language column progression retain their own behavior.
+See [reference sheets](reference-sheets.md) for wrapping and scope boundaries.
 
 Use layout hooks before core for class, paper, margins, spacing and hierarchy
 depths. Load semantic extensions, then any local-flow layout extension and

@@ -99,6 +99,7 @@ LAYOUT_HOOK_DEFAULTS: tuple[tuple[str, str], ...] = (
     ("lakitclassoptions", "12pt,a4paper"),
     ("lakitgeometryoptions", "margin=2.3cm,headheight=14pt"),
     ("lakitlinespread", "1.3"),
+    ("lakitparagraphstyle", "indented"),
     ("lakittocdepth", "1"),
     ("lakitsecnumdepth", "2"),
 )
@@ -222,6 +223,8 @@ HOOK_SPECS: tuple[HookSpec, ...] = (
              "document", "geometry-options", "mixed", "margin=2.3cm,headheight=14pt"),
     HookSpec("lakitlinespread", "assets/preamble.tex", "assets/preamble.tex",
              "document", "decimal", "ratio", "1.3", minimum="0", minimum_inclusive=False),
+    HookSpec("lakitparagraphstyle", "assets/preamble.tex", "assets/preamble.tex",
+             "document", "enum", "", "indented", allowed_values=("indented", "block")),
     HookSpec("lakittocdepth", "assets/preamble.tex", "assets/preamble.tex",
              "document", "integer", "", "1", minimum="-1"),
     HookSpec("lakitsecnumdepth", "assets/preamble.tex", "assets/preamble.tex",

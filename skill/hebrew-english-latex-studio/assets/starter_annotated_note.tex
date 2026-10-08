@@ -2,23 +2,24 @@
 \def\lakitclassoptions{11pt,a4paper}
 \def\lakitgeometryoptions{margin=2.2cm,headheight=14pt}
 \def\lakitlinespread{1.18}
+\def\lakitparagraphstyle{block}
 \input{preamble.tex}
 \input{document_components.tex}
 \input{deferred_notes.tex}
 \input{reader_theme.tex}
-\hypersetup{pdftitle={סיכום עם הערות},pdfauthor={}}
-\DeclareDocNote{scope}{כאן יופיע פירוט קצר של ההנחה או של מקור המידע.}
+\hypersetup{pdftitle={השוואת ערכים},pdfauthor={}}
+\DeclareDocNote{scope}{שני הערכים מתייחסים לאותו גודל ובאותן יחידות. אם היחידות שונות, ממירים אותן לפני החיסור.}
 \begin{document}
-{\LARGE\sffamily\bfseries סיכום עם הערות}\par\medskip
-% Replace this example with verified content; do not treat it as a factual report.
-פסקת הפתיחה מציגה את הרעיון המרכזי ואת תחום הדיון. אפשר להוסיף לה הערה רגילה\footnote{זו הערת דוגמה; יש להחליף אותה בתוכן המתאים למסמך.}.
+{\LARGE\sffamily\bfseries\noindent השוואת ערכים\par}\medskip
+% Synthetic mathematical example: replace the scope, text and metadata as needed.
+% Footnotes and deferred notes carry supporting content, not authoring guidance.
+השוואה בין שני ערכים דורשת הגדרה משותפת של הגודל הנמדד ושל היחידות\footnote{לדוגמה, מטר אחד שווה ל־$100$ סנטימטרים. יחידות שונות יכולות לתאר אותו אורך.}.
 \section{הטענה וההנחות}
-הסבר קצר מוביל אל ההנחה שנחוצה להמשך.
-\begin{notebox}[frametitle={הנחה שדורשת הבהרה}]
-כאן תופיע ההנחה עצמה\DocNoteMark{scope}. גוף ההערה נשמר מחוץ לקופסה.
-\end{notebox}
+נניח שהערכים $x$ ו־$y$ ניתנים להשוואה ישירה\DocNoteMark{scope}.
+ההפרש $d=x-y$ מתאר את גודל הפער ואת כיוונו.
+% DeclareDocNote captures the note outside the prose; PrintDocNotes emits it here.
 \PrintDocNotes
 \section{המשמעות}
-אפשר להפנות שוב לאותה הבהרה\DocNoteMark{scope}, בלי ליצור הערה נוספת.
-המספור הרגיל ממשיך מן המספר הבא\footnote{הערת דוגמה נוספת, אחרי ההערה שבקופסה.}.
+בהנחה זו\DocNoteMark{scope}, הפרש חיובי פירושו $x>y$, והפרש שלילי פירושו
+$x<y$. אם $d=0$, שני הערכים שווים\footnote{הפרש מתאר פער בין ערכים; הוא אינו מסביר את סיבת הפער.}.
 \end{document}

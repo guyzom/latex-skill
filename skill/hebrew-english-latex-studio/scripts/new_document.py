@@ -134,10 +134,10 @@ and must agree with the edited source; a mismatch can fail a build gate.
 
 A mixed-language letter places its secondary-language request before the closing
 and signature, without adding a numbered section. In bilingual standard reports,
-technical documents and formula sheets, the complete translated body starts on
-a new page. Short notes, general documents and letters retain their continuous
-paired-body flow. The paper and reference layouts retain their dedicated paired
-front-matter and page-opening rules.
+data reports, technical documents and formula sheets, the complete translated
+body starts on a new page. Short notes, general documents and letters retain
+their continuous paired-body flow. The paper and reference layouts retain their
+dedicated paired front-matter and page-opening rules.
 
 Review every page at a readable scale. Build success is not visual sign-off,
 scientific validation, accessibility certification, or a test of the target viewer.
@@ -286,7 +286,7 @@ def declared_layout(source: str, theme: str, layout: str = 'standard', *,
     """Creation-time source declarations, not an inferred or validated PDF layout."""
     hooks = {}
     for name in ('lakitdocumentclass', 'lakitclassoptions', 'lakitgeometryoptions',
-                 'lakitlinespread', 'lakittocdepth', 'lakitsecnumdepth'):
+                 'lakitlinespread', 'lakitparagraphstyle', 'lakittocdepth', 'lakitsecnumdepth'):
         match = re.search(r'\\def\\' + name + r'\{([^{}]*)\}', source)
         if match:
             hooks[name] = match.group(1)
@@ -422,12 +422,12 @@ def main_source(kind: str, language: str, main_language: str, theme: str,
             raise ValueError(f'unknown bilingual composer: {recipe.composer_id!r}')
     elif language == 'english-with-hebrew':
         extension = r'''
-\section{A note in Hebrew}
-A short Hebrew term can appear inline: \h{תכנון}. For a full Hebrew paragraph,
-use a language block with its own direction:
+% A supplementary reader-facing note; language-wrapper guidance belongs in
+% comments and documentation, not in the generated document's visible prose.
+\section{Further review}
 \begin{hebrewprose}
-זוהי הערה קצרה בעברית בתוך מסמך שעיקרו באנגלית. שפת המסמך הראשית נשארת
-אנגלית, ואילו הפסקה הזו מקבלת כיוון כתיבה וטיפוגרפיה המתאימים לעברית.
+לפני הסקת מסקנה, כדאי לבדוק שהנתונים וההנחות תואמים לשאלה הנבחנת.
+אם חסר מידע, יש לציין מה נדרש כדי להשלים את הבדיקה.
 \end{hebrewprose}
 '''
         if recipe.minority_composer_id == 'paper-summary':
@@ -443,12 +443,12 @@ Regularization (\h{רגולריזציה}) has a precise algebraic effect in this
         body = compose_minority_body(body, 'hebrew', extension, recipe.minority_composer_id)
     elif language == 'hebrew-with-english':
         extension = r'''
-\section{הערה באנגלית}
-מושג קצר באנגלית אפשר לכתוב כך: \en{planning}. פסקה שלמה נכתבת בהקשר
-שפה נפרד:
+% A supplementary reader-facing note, with an explicit local prose language.
+\section{בדיקה נוספת}
 \begin{englishprose}
-This is a short English note in a predominantly Hebrew document. The document
-shell remains Hebrew, while this paragraph uses English direction and typography.
+Before drawing a conclusion, check that the evidence and assumptions address
+the question being considered. If information is missing, state what is needed
+to complete the review.
 \end{englishprose}
 '''
         if recipe.minority_composer_id == 'paper-summary':

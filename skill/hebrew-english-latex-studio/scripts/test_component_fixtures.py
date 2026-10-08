@@ -13,6 +13,11 @@ from studio_matrix_fixtures import fixture_families, validate_fixture_source, wr
 ROOT = Path(__file__).resolve().parent.parent
 
 
+def inactive_claims(fragment):
+    return ('% ' + fragment + '\n', r'\verb|' + fragment + '|\n',
+            r'\begin{verbatim}' + '\n' + fragment + '\n' + r'\end{verbatim}' + '\n')
+
+
 class ComponentFixtureTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -71,6 +76,77 @@ class ComponentFixtureTests(unittest.TestCase):
                     self.assertGreater(count, 0, hook.name)
                     self.assertIn(f'{hook.name}: hook coverage lacks an authored declaration',
                                   validate_fixture_source(metadata, mutated))
+
+    def test_paragraph_policy_claim_after_core_loading_is_rejected(self):
+        # A late definition mentions the public hook but cannot configure the
+        # class policy already selected by the core. Both native fixtures must
+        # reject that false coverage claim before any engine runs.
+        declaration = r'\def\lakitparagraphstyle{block}'
+        owner = r'\input{preamble.tex}'
+        for language in ('hebrew', 'english'):
+            with self.subTest(language=language):
+                metadata, source = next(item for item in self.fixtures
+                                        if item[0]['family'] == 'core'
+                                        and item[0]['language'] == language)
+                self.assertEqual(source.count(declaration), 1)
+                self.assertLess(source.index(declaration), source.index(owner))
+                mutated = source.replace(declaration, '', 1).replace(owner, owner + '\n' + declaration, 1)
+                self.assertIn('lakitparagraphstyle: authored hook declaration does not precede its owner',
+                              validate_fixture_source(metadata, mutated))
+
+    def test_inactive_precore_declaration_cannot_hide_a_real_late_policy(self):
+        declaration = r'\def\lakitparagraphstyle{block}'
+        owner = r'\input{preamble.tex}'
+        for language in ('hebrew', 'english'):
+            metadata, source = next(item for item in self.fixtures
+                                    if item[0]['family'] == 'core'
+                                    and item[0]['language'] == language)
+            late = source.replace(declaration, '', 1).replace(owner, owner+'\n'+declaration, 1)
+            for inactive in inactive_claims(declaration):
+                with self.subTest(language=language, inactive=inactive):
+                    self.assertIn('lakitparagraphstyle: authored hook declaration does not precede its owner',
+                                  validate_fixture_source(metadata, inactive+late))
+
+    def test_inactive_owner_mentions_do_not_precede_a_valid_policy(self):
+        for language in ('hebrew', 'english'):
+            metadata, source = next(item for item in self.fixtures
+                                    if item[0]['family'] == 'core'
+                                    and item[0]['language'] == language)
+            for inactive in inactive_claims(r'\input{preamble.tex}'):
+                with self.subTest(language=language, inactive=inactive):
+                    self.assertEqual(validate_fixture_source(metadata, inactive+source), [])
+
+    def test_inactive_input_cannot_claim_a_missing_architectural_asset(self):
+        owner = r'\input{preamble.tex}'
+        for language in ('hebrew', 'english'):
+            metadata, source = next(item for item in self.fixtures
+                                    if item[0]['family'] == 'core'
+                                    and item[0]['language'] == language)
+            removed = source.replace(owner, '')
+            for inactive in inactive_claims(owner):
+                with self.subTest(language=language, inactive=inactive):
+                    self.assertIn('assets/preamble.tex: declared architectural asset is not input by the actual fixture',
+                                  validate_fixture_source(metadata, inactive+removed))
+
+    def test_inactive_api_mention_cannot_claim_actual_source_link_use(self):
+        for language in ('hebrew', 'english'):
+            metadata, source = next(item for item in self.fixtures
+                                    if item[0]['family'] == 'source-links'
+                                    and item[0]['language'] == language)
+            removed = source.replace(r'\sourcelink', r'\RemovedSourceLink')
+            for inactive in inactive_claims(r'\sourcelink{https://example.org}{Source}'):
+                with self.subTest(language=language, inactive=inactive):
+                    self.assertIn('assets/document_components.tex:sourcelink: loaded-only API claim lacks actual use',
+                                  validate_fixture_source(metadata, inactive+removed))
+
+    def test_hidden_control_characters_are_rejected_even_in_inactive_source(self):
+        metadata, source = next(item for item in self.fixtures
+                                if item[0]['family'] == 'core' and item[0]['language'] == 'english')
+        for character in ('\x00', '\x08', '\x0b'):
+            for inactive in inactive_claims(character):
+                with self.subTest(character=ord(character), inactive=inactive):
+                    self.assertIn('fixture contains an unintended control character',
+                                  validate_fixture_source(metadata, inactive+source))
 
     def test_header_callback_claim_without_active_shell_is_rejected(self):
         metadata, source = next(item for item in self.fixtures

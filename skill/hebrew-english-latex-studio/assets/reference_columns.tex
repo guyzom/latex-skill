@@ -161,6 +161,24 @@
   \fi}
 \newif\ifhllpdf@referencecolumnsactive
 \newif\ifhllpdf@referencewideactive
+% Native sectioning keeps its own font, rule, counter, star and anchor policy.
+% Only active grouped reference layouts add natural reading-edge heading lines
+% and suppress automatic word hyphenation. In LuaTeX \raggedright follows the
+% paragraph direction: physical left in English and physical right in Hebrew.
+% Prepend setup to style argument 6: a theme may end that style with a macro
+% which consumes the heading title, so appending tokens would change its input.
+\newif\ifhllpdf@referenceheadingsactive
+\newcommand{\hllpdf@referenceheadingsetup}{%
+  \raggedright
+  \hyphenpenalty=10000\relax}
+\newcommand{\hllpdf@referenceactivateheadings}{%
+  \ifhllpdf@referenceheadingsactive\else
+    \hllpdf@referenceheadingsactivetrue
+    \let\hllpdf@referenceoriginalstartsection\@startsection
+    \def\@startsection##1##2##3##4##5##6{%
+      \hllpdf@referenceoriginalstartsection{##1}{##2}{##3}{##4}{##5}%
+        {\hllpdf@referenceheadingsetup ##6}}%
+  \fi}
 % Presentation hooks run after the declared local font has been selected, so
 % a theme can derive display spacing from the actual reference baseline.
 % An environment's early begin hook would still see the outer article size.
@@ -177,9 +195,16 @@
   \fi
   \hllpdf@referencecheckmathsizes
   \fontsize{\ReferenceBodyFontSize}{\ReferenceBodyBaseline}\selectfont
+  % Compact entries start at their local reading edge under every theme.
+  % These assignments belong to the grouped layout, not to raggedright in a
+  % presentation overlay; the surrounding document's paragraph policy returns.
+  \setlength{\parindent}{0pt}
+  \setlength{\parskip}{0pt plus .5pt}
   \ifhllpdf@referencecolumnsactive
+    \hllpdf@referenceactivateheadings
     \hllpdf@referenceactivatemath
   \else\ifhllpdf@referencewideactive
+    \hllpdf@referenceactivateheadings
     \hllpdf@referenceactivatemath
   \fi\fi
   \hllpdf@referencebodysetup}

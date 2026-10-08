@@ -112,8 +112,8 @@ class RegistryTests(unittest.TestCase):
         self.assertNotEqual(recipe.hooks[0].value, "bad")
         self.assertIsNone(recipe.requested.theme)
 
-    def test_hook_inventory_all_28_have_explicit_owners_and_scopes(self):
-        self.assertEqual(len(architecture.HOOK_SPECS), 28)
+    def test_hook_inventory_all_29_have_explicit_owners_and_scopes(self):
+        self.assertEqual(len(architecture.HOOK_SPECS), 29)
         self.assertFalse(architecture.validate_contract())
         owners = {item.path for item in architecture.ASSET_SPECS}
         for hook in architecture.HOOK_SPECS:

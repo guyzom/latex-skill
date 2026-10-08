@@ -2,23 +2,25 @@
 \def\lakitclassoptions{11pt,a4paper}
 \def\lakitgeometryoptions{margin=2.2cm,headheight=14pt}
 \def\lakitlinespread{1.18}
+\def\lakitparagraphstyle{block}
 \input{preamble.tex}
 \input{document_components.tex}
 \input{reader_theme.tex}
-\hypersetup{pdftitle={סיכום קצר},pdfauthor={}}
+\hypersetup{pdftitle={העברת משימה},pdfauthor={}}
 \begin{document}
-{\LARGE\sffamily\bfseries סיכום קצר}\par\medskip
-% Replace the title, metadata, and sample content with verified project content.
-המסמך מרכז רעיון אחד, את ההסבר הנחוץ ואת הפעולה הבאה. פסקת הפתיחה אמורה
-להבהיר לקורא במה מדובר, בלי לחייב אותו לקרוא תחילה רשימה ארוכה של כותרות.
+{\LARGE\sffamily\bfseries\noindent העברת משימה\par}\medskip
+% Synthetic starter: replace the example, title and metadata for the actual task.
+% Write ordinary prose directly. Use \en for a short English term and \code
+% for an actual short literal such as notes.txt; neither is needed in this sample.
+העברת משימה מחברת בין המצב הנוכחי לבין הפעולה הבאה. תיאור קצר של מה שכבר
+נעשה ושל ההחלטה שנותרה פתוחה מספק למקבל המשימה נקודת התחלה ברורה.
 \section{הרעיון המרכזי}
-כאן יופיע ההסבר. מושג באנגלית נכתב כך: \en{working memory}. קוד קצר נכתב
-כך: \code{notes.txt}.
+מצב המשימה, האחריות להמשך והצעד הבא צריכים להיות מובחנים. פרטים נוספים
+מצטרפים לתיאור כאשר הם נחוצים לביצוע הפעולה.
 \section{המשמעות המעשית}
-כאן אפשר לתאר מסקנה או צעד המשך. אין צורך להכניס כל פסקה לקופסה.
-\begin{notebox}[frametitle={נקודה שחשוב לזכור}]
-הערה קצרה משלימה את ההסבר ולא חוזרת עליו בניסוח אחר.
-\end{notebox}
+לפני ההעברה, אפשר לוודא שמקבל המשימה יודע מה עליו לעשות ואיזה מידע דרוש
+לו. שאלה שנותרה פתוחה נרשמת לצד הצעד הבא.
+% Ordinary prose is the default; add a callout only for a distinct useful point.
 % Source annotations are optional. Use only an actual, verified source URL.
 % \sourcelink{https://example.org/reference}{שם המקור}{מה נמצא בו ולמה הוא מופיע כאן.}
 \end{document}

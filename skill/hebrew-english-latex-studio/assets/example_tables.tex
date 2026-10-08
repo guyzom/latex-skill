@@ -44,12 +44,12 @@
                         % preamble package; copy this line only when you need it.
 \newcommand{\patternheading}[1]{%
   \Needspace{11\baselineskip}%
-  {\large\bfseries #1}\par\smallskip}
+  {\large\bfseries\noindent #1\par}\smallskip}
 % (No \setcounter{chapter} hack needed: since v3.30 \tabcap prints "טבלה N."
 %  while no \chapter exists, and "טבלה C.N" once chapters start.)
 \begin{document}
 
-{\LARGE\bfseries מאגר תבניות טבלאות}\par\medskip
+{\LARGE\bfseries\noindent מאגר תבניות טבלאות\par}\medskip
 \noindent העתק את התבנית שאתה צריך והחלף תוכן. כל טבלה כאן עוברת \code{tablebox} ו-\code{tabcap}
 — מסגרת אחידה וכותרת ממוספרת בפנים. שני כללים לטבלה מעורבת: כשהתוכן עברי־ראשי,
 השתמש ב-\code{tabular} רגיל \emph{והצהר את עמודת המפתח אחרונה} — היא נוחתת מימין,

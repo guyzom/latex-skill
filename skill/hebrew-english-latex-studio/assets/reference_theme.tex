@@ -217,24 +217,27 @@
 }{}
 \makeatother
 
-% Existing core callouts also receive the same restrained palette when this
-% theme is used on an ordinary document, with no forced column layout.
+% Ordinary semantic callouts use a pale title strip and a white reading field.
+% An untitled callout remains white; the optional title is never invented or
+% inherited from a surrounding frame. This is separate from the inline-title
+% reference notes and atomic Q/A blocks defined above.
 \mdfdefinestyle{hllpdfreferencetheme}{%
   frametitle={},leftline=true,rightline=true,topline=true,bottomline=true,
+  backgroundcolor=white,
   linewidth=.6pt,roundcorner=0pt,
   innerleftmargin=4pt,innerrightmargin=4pt,
   innertopmargin=3pt,innerbottommargin=3pt,
   skipabove=5pt,skipbelow=5pt,everyline=true,
   startinnercode=\raggedright,
   splitbottomskip=3pt,splittopskip=5pt,
-  frametitlebackgroundcolor=white,frametitlefontcolor=black,
+  frametitlebackgroundcolor=black!5,frametitlefontcolor=black,
   frametitlefont=\normalfont\rmfamily\bfseries,
   frametitleaboveskip=2pt,frametitlebelowskip=2pt}
-\renewmdenv[style=hllpdfreferencetheme,linecolor=black,backgroundcolor=cBlueBg]{defbox}
-\renewmdenv[style=hllpdfreferencetheme,linecolor=black,backgroundcolor=cGreenBg]{thmbox}
-\renewmdenv[style=hllpdfreferencetheme,linecolor=black,backgroundcolor=cAmberBg]{notebox}
-\renewmdenv[style=hllpdfreferencetheme,linecolor=black,backgroundcolor=cPurpleBg]{exbox}
-\renewmdenv[style=hllpdfreferencetheme,linecolor=black,backgroundcolor=cRedBg]{warnbox}
-\renewmdenv[style=hllpdfreferencetheme,linecolor=black,backgroundcolor=cTealBg]{keybox}
+\renewmdenv[style=hllpdfreferencetheme,linecolor=black]{defbox}
+\renewmdenv[style=hllpdfreferencetheme,linecolor=black]{thmbox}
+\renewmdenv[style=hllpdfreferencetheme,linecolor=black]{notebox}
+\renewmdenv[style=hllpdfreferencetheme,linecolor=black]{exbox}
+\renewmdenv[style=hllpdfreferencetheme,linecolor=black]{warnbox}
+\renewmdenv[style=hllpdfreferencetheme,linecolor=black]{keybox}
 % Keep the core table container's tested atomic/anchor behavior and existing
 % codebox number geometry; only the palette and ordinary callouts change.

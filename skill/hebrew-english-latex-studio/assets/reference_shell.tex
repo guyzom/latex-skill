@@ -57,6 +57,8 @@
   \thispagestyle{hllpdfreference}%
   \begingroup
     \parindent=0pt
+    % Title rows own their explicit gaps; do not inherit block-prose spacing.
+    \parskip=0pt
     \centering
     \ifdefempty{\ReferenceTitle}{}{%
       {\normalfont\rmfamily\bfseries\color{black}\fontsize{11}{13}\selectfont\doclang{\ReferenceTitle}\par}%

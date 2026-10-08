@@ -64,6 +64,10 @@ generator. They are not Python module names, shell commands or executable source
    sources. Record their exact hashes and owned literal hook declarations.
    Preserve meaningful language-specific layout differences. The loader inspects
    declared known hooks; it does not evaluate arbitrary TeX.
+   Declare paragraph style according to genre, independently of theme and
+   language. Use the core's pre-input `lakitparagraphstyle` hook rather than
+   scattered `\noindent` patches. New non-paper starters use `block`; papers
+   use `indented`. Reference environments own their local compact spacing.
 3. Choose a supported content composer and any required source handler. Keep
    authored scientific content and translations in the starters. A new content
    composition strategy requires explicit implementation and tests; a registry
@@ -81,6 +85,17 @@ generator. They are not Python module names, shell commands or executable source
    Data-only migration that preserves the generated source is a separate claim.
 7. Regenerate documentation, check links and execute the relevant tests and
    current build/render/review coverage before freezing a release candidate.
+
+Review starter content as an example an author may imitate. Keep
+editing instructions in comments or documentation. A finished sample should
+demonstrate appropriate paragraph rhythm and purposeful components, without
+requiring a quota of callouts or duplicating ordinary prose in a frame. Component
+galleries may deliberately exercise nesting, repeated styles and synthetic
+inputs; label their demonstration role and do not make their density a genre
+default. Authored bilingual bodies should retain equivalent meaning; mixed
+profiles do not require an unsolicited complete translation. Check opening
+titles, salutations, closings, signatures and the return from language blocks
+in the actual rendered output, not only the hook declaration.
 
 Do not reuse an existing stable ID for an unrelated recipe. Do not overwrite
 edited user projects as part of migration. The generator continues to reject an

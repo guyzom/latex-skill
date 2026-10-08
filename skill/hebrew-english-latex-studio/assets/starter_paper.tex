@@ -5,6 +5,7 @@
 \def\lakitgeometryoptions{margin=2.7cm,headheight=14pt}
 \def\lakitlinespread{1.08}
 \def\lakitsecnumdepth{2}
+\def\lakitparagraphstyle{indented}
 \input{preamble.tex}
 \input{document_components.tex}
 \input{academic_theme.tex}
@@ -36,7 +37,8 @@ Q_\lambda(x)=(x-a)^2+\lambda x^2,\qquad \lambda\geq 0.
 לרקע כללי באופטימיזציה קמורה אפשר לעיין אצל
 \en{Boyd and Vandenberghe}~\cite{boyd2004}.
 \section{פתרון ומשמעות}
-נגזור את פונקציית המטרה ונאסוף איברים. שלב הביניים אינו זקוק למספר:
+נגזור את פונקציית המטרה ונאסוף איברים:
+% This intermediate working uses align*; only central or cited formulas get tags.
 \begin{align*}
 Q'_\lambda(x)&=2(x-a)+2\lambda x\\
              &=2(1+\lambda)x-2a.
@@ -84,8 +86,9 @@ $\lambda$ & $x_\lambda^\star$ & $Q_\lambda(x_\lambda^\star)$\\
 \end{tabular}
 \tabcap{ערכים מדויקים להמחשה עבור $a=2$.\label{tab:penalties}}
 \end{center}
-\autoref{fig:quadratic} מציג את המקרה $\lambda=1$. כיווני הצירים
-והקואורדינטות המתמטיות שומרים על משמעותם הרגילה בשתי השפות.
+\autoref{fig:quadratic} מציג את המקרה $\lambda=1$. ערך המינימום הוא $2$,
+והוא מתקבל בנקודה $x=1$.
+% Axis direction and mathematical coordinates are language-independent semantics.
 \begin{tikzpic}
 \begin{tikzpicture}[x=1.3cm,y=0.38cm,>=Stealth]
 \draw[->] (-0.6,0) -- (2.85,0) node[right] {$x$};

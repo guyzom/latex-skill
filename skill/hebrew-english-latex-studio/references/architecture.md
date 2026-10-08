@@ -12,7 +12,7 @@ needs its own copy of the direction/math mechanism.
 | Axis | Owner | Decisions | Does not decide |
 |---|---|---|---|
 | Language | Core pre-input hooks | Five language profiles, main language, localized document shell | Theme, genre, margins |
-| Layout | Core pre-input hooks and optional layout extension | `article`/`report`, paper, margins, spacing, hierarchy depths; local column flow and body sizes | Translation, language policy, colors |
+| Layout | Core pre-input hooks and optional layout extension | `article`/`report`, paper, margins, paragraph style, spacing, hierarchy depths; local column flow and body sizes | Translation, language policy, colors |
 | Presentation | One selected theme or project overlay | Palette, typography, rules, boxes, declared numbering visibility | Semantic content, main language, build gates |
 | Semantic features | Optional extensions | Exam helpers, source cards, deferred notes, continuing tables, reference blocks | Theme, global geometry |
 | Page shell | Optional page-shell extension | Running headers, title shell, folios and local header dimensions | Main language policy, document class |
@@ -109,7 +109,8 @@ resolved English context under an explicit non-`hebrew` profile.
 
 ## Layout contract
 
-Six independent hooks retain exact historical defaults:
+Seven independent layout hooks retain the historical defaults for existing
+sources. The paragraph-style hook explicitly names the native class policy:
 
 ```latex
 \def\lakitdocumentclass{report}
@@ -118,6 +119,7 @@ Six independent hooks retain exact historical defaults:
 \def\lakitlinespread{1.3}
 \def\lakittocdepth{1}
 \def\lakitsecnumdepth{2}
+\def\lakitparagraphstyle{indented}
 \input{preamble.tex}
 ```
 
@@ -125,6 +127,22 @@ Use `article` for short documents and `report` when chapters are useful. These
 are the two tested classes; custom visual design does not imply arbitrary
 class support. A new class needs a separately validated core integration.
 Layout hooks must not redefine bidi primitives, captions or checkers.
+
+`\lakitparagraphstyle` accepts only `indented` or `block`. Define it before
+loading the core. `indented` leaves the selected class's paragraph dimensions
+and first-paragraph-after-heading behavior intact; it does not insert manual
+indentation. `block` sets a zero first-line indent and a modest paragraph gap
+of `6pt plus 1pt minus 1pt`. These are ordinary scoped TeX lengths: an author
+can adjust `\parindent` and `\parskip` after loading the core. The runtime log
+records the selected style as `HLLPAR|<style>`.
+
+The genre recipe chooses this policy independently of language and theme.
+Managed letters, notes, reports and other non-paper starters use `block`;
+paper starters explicitly use `indented`. Changing a language profile or a
+theme must not change that choice. Local `englishprose` and `hebrewprose`
+environments inherit the paragraph dimensions and restore the outer state.
+Display mathematics within a continuing paragraph is not a new paragraph.
+Manual document titles begin flush even if the author chooses indented prose.
 
 Source and verification must agree about paper. For example, set
 `\lakitclassoptions{11pt,letterpaper}` with `\def`, and build with:
@@ -156,6 +174,12 @@ both full bilingual bodies, including translated counterpart pages. Local
 heading and paragraph language does not reverse that progression. It cannot
 replace language setters, mathematical direction or the global page geometry.
 The author still chooses class, paper and margins through pre-input hooks.
+`\ReferenceSelectBodyFont` also selects zero first-line indentation and tight
+local paragraph spacing (`0pt plus .5pt`) for reference content. Both column
+and wide blocks use this layout policy even without a reference theme, and
+their groups restore the surrounding paragraph style on exit. Compact
+reference layout therefore does not inherit a letter's open paragraph gap or
+an academic paper's first-line indentation.
 
 The generator's nonstandard reference layouts currently apply only to
 `formula-sheet`: `reference-compact` selects three columns at 6.3/7.8 pt;

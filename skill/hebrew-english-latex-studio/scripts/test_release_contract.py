@@ -89,7 +89,8 @@ if "verify_release_contract(root)" not in packager or "test_release_contract.py"
 # v5.4.0 adds seven static catalog groups, one topic-rail engine group and one
 # sealed catalog visual gate; v5.4.1 carries T1q forward onto them and adds the
 # static T1r for routine runs, which run one check fewer.
-for name, expected_floor in [("EXPECTED_FULL", 224), ("EXPECTED_FAST", 133)]:
+# v5.4.5 adds two static paragraph/callout groups and their two engine groups.
+for name, expected_floor in [("EXPECTED_FULL", 228), ("EXPECTED_FAST", 135)]:
     m = re.search(rf"^{name}=(\d+)$", harness, re.MULTILINE)
     if m is None or int(m.group(1)) != expected_floor:
         errors.append(
@@ -101,9 +102,15 @@ for added_suite in ["scripts/test_harness_controls.py", "scripts/test_download_f
                     "scripts/test_academic.py", "scripts/test_academic_runtime.py",
                     "scripts/test_reference.py", "scripts/test_reference_runtime.py",
                     "scripts/test_v5350.py", "scripts/test_v5350_runtime.py",
-                    "scripts/test_v5410.py"]:
+                    "scripts/test_v5410.py", "scripts/test_paragraph_style.py",
+                    "scripts/test_editorial_boxes.py"]:
     if added_suite not in harness or not (ROOT / added_suite).is_file():
         errors.append(f"release harness lost required studio control: {added_suite}")
+
+for engine_suite in ["scripts/test_paragraph_style.py --with-engine",
+                     "scripts/test_editorial_boxes.py --with-engine"]:
+    if engine_suite not in harness:
+        errors.append(f"release harness lost required editorial engine control: {engine_suite}")
 
 for catalog_suite in ["scripts/test_template_registry.py", "scripts/test_studio_docs.py",
                       "scripts/generate_studio_docs.py --check", "scripts/test_component_fixtures.py",

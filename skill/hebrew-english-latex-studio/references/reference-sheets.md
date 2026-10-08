@@ -60,6 +60,18 @@ Two heading levels are the requested authoring policy; the supplied particle
 sheet also contains deeper headings. Preserve the requested topic/subtopic
 limit when adapting that source.
 
+Inside `referencecolumns` and `referencewide`, the layout aligns headings to
+their local reading edge: left for English and right for Hebrew, with the
+opposite edge ragged. Heading lines wrap between words without stretching
+word spaces or automatically splitting words with hyphens. This scoped
+policy belongs to `reference_columns.tex`, independently of the chosen theme;
+it retains authored hyphen characters, numbering, mathematical content and
+theme presentation. Body paragraph alignment and hyphenation remain unchanged,
+and headings outside these environments retain their surrounding behavior.
+The document's main language still determines column progression. If a title
+contains an unbreakable item wider than its available line, revise the wording
+or use a suitable wider block rather than compressing the type.
+
 Omitting `--layout` means `standard` and preserves existing defaults. Omitting
 `--theme` on either reference preset selects `reference`; an explicit theme
 always wins. Selecting `--theme reference` on a standard document gives its
@@ -90,7 +102,7 @@ and [direction and math](direction-and-math.md).
 | File | Role | Owns |
 |---|---|---|
 | `reference_components.tex` | Semantic extension | Short entry boundaries, notes, warnings, central formulas, Q&A and atomic objects/captions |
-| `reference_columns.tex` | Layout extension | Local column flow, gaps, separator width, body size and scoped mathematical typography |
+| `reference_columns.tex` | Layout extension | Local column flow, gaps, separator width, body size, scoped mathematical typography and reading-edge heading alignment without automatic word splitting |
 | `reference_shell.tex` | Page-shell extension | First title, running title and uniform centered folios |
 | `reference_theme.tex` | Presentation theme | Serif black rules, restrained gray backgrounds and numbering visibility |
 

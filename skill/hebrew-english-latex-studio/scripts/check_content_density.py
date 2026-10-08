@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
-"""Profile-aware advisory checks for Hebrew academic-document balance.
+"""Profile-aware advisory checks for document balance.
 
 A heuristic guard on content BALANCE, pushing both ways:
-  * against THIN output — sparse content: long prose chapters, few numbered
-    equations, no boxes, no exercises; and
+  * against THIN output in opted-in teaching profiles — sparse content:
+    long prose chapters, few numbered equations or exercises; and
   * against OVER-BOXED output — the page stuffed into colored boxes instead
     of free prose / standalone numbered equations / gray tables. Two separate
-    budgets (v3.28, measured across the ten shipped lakits): EMPHASIS boxes
-    (defbox/thmbox/notebox/warnbox/keybox) are ~10-15% of content in a
-    high-quality לקט (measured 5-16%, median ~12%) — flagged
-    [OVER-BOX-EMPHASIS] above 25%; exbox is exercise FORMAT, budgeted by
-    genre (theory ~1-5%, recitations ~10-16%, exam collections legitimately
-    ~30%+), counted only toward the combined wallpaper guard (>55%); the
-    gray tablebox is a neutral data frame and is NOT counted at all;
+    overuse advisories were calibrated from an earlier teaching corpus
+    (v3.28). Those observations are not minimums or design targets:
+    zero emphasis boxes is valid. EMPHASIS boxes
+    (defbox/thmbox/notebox/warnbox/keybox) trigger
+    [OVER-BOX-EMPHASIS] above 25%; exbox is exercise FORMAT,
+    counted only toward the profile-specific combined wallpaper guard
+    (>55%); the gray tablebox is a neutral data frame and is NOT counted;
   * and against CODE-FRICTION (v3.24) — a multi-token code expression embedded
     inline in a Hebrew prose sentence (\\code{lw $t1, -4($t0)} mid-sentence)
     zigzags the reader RTL<->LTR and, being an unbreakable island, line-breaks
@@ -37,7 +37,7 @@ from build_contract import CONTENT_PROFILES as PROFILES, normalize_section_macro
 
 # The generic profile deliberately avoids genre quotas. It still reports
 # universal RTL/code/derivation friction and excessive use of semantic emphasis
-# boxes. Explicit profiles opt into only the budgets that fit their purpose.
+# boxes. Explicit profiles opt into advisories suited to their purpose.
 PROFILE_POLICY = {
     "generic":       dict(thin=False, exercises=False, rhythm=False, combined=False),
     "study-guide":   dict(thin=True,  exercises=True,  rhythm=True,  combined=True),
@@ -329,9 +329,10 @@ def mask_literal_blocks(text: str, *, preserve_lines: bool = False) -> str:
 
 def box_balance(text: str):
     """Fractions of body content lines inside colored boxes, split (v3.28)
-    into the two budgets: (emphasis_frac, combined_frac). Emphasis =
-    defbox/thmbox/notebox/warnbox/keybox — the ~10-15% budget; combined also
-    counts exbox (exercise format) — the >55% wallpaper guard. The gray
+    into two observations: (emphasis_frac, combined_frac). Emphasis =
+    defbox/thmbox/notebox/warnbox/keybox; combined also counts exbox
+    (exercise format). These fractions have no minimum or recommended target;
+    the caller applies separate overuse advisories. The gray
     tablebox is intentionally NOT counted in either — it is a neutral data
     frame, not a colored semantic box. See content-style §4.
     (A back-to-back box-CHAIN count was tried and dropped: on the reference doc
@@ -526,7 +527,7 @@ def main(paths, profile="generic", section_macros=()):
     # Runs for every doc type (article too), independent of chapter count.
     emph_frac, box_frac = box_balance(text)
     print(f"INFO: {100*emph_frac:.0f}% of body content sits inside EMPHASIS boxes "
-          f"(def/thm/note/warn/key; shipped-lakit norm ≈ 10-15%), "
+          f"(def/thm/note/warn/key; descriptive only, no minimum or target), "
           f"{100*box_frac:.0f}% incl. exbox; the rest = free prose / numbered "
           f"eqs / gray tables / neutral reference cards.")
     if emph_frac > EMPH_BOX_FRAC_MAX:
@@ -534,8 +535,8 @@ def main(paths, profile="generic", section_macros=()):
         # (selftest run_case filters on the path) can lock this rule too;
         # document-level metric -> anchored to the first input file.
         print(f"{paths[0]}: [OVER-BOX-EMPHASIS] {100*emph_frac:.0f}% of content "
-              f"is in emphasis boxes (>{100*EMPH_BOX_FRAC_MAX:.0f}%; shipped norm "
-              f"10-15%). Emphasis works by contrast — move discussion into prose, "
+              f"is in emphasis boxes (>{100*EMPH_BOX_FRAC_MAX:.0f}%). "
+              f"Use boxes only for distinct reader needs — move discussion into prose, "
               f"keep key formulas as standalone numbered equations. "
               f"See content-style §4.")
         warns.append(f"OVER-BOX-EMPHASIS: emphasis-box fraction "

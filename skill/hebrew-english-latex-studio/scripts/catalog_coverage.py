@@ -21,16 +21,16 @@ ROOT = Path(__file__).resolve().parent.parent
 # These are QA assignments, never another template or capability registry.
 # A component loaded by a project is not automatically exercised by its body.
 ASSET_COVERAGE = {
-    'assets/preamble.tex': ('core', 'scripts/test_language_runtime.py', 'scripts/test_academic_runtime.py'),
+    'assets/preamble.tex': ('core', 'scripts/test_language_runtime.py', 'scripts/test_academic_runtime.py', 'scripts/test_paragraph_style.py'),
     'assets/exam_components.tex': ('exam-clean', 'scripts/test_language_runtime.py'),
     'assets/topicrail.tex': ('topicrail', 'scripts/test_v4310_runtime.py', 'scripts/test_topicrail_runtime.py'),
     'assets/clean_theme.tex': ('exam-clean', 'scripts/test_language_runtime.py'),
     'assets/reader_theme.tex': ('reader', 'scripts/test_generated_runtime.py'),
     'assets/academic_theme.tex': ('academic', 'scripts/test_academic_runtime.py'),
-    'assets/reference_columns.tex': ('reference-all', 'scripts/test_reference_runtime.py'),
+    'assets/reference_columns.tex': ('reference-all', 'scripts/test_reference_runtime.py', 'scripts/test_paragraph_style.py'),
     'assets/reference_shell.tex': ('reference-all', 'scripts/test_reference_runtime.py'),
     'assets/reference_components.tex': ('reference-all', 'scripts/test_reference_runtime.py'),
-    'assets/reference_theme.tex': ('reference-all', 'scripts/test_reference_runtime.py'),
+    'assets/reference_theme.tex': ('reference-all', 'scripts/test_reference_runtime.py', 'scripts/test_editorial_boxes.py'),
     'assets/document_components.tex': ('source-links', 'scripts/test_generated_runtime.py'),
     'assets/deferred_notes.tex': ('deferred-notes', 'scripts/test_deferred_notes_runtime.py'),
     'assets/flow_tables.tex': ('flow-tables', 'scripts/test_language_runtime.py'),
@@ -57,7 +57,7 @@ PUBLIC_API_COVERAGE = {
 # and proves that the fixture may no longer claim it was exercised.
 HOOK_FAMILIES = {
     **dict.fromkeys(('lakitdocumentclass', 'lakitclassoptions', 'lakitgeometryoptions',
-                     'lakitlinespread', 'lakittocdepth', 'lakitsecnumdepth'), 'core'),
+                     'lakitlinespread', 'lakittocdepth', 'lakitsecnumdepth', 'lakitparagraphstyle'), 'core'),
     **dict.fromkeys(('lakitlanguageprofile', 'lakitmainlanguage'), 'core'),
     **dict.fromkeys(('ReferenceColumnCount', 'ReferenceColumnGap', 'ReferenceColumnRule',
                      'ReferenceColumnSkip', 'ReferenceBodyFontSize', 'ReferenceBodyBaseline',
@@ -309,7 +309,7 @@ def hook_coverage() -> list[dict]:
     result = []
     for hook in HOOK_SPECS:
         positive = ['scripts/test_component_fixtures.py:test_every_configuration_hook_is_declared_in_native_fixtures',
-                    'scripts/test_template_registry.py:test_hook_inventory_all_28_have_explicit_owners_and_scopes']
+                    'scripts/test_template_registry.py:test_hook_inventory_all_29_have_explicit_owners_and_scopes']
         negative = ['scripts/test_component_fixtures.py:test_hook_claim_without_declaration_is_rejected']
         runtime = []
         if hook.scope == 'reference-layout':
@@ -320,6 +320,15 @@ def hook_coverage() -> list[dict]:
             positive += ['scripts/test_language_runtime.py:test_every_profile_has_real_base_locale_and_restores_it']
             negative += ['scripts/test_language_runtime.py:test_bad_profiles_fail_before_document_loading']
             runtime += ['scripts/test_language_runtime.py']
+        elif hook.name == 'lakitparagraphstyle':
+            positive += ['scripts/test_paragraph_style.py:test_every_owned_starter_declares_its_genre_policy_before_the_core',
+                         'scripts/test_paragraph_style.py:test_generated_native_mixed_and_bilingual_letters_have_flush_reading_edges',
+                         'scripts/test_paragraph_style.py:test_indented_papers_preserve_native_heading_and_display_paragraph_boundaries']
+            negative += ['scripts/test_paragraph_style.py:test_invalid_enum_is_rejected_instead_of_becoming_an_implicit_style',
+                         'scripts/test_paragraph_style.py:test_restoring_the_old_indented_letter_is_detected_by_actual_geometry',
+                         'scripts/test_paragraph_style.py:test_invalid_runtime_policy_fails_before_emitting_a_pdf',
+                         'scripts/test_component_fixtures.py:test_paragraph_policy_claim_after_core_loading_is_rejected']
+            runtime += ['scripts/test_paragraph_style.py']
         elif hook.scope == 'document':
             negative += ['scripts/test_template_registry.py:test_hook_owner_unit_and_phase_are_checked',
                          'scripts/test_template_registry.py:test_declared_starter_fingerprint_hook_and_timing_drift_rejected']

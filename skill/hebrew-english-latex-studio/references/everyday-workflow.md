@@ -75,11 +75,28 @@ content, titles, metadata, and recipient details before delivery. All starter
 kinds use a supported `article` shell; choose `report` in the document-class hook
 if the actual document requires chapters. Genre and document class are separate.
 
+Paragraph policy belongs to the document recipe, independently of its theme.
+New non-paper starters declare `\lakitparagraphstyle{block}` with `\def` before
+`preamble.tex`: flush paragraphs with a modest separating gap. Papers explicitly
+select `indented`, preserving conventional class indentation and heading behavior.
+The core defaults to `indented` for existing sources that do not declare the hook.
+Choose another policy before core input when the actual genre or supplied design
+requires it. Both prose-language environments inherit the chosen policy;
+reference columns and wide bands apply their own tight local paragraph spacing.
+
+A letter keeps the recipient, salutation, body, closing and signature flush with
+the appropriate reading edge. An ordinary letter does not need decorative
+callouts. Short notes and reports may also contain zero callouts; use one only
+for a distinct point that benefits from separate treatment. The component
+examples are galleries and regression fixtures, not complete genre models.
+Remove visible editing advice and unused example components from the delivered
+document. See [content style](content-style.md#paragraph-style-and-purposeful-emphasis).
+
 | Theme | What is copied or created |
 | --- | --- |
 | `reader` | The supplied `reader_theme.tex`, with restrained callouts. |
 | `academic` | Shared `academic_theme.tex`: classical serif black article styling, visible headings and selective equations. |
-| `reference` | Shared `reference_theme.tex`: serif black ruled headings, gray reference blocks and selective equations; does not supply columns. |
+| `reference` | Shared `reference_theme.tex`: serif black ruled headings, ordinary bordered callouts with gray titles and white bodies, compact reference fields and selective equations; does not supply columns. |
 | `core` | No overlay; the core presentation remains. |
 | `custom` | An editable local `theme.tex` skeleton, with no other theme loaded. |
 

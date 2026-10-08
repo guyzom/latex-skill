@@ -328,6 +328,12 @@ else bad "folio layout controls failed"; cat "$HARNESS_TMP/folio_layouts.log"; f
 if python3 scripts/test_caption_styles.py >"$HARNESS_TMP/caption_styles.log" 2>&1; then
   ok "native English captions, declared palette and body-reference negative controls"
 else bad "caption style controls failed"; cat "$HARNESS_TMP/caption_styles.log"; fi
+if python3 scripts/test_paragraph_style.py >"$HARNESS_TMP/paragraph_style.log" 2>&1; then
+  ok "genre-owned paragraph policy, typed enum and starter timing controls"
+else bad "paragraph style source controls failed"; cat "$HARNESS_TMP/paragraph_style.log"; fi
+if python3 scripts/test_editorial_boxes.py >"$HARNESS_TMP/editorial_boxes.log" 2>&1; then
+  ok "ordinary callout title/body source policy and background mutation controls"
+else bad "ordinary callout source controls failed"; cat "$HARNESS_TMP/editorial_boxes.log"; fi
 if [ "${FAST:-0}" != "1" ]; then
   if python3 scripts/test_language_runtime.py >"$HARNESS_TMP/language_runtime.log" 2>&1; then
     ok "native language runtime, localized shell, list geometry, real italics and flow tables"
@@ -335,6 +341,12 @@ if [ "${FAST:-0}" != "1" ]; then
   if python3 scripts/test_generated_runtime.py >"$HARNESS_TMP/generated_runtime.log" 2>&1; then
     ok "generated custom English and bilingual source projects build through all gates"
   else bad "generated project runtime controls failed"; cat "$HARNESS_TMP/generated_runtime.log"; fi
+  if python3 scripts/test_paragraph_style.py --with-engine >"$HARNESS_TMP/paragraph_style_runtime.log" 2>&1; then
+    ok "native mixed and bilingual letters, academic paragraph boundaries and reference scope geometry"
+  else bad "paragraph style runtime controls failed"; cat "$HARNESS_TMP/paragraph_style_runtime.log"; fi
+  if python3 scripts/test_editorial_boxes.py --with-engine >"$HARNESS_TMP/editorial_boxes_runtime.log" 2>&1; then
+    ok "six ordinary callouts preserve pale title bands and white bodies across language and page flow"
+  else bad "ordinary callout runtime controls failed"; cat "$HARNESS_TMP/editorial_boxes_runtime.log"; fi
 fi
 
 echo "═══ T1j3: canonical studio catalog, documentation and coverage ═══"
@@ -1737,8 +1749,11 @@ echo "────────────────────────�
 # one topic-rail engine group and one mandatory sealed catalog visual gate.
 # v5.4.1 (repository line) carries v5.3.5's T1q (static + runtime) onto it and
 # adds T1r (static). A routine run (CATALOG_ROUTINE) runs one check fewer.
-EXPECTED_FULL=224
-EXPECTED_FAST=133
+# v5.4.5 preserves the repository regression groups and adds two static
+# editorial groups and two engine groups. Routine runs omit only the sealed
+# catalog visual release gate, as before.
+EXPECTED_FULL=228
+EXPECTED_FAST=135
 if [ "$FAIL" -eq 0 ]; then
   _want=$EXPECTED_FULL; [ "${FAST:-0}" = "1" ] && _want=$EXPECTED_FAST
   [ "${CATALOG_ROUTINE:-0}" = "1" ] && _want=$((EXPECTED_FULL - 1))

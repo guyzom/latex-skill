@@ -41,7 +41,7 @@ class ProjectGeneratorTests(unittest.TestCase):
         generator.create('note', dest)
         source = (dest / 'main.tex').read_text()
         self.assertIn(r'\def\lakitmainlanguage{hebrew}', source)
-        self.assertIn('סיכום קצר', source)
+        self.assertIn('העברת משימה', source)
 
     def test_schema3_records_requested_resolved_recipe_and_catalog_snapshot(self):
         cases = [dict(kind='paper', language='english'),
@@ -146,6 +146,32 @@ class ProjectGeneratorTests(unittest.TestCase):
         self.assertIn(r'\begin{hebrewprose}', source)
         self.assertIn(r'\begin{englishprose}', source)
 
+    def test_mixed_supplement_is_reader_facing_prose_without_authoring_tutorial(self):
+        cases = [('english-with-hebrew', 'hebrew', ('מסקנה', 'נתונים', 'הנחות', 'מידע')),
+                 ('hebrew-with-english', 'english', ('conclusion', 'evidence', 'assumptions', 'information'))]
+        tutorial_phrases = ('A short Hebrew term can appear inline',
+                            'use a language block with its own direction',
+                            'This is a short English note',
+                            'The document shell remains Hebrew',
+                            'מושג קצר באנגלית אפשר לכתוב כך',
+                            'פסקה שלמה נכתבת בהקשר',
+                            'זוהי הערה קצרה בעברית')
+        for language, secondary, concepts in cases:
+            with self.subTest(language=language):
+                _, source, manifest = self.make('reader-supplement-' + language,
+                                                kind='note', language=language)
+                body = source.partition(r'\begin{document}')[2].rpartition(r'\end{document}')[0]
+                # Authoring instructions may remain in comments, never in visible prose.
+                active_body = re.sub(r'(?<!\\)%[^\n]*', '', body)
+                self.assertEqual(manifest['recipe']['minority_composer_id'], 'append-note')
+                supplements = re.findall(r'\\begin\{' + secondary + r'prose\}(.*?)'
+                                         r'\\end\{' + secondary + r'prose\}', active_body, flags=re.S)
+                self.assertEqual(len(supplements), 1)
+                for concept in concepts:
+                    self.assertIn(concept, supplements[0])
+                for phrase in tutorial_phrases:
+                    self.assertNotIn(phrase, active_body)
+
     def test_mixed_letter_request_belongs_before_closing_and_signature(self):
         cases = [('english-with-hebrew', 'hebrew', 'Thank you for your time', 'Sincerely,',
                   'אשמח לקבל אישור'),
@@ -165,10 +191,10 @@ class ProjectGeneratorTests(unittest.TestCase):
                     self.assertEqual(source.count(signature), 1)
                     self.assertEqual(manifest['recipe']['minority_composer_id'],
                                      'letter-before-signature')
-                    self.assertEqual(manifest['recipe']['recipe_revision'], 2)
+                    self.assertEqual(manifest['recipe']['recipe_revision'], 3)
 
     def test_complete_bilingual_standard_reports_open_translation_on_new_page(self):
-        for kind in ('report', 'technical', 'formula-sheet'):
+        for kind in ('report', 'technical', 'formula-sheet', 'data-report'):
             for main in ('english', 'hebrew'):
                 secondary = 'hebrew' if main == 'english' else 'english'
                 for theme in (None, *generator.THEMES):
@@ -180,10 +206,11 @@ class ProjectGeneratorTests(unittest.TestCase):
                         self.assertIn(r'\end{' + main + 'prose}\n\\clearpage\n\\begin{' +
                                       secondary + 'prose}', source)
                         self.assertEqual(manifest['recipe']['composer_id'], 'paired-full-pages')
-                        self.assertEqual(manifest['recipe']['recipe_revision'], 2)
+                        self.assertEqual(manifest['recipe']['recipe_revision'],
+                                         2 if kind == 'data-report' else 3)
 
     def test_short_and_specialized_bilingual_bodies_retain_continuous_flow(self):
-        for kind in ('note', 'general', 'letter', 'data-report', 'annotated-note'):
+        for kind in ('note', 'general', 'letter', 'annotated-note'):
             for main in ('english', 'hebrew'):
                 with self.subTest(kind=kind, main=main):
                     _, source, manifest = self.make(kind + '-flow-' + main, kind=kind,

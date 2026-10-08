@@ -4,16 +4,17 @@
 \def\lakitclassoptions{11pt,a4paper}
 \def\lakitgeometryoptions{margin=2.2cm,headheight=14pt}
 \def\lakitlinespread{1.18}
+\def\lakitparagraphstyle{block}
 \input{preamble.tex}
 \input{document_components.tex}
 \input{reader_theme.tex}
 \hypersetup{pdftitle={Technical document},pdfauthor={}}
 \begin{document}
 % Replace sample content, title, and metadata before delivery.
-{\LARGE\sffamily\bfseries Technical document}\par\medskip
+{\LARGE\sffamily\bfseries\noindent Technical document\par}\medskip
 \section{Question and assumptions}
-Define what is being calculated, which inputs are given, and the scope of the
-analysis. This example uses a weighted sum with known weights.
+We calculate a weighted sum of a sequence of values. Assume that the values
+and weights are given and that both sequences have the same length.
 \section{Definition and derivation}
 \begin{equation}\label{eq:weighted}
 y=\sum_{i=1}^{n}w_i x_i.
@@ -35,6 +36,9 @@ def weighted_sum(values, weights):
 \end{asmblock}
 \end{codebox}
 \section{Validation and limitations}
-Check dimensions, signs, and edge cases. Successful compilation does not validate
-the mathematical or scientific content.
+The implementation rejects sequences of unequal length. For two empty sequences
+it returns zero, following the empty-sum convention. If the weights are
+dimensionless, the result has the same units as the input values.
+% Compilation does not validate the domain content. Check real assumptions,
+% units, input types and boundary cases before using this example in a project.
 \end{document}

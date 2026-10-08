@@ -5,6 +5,7 @@
 \def\lakitgeometryoptions{margin=2.7cm,headheight=14pt}
 \def\lakitlinespread{1.08}
 \def\lakitsecnumdepth{2}
+\def\lakitparagraphstyle{indented}
 \input{preamble.tex}
 \input{document_components.tex}
 \input{academic_theme.tex}
@@ -37,7 +38,8 @@ throughout this note. There are no units or observational errors in this
 dimensionless example. For general background on convex optimization, see
 Boyd and Vandenberghe~\cite{boyd2004}.
 \section{Solution and interpretation}
-Differentiating and collecting terms gives an unnumbered intermediate step:
+Differentiating and collecting terms gives
+% This intermediate working uses align*; only central or cited formulas get tags.
 \begin{align*}
 Q'_\lambda(x)&=2(x-a)+2\lambda x\\
              &=2(1+\lambda)x-2a.
@@ -85,8 +87,9 @@ $\lambda$ & $x_\lambda^\star$ & $Q_\lambda(x_\lambda^\star)$\\
 \end{tabular}
 \tabcap{Exact illustrative values for $a=2$.\label{tab:penalties}}
 \end{center}
-\autoref{fig:quadratic} shows the case $\lambda=1$. The axis direction and
-mathematical coordinates retain their ordinary meaning in either language.
+\autoref{fig:quadratic} shows the case $\lambda=1$. The minimum value is $2$
+and occurs at $x=1$.
+% Axis direction and mathematical coordinates are language-independent semantics.
 \begin{tikzpic}
 \begin{tikzpicture}[x=1.3cm,y=0.38cm,>=Stealth]
 \draw[->] (-0.6,0) -- (2.85,0) node[right] {$x$};

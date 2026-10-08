@@ -22,12 +22,14 @@
     "constraint",
     "backward-compatibility",
     "composer",
-    "source-handler"
+    "source-handler",
+    "ragged-alignment",
+    "word-hyphenation"
   ],
   "templates": [
     {
       "id": "note",
-      "recipe_revision": 1,
+      "recipe_revision": 2,
       "title": {
         "he": "סיכום קצר",
         "en": "Short note"
@@ -37,23 +39,25 @@
         {
           "language": "hebrew",
           "asset_path": "assets/starter_note.tex",
-          "sha256": "9824784b377596de3768886b701c33e8f75527f8713ef7d6f6412d1e4bd0d0d0",
+          "sha256": "b669f15e68ced679baaf9b3feedb371f17dcb5f6c75ac32876ac86d67ca337e4",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "11pt,a4paper",
             "lakitgeometryoptions": "margin=2.2cm,headheight=14pt",
-            "lakitlinespread": "1.18"
+            "lakitlinespread": "1.18",
+            "lakitparagraphstyle": "block"
           }
         },
         {
           "language": "english",
           "asset_path": "assets/starter_note_english.tex",
-          "sha256": "19e62420f18b0767727d5fcc02ce5dd5f4afae6ce0c8b8137aa876641ec81fab",
+          "sha256": "2a44f2e8f03ca985439a5519c80230a3c10dbe4d82c30896f3808ad0907e3f1c",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "11pt,a4paper",
             "lakitgeometryoptions": "margin=2.2cm,headheight=14pt",
-            "lakitlinespread": "1.18"
+            "lakitlinespread": "1.18",
+            "lakitparagraphstyle": "block"
           }
         }
       ],
@@ -77,7 +81,8 @@
         "content-profile",
         "recipe-revision",
         "composer",
-        "source-handler"
+        "source-handler",
+        "paragraph-style"
       ],
       "acceptance": [
         "template:note:native",
@@ -88,7 +93,7 @@
     },
     {
       "id": "general",
-      "recipe_revision": 1,
+      "recipe_revision": 2,
       "title": {
         "he": "מסמך כללי",
         "en": "General document"
@@ -98,23 +103,25 @@
         {
           "language": "hebrew",
           "asset_path": "assets/starter_general.tex",
-          "sha256": "f82fbef15c66ba0a8b31f11174c6e1a63f28d431938fb2ecd13535d69aa86fa6",
+          "sha256": "8b47ae4db9037aa7fa44aba8a5388e01d52abd39a1187b10e4d11ab713c2a078",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "11pt,a4paper",
             "lakitgeometryoptions": "margin=2.2cm,headheight=14pt",
-            "lakitlinespread": "1.18"
+            "lakitlinespread": "1.18",
+            "lakitparagraphstyle": "block"
           }
         },
         {
           "language": "english",
           "asset_path": "assets/starter_general_english.tex",
-          "sha256": "f3a43e7581b3d6075c59ab0a7e1389ffdfc770af0ddc3814867556e1478d753f",
+          "sha256": "eaead1e6d9441fded4bd3676e88805f9e8f00843470c783d3eb83153d923c8cc",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "11pt,a4paper",
             "lakitgeometryoptions": "margin=2.2cm,headheight=14pt",
-            "lakitlinespread": "1.18"
+            "lakitlinespread": "1.18",
+            "lakitparagraphstyle": "block"
           }
         }
       ],
@@ -138,7 +145,8 @@
         "content-profile",
         "recipe-revision",
         "composer",
-        "source-handler"
+        "source-handler",
+        "paragraph-style"
       ],
       "acceptance": [
         "template:general:native",
@@ -149,7 +157,7 @@
     },
     {
       "id": "letter",
-      "recipe_revision": 2,
+      "recipe_revision": 3,
       "title": {
         "he": "מכתב",
         "en": "Letter"
@@ -159,23 +167,25 @@
         {
           "language": "hebrew",
           "asset_path": "assets/starter_letter.tex",
-          "sha256": "9fbc555c74a6ef690ef0fb14acd41df1a11cdd487dd1e8a0c98e52b13a675ba8",
+          "sha256": "0a0b26843f06e3165cb1194afa93d5fa4ed462e8e00483c561485b4a765c3d14",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "11pt,a4paper",
             "lakitgeometryoptions": "margin=2.2cm,headheight=14pt",
-            "lakitlinespread": "1.18"
+            "lakitlinespread": "1.18",
+            "lakitparagraphstyle": "block"
           }
         },
         {
           "language": "english",
           "asset_path": "assets/starter_letter_english.tex",
-          "sha256": "bfc36bfcc10bbd4c76ea957a0750407803c21950b3c9b64699440ac7955803e0",
+          "sha256": "74d7b0bbc362c36eb88dbf5e296abeb762749d0283bbee88451318b58f06e072",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "11pt,a4paper",
             "lakitgeometryoptions": "margin=2.2cm,headheight=14pt",
-            "lakitlinespread": "1.18"
+            "lakitlinespread": "1.18",
+            "lakitparagraphstyle": "block"
           }
         }
       ],
@@ -199,7 +209,10 @@
         "content-profile",
         "recipe-revision",
         "composer",
-        "source-handler"
+        "source-handler",
+        "paragraph-style",
+        "first-line-indent",
+        "paragraph-spacing"
       ],
       "acceptance": [
         "template:letter:native",
@@ -210,7 +223,7 @@
     },
     {
       "id": "report",
-      "recipe_revision": 2,
+      "recipe_revision": 3,
       "title": {
         "he": "דוח",
         "en": "Report"
@@ -220,23 +233,25 @@
         {
           "language": "hebrew",
           "asset_path": "assets/starter_report.tex",
-          "sha256": "469d77ec4f1f34fe94423a5ccf5e34b7da4482c4decd336d13bb9b48c5feaa40",
+          "sha256": "9e58d2509855b92e4e3b2ada5b2cf9e354bcb0d2f1be309e427b7043c41a2009",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "11pt,a4paper",
             "lakitgeometryoptions": "margin=2.2cm,headheight=14pt",
-            "lakitlinespread": "1.18"
+            "lakitlinespread": "1.18",
+            "lakitparagraphstyle": "block"
           }
         },
         {
           "language": "english",
           "asset_path": "assets/starter_report_english.tex",
-          "sha256": "a34c34c9040c1042b7ea6098b0e6f94c1bb427cfd40d4bd1406e9f925ea97a13",
+          "sha256": "dd27b76be2538838a0296c6d2385316c65b6dcecc0b12d59208e6b0e6b5f690c",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "11pt,a4paper",
             "lakitgeometryoptions": "margin=2.2cm,headheight=14pt",
-            "lakitlinespread": "1.18"
+            "lakitlinespread": "1.18",
+            "lakitparagraphstyle": "block"
           }
         }
       ],
@@ -260,7 +275,8 @@
         "content-profile",
         "recipe-revision",
         "composer",
-        "source-handler"
+        "source-handler",
+        "paragraph-style"
       ],
       "acceptance": [
         "template:report:native",
@@ -271,7 +287,7 @@
     },
     {
       "id": "technical",
-      "recipe_revision": 2,
+      "recipe_revision": 3,
       "title": {
         "he": "מסמך טכני",
         "en": "Technical document"
@@ -281,23 +297,25 @@
         {
           "language": "hebrew",
           "asset_path": "assets/starter_technical.tex",
-          "sha256": "5e55aa09a60f27fc8c24dbe88e65f417373d060288992d5062d3c8a40f110ecf",
+          "sha256": "9e699ec75b703e9cdcf3d70b80916d0146f8147163c98195986d8a3a6f1937e6",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "11pt,a4paper",
             "lakitgeometryoptions": "margin=2.1cm,headheight=14pt",
-            "lakitlinespread": "1.18"
+            "lakitlinespread": "1.18",
+            "lakitparagraphstyle": "block"
           }
         },
         {
           "language": "english",
           "asset_path": "assets/starter_technical_english.tex",
-          "sha256": "7749829ecfdea31860e55f1baf4533af6ba408161ae1676d4a86f4ea212d8f0b",
+          "sha256": "d5073fc791321df33c597755ec20b2930a27ef79b8d7a99ed3777449fa7c3e47",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "11pt,a4paper",
             "lakitgeometryoptions": "margin=2.2cm,headheight=14pt",
-            "lakitlinespread": "1.18"
+            "lakitlinespread": "1.18",
+            "lakitparagraphstyle": "block"
           }
         }
       ],
@@ -321,7 +339,8 @@
         "content-profile",
         "recipe-revision",
         "composer",
-        "source-handler"
+        "source-handler",
+        "paragraph-style"
       ],
       "acceptance": [
         "template:technical:native",
@@ -332,7 +351,7 @@
     },
     {
       "id": "formula-sheet",
-      "recipe_revision": 2,
+      "recipe_revision": 3,
       "title": {
         "he": "דף נוסחאות",
         "en": "Formula sheet"
@@ -342,23 +361,25 @@
         {
           "language": "hebrew",
           "asset_path": "assets/starter_formula_sheet.tex",
-          "sha256": "4ca53cf1385e4e9ce17c49db8355c3038e0cf1fe0d902d7c7f5e1660263c653e",
+          "sha256": "2be5edb55e3cc1bb063bb69e5a9089c11293190d2b553ad7214457666552e3cb",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "11pt,a4paper",
             "lakitgeometryoptions": "margin=1.8cm,headheight=14pt",
-            "lakitlinespread": "1.08"
+            "lakitlinespread": "1.08",
+            "lakitparagraphstyle": "block"
           }
         },
         {
           "language": "english",
           "asset_path": "assets/starter_formula_sheet_english.tex",
-          "sha256": "f76f4817f88b7e0ecd22296bf1eb1892be15fc1b209b902cab30c07b44bfacf5",
+          "sha256": "7152ba51cdb22b7b4d9bc77cdc6422ebd366aa83941713a4fe796a069d2987e8",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "11pt,a4paper",
             "lakitgeometryoptions": "margin=2.2cm,headheight=14pt",
-            "lakitlinespread": "1.18"
+            "lakitlinespread": "1.18",
+            "lakitparagraphstyle": "block"
           }
         }
       ],
@@ -382,7 +403,8 @@
         "content-profile",
         "recipe-revision",
         "composer",
-        "source-handler"
+        "source-handler",
+        "paragraph-style"
       ],
       "acceptance": [
         "template:formula-sheet:native",
@@ -393,7 +415,7 @@
     },
     {
       "id": "data-report",
-      "recipe_revision": 1,
+      "recipe_revision": 2,
       "title": {
         "he": "דוח נתונים",
         "en": "Data report"
@@ -403,30 +425,32 @@
         {
           "language": "hebrew",
           "asset_path": "assets/starter_data_report.tex",
-          "sha256": "f5046047fc6c15eb45b6d15afe8c83d6dc5149d01f9fb00e95539192217b98c4",
+          "sha256": "9f459d578ff43bb38a7d4c88f2ce60fedbd84f08761c7a42d4259f7f30949191",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "11pt,a4paper",
             "lakitgeometryoptions": "margin=2.2cm,headheight=14pt",
-            "lakitlinespread": "1.16"
+            "lakitlinespread": "1.16",
+            "lakitparagraphstyle": "block"
           }
         },
         {
           "language": "english",
           "asset_path": "assets/starter_data_report_english.tex",
-          "sha256": "f1e9a1866ea68b7a7e57e865e1e3745a65637b41a2950171d7b8f725615f6231",
+          "sha256": "b5b3b89aa19f707c740632b76b0eb80cf49cf160ec459255ebbd45afc70d7f6c",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "11pt,a4paper",
             "lakitgeometryoptions": "margin=2.2cm,headheight=14pt",
-            "lakitlinespread": "1.18"
+            "lakitlinespread": "1.18",
+            "lakitparagraphstyle": "block"
           }
         }
       ],
       "content_profile": "report",
       "default_layout": "standard",
       "default_theme": "reader",
-      "bilingual_composer_id": "paired-bodies",
+      "bilingual_composer_id": "paired-full-pages",
       "minority_composer_id": "append-note",
       "source_handlers": [
         "declare-note-language",
@@ -446,7 +470,8 @@
         "content-profile",
         "recipe-revision",
         "composer",
-        "source-handler"
+        "source-handler",
+        "paragraph-style"
       ],
       "acceptance": [
         "template:data-report:native",
@@ -457,7 +482,7 @@
     },
     {
       "id": "annotated-note",
-      "recipe_revision": 1,
+      "recipe_revision": 2,
       "title": {
         "he": "סיכום עם הערות",
         "en": "Annotated note"
@@ -467,23 +492,25 @@
         {
           "language": "hebrew",
           "asset_path": "assets/starter_annotated_note.tex",
-          "sha256": "8dcef7703da9423cf1c73a00ef23944250e6239e4240f39e603e5eebd036c543",
+          "sha256": "47b4c4ff734e35835904ff56a679dbe559486e7253ab7ec7dbe0e0980faaece4",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "11pt,a4paper",
             "lakitgeometryoptions": "margin=2.2cm,headheight=14pt",
-            "lakitlinespread": "1.18"
+            "lakitlinespread": "1.18",
+            "lakitparagraphstyle": "block"
           }
         },
         {
           "language": "english",
           "asset_path": "assets/starter_annotated_note_english.tex",
-          "sha256": "7d9924578b91166496a6930b300795a3a5ee159f2c82a18719a45bc597a10335",
+          "sha256": "f24bdbd978cf6fc80bd10251d1b2bbc7460e0566e442abe55aeb43afbe84cc85",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "11pt,a4paper",
             "lakitgeometryoptions": "margin=2.2cm,headheight=14pt",
-            "lakitlinespread": "1.18"
+            "lakitlinespread": "1.18",
+            "lakitparagraphstyle": "block"
           }
         }
       ],
@@ -509,7 +536,8 @@
         "content-profile",
         "recipe-revision",
         "composer",
-        "source-handler"
+        "source-handler",
+        "paragraph-style"
       ],
       "acceptance": [
         "template:annotated-note:native",
@@ -520,7 +548,7 @@
     },
     {
       "id": "paper",
-      "recipe_revision": 1,
+      "recipe_revision": 2,
       "title": {
         "he": "מאמר אקדמי",
         "en": "Academic paper"
@@ -530,25 +558,27 @@
         {
           "language": "hebrew",
           "asset_path": "assets/starter_paper.tex",
-          "sha256": "4b77651ad6f3aba198ade3804b50ce62211760049101feb24ce17558c5b19bf0",
+          "sha256": "38398f755c206f72db15d35a60480f8c5acaf73e1de9f15f2fbda1de713a89d6",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "11pt,a4paper",
             "lakitgeometryoptions": "margin=2.7cm,headheight=14pt",
             "lakitlinespread": "1.08",
-            "lakitsecnumdepth": "2"
+            "lakitsecnumdepth": "2",
+            "lakitparagraphstyle": "indented"
           }
         },
         {
           "language": "english",
           "asset_path": "assets/starter_paper_english.tex",
-          "sha256": "f089243ba62f742360938fb78aef1147cbcc677fdc22cc0344d9d4d7a838918e",
+          "sha256": "e7a521305ad92603f99965bd76fda6225d68e58f6bf58b9b1ca1b1fc927cece0",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "11pt,a4paper",
             "lakitgeometryoptions": "margin=2.7cm,headheight=14pt",
             "lakitlinespread": "1.08",
-            "lakitsecnumdepth": "2"
+            "lakitsecnumdepth": "2",
+            "lakitparagraphstyle": "indented"
           }
         }
       ],
@@ -572,7 +602,10 @@
         "content-profile",
         "recipe-revision",
         "composer",
-        "source-handler"
+        "source-handler",
+        "paragraph-style",
+        "first-line-indent",
+        "paragraph-spacing"
       ],
       "acceptance": [
         "template:paper:native",
@@ -628,7 +661,8 @@
       "glossary_refs": [
         "layout",
         "preset",
-        "default"
+        "default",
+        "paragraph-style"
       ],
       "acceptance": [
         "layout:standard:runtime"
@@ -636,7 +670,7 @@
     },
     {
       "id": "reference-compact",
-      "recipe_revision": 1,
+      "recipe_revision": 2,
       "title": {
         "he": "דף עזר צפוף",
         "en": "Compact reference"
@@ -648,7 +682,7 @@
         {
           "language": "hebrew",
           "asset_path": "assets/starter_reference_sheet.tex",
-          "sha256": "5e9f37dead42193e2e2aeb1aec449d557b36b3b12a19c13c89531f2212e8b14d",
+          "sha256": "3c606225163eaca8d5a016eaec6c39c820f4c5e6a3d4de2a462e6dfff9a8b981",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "10pt,a4paper",
@@ -663,13 +697,14 @@
             "ReferenceBodyBaseline": "7.8",
             "ReferenceMathFontSize": "6.25",
             "ReferenceMathScriptSize": "4.375",
-            "ReferenceMathScriptScriptSize": "3.125"
+            "ReferenceMathScriptScriptSize": "3.125",
+            "lakitparagraphstyle": "block"
           }
         },
         {
           "language": "english",
           "asset_path": "assets/starter_reference_sheet_english.tex",
-          "sha256": "d1ce1a4a456ebc31185a0a38fc8c8435f9d4fe169f8765f156087171bc5d3edf",
+          "sha256": "6ef3c9125e7ca591f830dba6120c6614c8c22f2616caba2dc40b5ba09dc78e0f",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "10pt,a4paper",
@@ -684,7 +719,8 @@
             "ReferenceBodyBaseline": "7.8",
             "ReferenceMathFontSize": "6.25",
             "ReferenceMathScriptSize": "4.375",
-            "ReferenceMathScriptScriptSize": "3.125"
+            "ReferenceMathScriptScriptSize": "3.125",
+            "lakitparagraphstyle": "block"
           }
         }
       ],
@@ -763,7 +799,10 @@
         "preset",
         "layout-extension",
         "hook",
-        "page-shell"
+        "page-shell",
+        "paragraph-style",
+        "ragged-alignment",
+        "word-hyphenation"
       ],
       "acceptance": [
         "layout:reference-compact:runtime"
@@ -771,7 +810,7 @@
     },
     {
       "id": "reference-readable",
-      "recipe_revision": 1,
+      "recipe_revision": 2,
       "title": {
         "he": "דף עזר קריא",
         "en": "Readable reference"
@@ -783,7 +822,7 @@
         {
           "language": "hebrew",
           "asset_path": "assets/starter_reference_sheet.tex",
-          "sha256": "5e9f37dead42193e2e2aeb1aec449d557b36b3b12a19c13c89531f2212e8b14d",
+          "sha256": "3c606225163eaca8d5a016eaec6c39c820f4c5e6a3d4de2a462e6dfff9a8b981",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "10pt,a4paper",
@@ -798,13 +837,14 @@
             "ReferenceBodyBaseline": "7.8",
             "ReferenceMathFontSize": "6.25",
             "ReferenceMathScriptSize": "4.375",
-            "ReferenceMathScriptScriptSize": "3.125"
+            "ReferenceMathScriptScriptSize": "3.125",
+            "lakitparagraphstyle": "block"
           }
         },
         {
           "language": "english",
           "asset_path": "assets/starter_reference_sheet_english.tex",
-          "sha256": "d1ce1a4a456ebc31185a0a38fc8c8435f9d4fe169f8765f156087171bc5d3edf",
+          "sha256": "6ef3c9125e7ca591f830dba6120c6614c8c22f2616caba2dc40b5ba09dc78e0f",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "10pt,a4paper",
@@ -819,7 +859,8 @@
             "ReferenceBodyBaseline": "7.8",
             "ReferenceMathFontSize": "6.25",
             "ReferenceMathScriptSize": "4.375",
-            "ReferenceMathScriptScriptSize": "3.125"
+            "ReferenceMathScriptScriptSize": "3.125",
+            "lakitparagraphstyle": "block"
           }
         }
       ],
@@ -898,7 +939,10 @@
         "preset",
         "layout-extension",
         "hook",
-        "page-shell"
+        "page-shell",
+        "paragraph-style",
+        "ragged-alignment",
+        "word-hyphenation"
       ],
       "acceptance": [
         "layout:reference-readable:runtime"
@@ -1058,7 +1102,8 @@
       ],
       "glossary_refs": [
         "theme",
-        "ownership"
+        "ownership",
+        "callout"
       ],
       "acceptance": [
         "theme:reference:runtime"
