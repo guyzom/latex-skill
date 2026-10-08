@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Detect architecture capabilities activated by TeX source.
 
 This is the bridge between the declarative architecture contract and source

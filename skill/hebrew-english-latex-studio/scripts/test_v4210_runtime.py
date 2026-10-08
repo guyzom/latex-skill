@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Real LuaLaTeX controls for four Unicode smart quotes inside listings.
 
 HLLPDF_421_EVIDENCE_DIR keeps sources, logs, expected streams and measured

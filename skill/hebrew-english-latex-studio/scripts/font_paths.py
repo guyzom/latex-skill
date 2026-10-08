@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Resolve an external, hash-pinned font installation without network access."""
 from __future__ import annotations
 import os

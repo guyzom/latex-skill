@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """List project-local textual inputs recorded by a TeX .fls file."""
 
 from __future__ import annotations

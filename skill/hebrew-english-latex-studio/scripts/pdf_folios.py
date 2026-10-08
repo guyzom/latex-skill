@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Compare printed folios in declared geometry with explicit PDF PageLabels.
 
 The native PDF parser reads strings (including UTF-16 hex prefixes), instead of

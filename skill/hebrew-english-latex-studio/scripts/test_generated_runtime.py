@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Build generated English/custom and bilingual projects through the real pipeline.
 
 Requires the full installed TeX/font/runtime dependencies and microtype. No build

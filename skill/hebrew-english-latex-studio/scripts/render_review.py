@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Render a PDF for manual review and verify evidence tied to exact PDF/image bytes.
 
 Rendering starts every page as pending. Verification never claims that a human

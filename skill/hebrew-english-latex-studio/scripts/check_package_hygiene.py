@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Fail when a standalone skill tree contains release-time debris or unsafe paths."""
 from __future__ import annotations
 

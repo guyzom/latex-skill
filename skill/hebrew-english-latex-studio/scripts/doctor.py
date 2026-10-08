@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Verify the validated QA baseline and, optionally, the LuaLaTeX toolchain.
 
 The exact Python package versions are the release-validation baseline.  The

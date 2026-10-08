@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Real-engine title/body distinction for ordinary reference-theme callouts.
 
 The default run checks source coverage and the negative-control boundary without

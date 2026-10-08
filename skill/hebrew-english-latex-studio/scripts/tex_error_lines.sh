@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 # tex_error_lines.sh [--context] LOGFILE — print the GENUINE LaTeX error lines of a log.
 #
 # WHY THIS IS NOT `grep '^!'` (v4.1.4). When TeX reports an overfull box it

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Verify that every visible PDF page has the explicitly expected paper size.
 
 The canonical pipeline expects A4. A different supported size is valid only

@@ -1,2 +1,4 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: LICENSING.md.
 PyMuPDF==1.26.7
 fonttools==4.63.0

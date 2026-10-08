@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 r"""check_charset.py — catch stray/confusable codepoints BEFORE you compile.
 
 Prose and TeX syntax use a conservative house allow-list. Literal code blocks

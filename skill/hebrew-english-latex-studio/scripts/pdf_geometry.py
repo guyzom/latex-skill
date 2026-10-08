@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Physical page dimensions, without assuming one PDF user unit is one point.
 
 This helper does not normalize, repair or write PDFs. Invalid numeric page

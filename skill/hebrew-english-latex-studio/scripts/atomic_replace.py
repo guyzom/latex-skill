@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Atomically replace a destination with the bytes of a regular source file.
 
 The temporary file is created in the destination directory so os.replace stays

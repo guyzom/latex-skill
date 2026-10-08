@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Real-engine controls for class-aware running heads and deep reference names.
 
 Set HLLPDF_431_EVIDENCE_DIR to a NEW directory outside the skill to keep the

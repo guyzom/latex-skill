@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """v4.27.0 static contracts — no LuaLaTeX process.
 
 BLD-71: a compile that stops after a page has shipped leaves LuaTeX's partial

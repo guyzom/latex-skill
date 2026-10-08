@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """v5.3.5 real-engine control: a text subscript in the folio's own font.
 
 The construction from lifting-optimization p.17: a display ending a page whose

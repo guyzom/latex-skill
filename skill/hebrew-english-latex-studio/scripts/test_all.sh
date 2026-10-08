@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 # test_all.sh — the skill's regression harness. ONE command that proves:
 #   T1. the linters fire on every known bug class (tests/lint_positives.tex ->
 #       every flag in tests/expected_flags.txt) and stay silent on correct

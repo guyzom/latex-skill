@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Install pinned fonts from a local directory, existing system files, or a prior skill.
 
 Font binaries are never distributed in this package. No network access is made.

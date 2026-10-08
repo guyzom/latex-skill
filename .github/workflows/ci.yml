@@ -44,6 +44,7 @@ jobs:
           python scripts/doctor.py | tee ../../test-results/doctor.log
           python scripts/check_package_hygiene.py | tee ../../test-results/hygiene.log
           python scripts/test_release_contract.py | tee ../../test-results/contracts.log
+          python scripts/test_license_scope.py 2>&1 | tee ../../test-results/license-scope.log
       - name: Run checker regressions
         run: python scripts/selftest.py | tee ../../test-results/selftest.log
       - name: Verify source resolution against LuaLaTeX

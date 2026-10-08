@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Catalog-derived build/render evidence and a separate human-review gate.
 
 No engine success or generated raster is a human review. The run receipt stays

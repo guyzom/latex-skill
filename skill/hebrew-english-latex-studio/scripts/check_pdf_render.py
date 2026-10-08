@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """check_pdf_render.py (v4.0.1) — verify the RENDERED PDF, not the source.
 
 Every hard bidi defect in this project's history (reversed Latin in TikZ

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Recover a prior PDF removed by a failed LuaTeX run (not a sandbox/backup service).
 
 The compiler keeps its original CWD and source resolution. Snapshot once into

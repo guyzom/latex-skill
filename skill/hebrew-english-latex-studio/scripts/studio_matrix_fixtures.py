@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Portable handwritten component fixtures for declared QA coverage.
 
 Synthetic sample text exercises existing APIs; it is not user content or a

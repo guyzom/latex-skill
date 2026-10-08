@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """check_bidi_figures.py — catch the mixed-direction bug class BEFORE you build.
 
 Scans LaTeX source for failure modes that compile cleanly (0 missing characters,

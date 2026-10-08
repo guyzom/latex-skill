@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Actual PDF checks for explicit general-document folio layout contracts."""
 from __future__ import annotations
 

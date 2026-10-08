@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Real-engine controls for bilingual flow tables, numbering and structural guards."""
 from __future__ import annotations
 import os

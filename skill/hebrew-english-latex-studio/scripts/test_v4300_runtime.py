@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Real-engine source fidelity for twelve technical symbols in LTR listings.
 
 Retain sources/PDFs/logs outside the skill using HLLPDF_430_EVIDENCE_DIR.
