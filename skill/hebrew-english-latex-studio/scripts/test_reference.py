@@ -242,7 +242,7 @@ class ReferenceCreation(unittest.TestCase):
                 self.assertNotIn(r'\input{reference_theme.tex}', source)
                 self.assert_created_typography_contract(project, manifest)
                 self.assertEqual(manifest['caption_contract']['label_weight'],
-                                 'normal' if theme == 'academic' else 'bold')
+                                 'normal')
 
     def test_legacy_formula_sheet_default_remains_standard_reader(self):
         project, manifest = self.create('legacy', language='english')
