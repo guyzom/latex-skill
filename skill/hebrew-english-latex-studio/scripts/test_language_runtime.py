@@ -747,7 +747,9 @@ See \autoref{ch:en} and \autoref{app:en}.
                 self.assertCountEqual([(s[0],s[1]) for s in sites], [('tbl',n) for n in numbers])
                 dests=doc.resolve_names()
                 for number,frame in zip(numbers,(short,fit,long)):
-                    dest=dests['tbl.'+number]
+                    # Clean hides section numbering but retains the reset-parent
+                    # anchor identity, independently of the printed number.
+                    dest=dests[('tbl.0.' if theme == 'clean' else 'tbl.')+number]
                     self.assertEqual(dest['page'],0)
                     self.assertAlmostEqual(page.rect.height-dest['to'][1],frame.y0,delta=2)
                 links=page.get_links()
