@@ -219,10 +219,12 @@ wide content, language blocks and component boundaries.
 `exam_components.tex` owns `\qlabel`, `\pts`, `\finalans`, `\srcfig`, and
 `\srcfigdir`. It neither selects exam styling nor activates `showonlyrefs`.
 `document_components.tex` owns `\sourcelink`, `\glossaryentry`, and optional
-`framedtable` with its local `\framedtablewidth` budget. The frame reuses
-`tablebox`, measures actual row/caption width and rejects page-tall content.
+`framedtable` and `semanticframedtable` with the local `\framedtablewidth` budget.
+The former fits rows/caption; the latter matches the actual active semantic-box
+width and inset conventions through shared live styles. Natural inner columns
+are not stretched. Both reuse `tablebox` and reject page-tall content.
 It does not change table defaults or provide framed multipage flow.
-The latter joins a term and definition with a spaced em dash and adds no period.
+The glossary helper joins a term and definition with a spaced em dash and adds no period.
 Neither helper is a bibliography system.
 `deferred_notes.tex` owns `\DeclareDocNote`, `\DocNoteMark`, `\PrintDocNotes`.
 `flow_tables.tex` owns `flowtable` and the documented H/E/N column convention;

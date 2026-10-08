@@ -143,7 +143,7 @@ Acceptance case identifiers: `template:formula-sheet:native`, `template:formula-
 
 ### Template data-report
 
-**דוח נתונים — Data report**. Recipe revision: 4.
+**דוח נתונים — Data report**. Recipe revision: 5.
 
 | Native source language | Starter | Authored declarations |
 |---|---|---|
@@ -155,7 +155,7 @@ Additional copied components: [flow_tables.tex](../assets/flow_tables.tex).
 Closed source handlers: `declare-note-language`, `data-heading-guard`.
 
 Guides: [template-catalog.md](../references/template-catalog.md), [catalog-development.md](../references/catalog-development.md), [tables-and-captions.md](../references/tables-and-captions.md).
-Vocabulary: [template](glossary-he-en.md#term-template), [starter](glossary-he-en.md#term-starter), [document-kind](glossary-he-en.md#term-document-kind), [content-profile](glossary-he-en.md#term-content-profile), [recipe-revision](glossary-he-en.md#term-recipe-revision), [composer](glossary-he-en.md#term-composer), [source-handler](glossary-he-en.md#term-source-handler), [paragraph-style](glossary-he-en.md#term-paragraph-style).
+Vocabulary: [template](glossary-he-en.md#term-template), [starter](glossary-he-en.md#term-starter), [document-kind](glossary-he-en.md#term-document-kind), [content-profile](glossary-he-en.md#term-content-profile), [recipe-revision](glossary-he-en.md#term-recipe-revision), [composer](glossary-he-en.md#term-composer), [source-handler](glossary-he-en.md#term-source-handler), [paragraph-style](glossary-he-en.md#term-paragraph-style), [table-structure](glossary-he-en.md#term-table-structure), [table-frame-mode](glossary-he-en.md#term-table-frame-mode).
 Acceptance case identifiers: `template:data-report:native`, `template:data-report:mixed`, `template:data-report:bilingual`.
 
 ### Template annotated-note
@@ -431,7 +431,7 @@ Acceptance case identifiers: `example:references:runtime`.
 ### Example tables
 
 Guides: [template-catalog.md](../references/template-catalog.md), [tables-and-captions.md](../references/tables-and-captions.md).
-Vocabulary: [starter](glossary-he-en.md#term-starter), [public-api](glossary-he-en.md#term-public-api).
+Vocabulary: [starter](glossary-he-en.md#term-starter), [public-api](glossary-he-en.md#term-public-api), [table-structure](glossary-he-en.md#term-table-structure), [table-frame-mode](glossary-he-en.md#term-table-frame-mode).
 Acceptance case identifiers: `example:tables:runtime`.
 
 

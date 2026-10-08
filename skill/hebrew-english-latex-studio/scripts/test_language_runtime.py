@@ -22,7 +22,8 @@ from font_paths import font_dir
 
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ('preamble.tex', 'reader_theme.tex', 'clean_theme.tex', 'flow_tables.tex',
-          'deferred_notes.tex', 'document_components.tex')
+          'deferred_notes.tex', 'document_components.tex', 'academic_theme.tex',
+          'reference_theme.tex')
 HEADER = r'''\def\lakitdocumentclass{article}
 \def\lakitclassoptions{11pt,a4paper}
 \def\lakitgeometryoptions{margin=2.2cm,headheight=14pt}
@@ -590,6 +591,143 @@ See \autoref{ch:en} and \autoref{app:en}.
             result, _ = self.compile(bad, 'frames-rejected-'+name)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn(phrase, result.stdout)
+
+    def test_semantic_frames_match_real_boxes_and_adapt_column_structure(self):
+        import check_pdf_render as render
+
+        def source_for(main, theme):
+            header = profile_header(main, main).replace(
+                r'\input{reader_theme.tex}', '' if theme.startswith('core') else
+                r'\input{' + theme + '_theme.tex}')
+            if theme == 'core-custom':
+                header += (r'\mdfapptodefinestyle{hllpdfsemanticgeometry}{leftmargin=12pt,rightmargin=5pt,'
+                           r'innerleftmargin=13pt,innerrightmargin=8pt}'+'\n')
+            short = 'Compact values.' if main == 'english' else 'מדידות קצרות.'
+            caption = (r'Long uniform caption with $x^2$ and \h{מונח}. '*3 if main == 'english'
+                       else r'תיאור אחיד וארוך עם $x^2$ ועם \en{LLVM}. '*3)
+            caption += r' \href{https://example.org/frame-modes}{MODELINK}'
+            compact = (r'SID2&VAL2\\\midrule001&-12.50\\002&0.00\\' if main == 'english'
+                       else r'VAL2&SID2\\\midrule-12.50&001\\0.00&002\\')
+            five = (r'CID5&CNT5&MEAN5&SD5&STATE5\\\midrule001&12&1.25&$x^2$&Observed\\'
+                    if main == 'english' else
+                    r'STATE5&SD5&MEAN5&CNT5&CID5\\\midrule\h{נצפה}&$x^2$&1.25&12&001\\')
+            prose = (r'WRAPTEXT Long explanatory prose with $x^2$ and \h{מונח} wraps safely. '*4
+                     if main == 'english' else
+                     r'\h{\en{WRAPTEXT} תיאור ארוך שנשבר בבטחה, עם $x^2$ ועם \en{LLVM}.} '*4)
+            spec = (r'rrc>{\raggedright\arraybackslash}p{\framedtablewidth-5cm}' if main == 'english'
+                    else r'>{\raggedleft\arraybackslash}p{\framedtablewidth-5cm}crr')
+            rows = (r'ID&Value&Model&Description\\\midrule101&-3.50&$x^2$&'+prose+r'\\'
+                    if main == 'english' else
+                    r'\h{תיאור}&\h{מודל}&\h{ערך}&\h{מזהה}\\\midrule'+prose+r'&$x^2$&-3.50&101\\')
+            return (header+r'\newcounter{captioncalls}\newcounter{boxcalls}'+'\n'
+                +r'\newcommand{\captiononce}{\stepcounter{captioncalls}}'+'\n'
+                +r'\BeforeBeginEnvironment{defbox}{\stepcounter{boxcalls}}'+'\n'
+                +r'\begin{document}\section{\en{Adaptable frame modes}}'+'\n'
+                +r'\begin{defbox}[frametitle={\en{Semantic geometry reference}}]'
+                +r'\begin{otherlanguage}{english}\noindent\rule{.25pt}{12pt}\hfill\rule{.25pt}{12pt}\par'
+                +r'\noindent BOXREFMARK Actual semantic box in this document.\par\end{otherlanguage}\end{defbox}'+'\n'
+                +r'\begin{semanticframedtable}[Two chosen fields]{2}{rr}{\captiononce '+short+r'}{tab:semantic-two}'+'\n'
+                +r'\toprule '+compact+r'\bottomrule\end{semanticframedtable}'+'\n'
+                +r'\begin{framedtable}[Five chosen fields]{5}{'+('rrrrl' if main=='english' else 'lcrrr')
+                +r'}{\en{Five measured fields.}}{tab:fit-five}\toprule '+five+r'\bottomrule\end{framedtable}'+'\n'
+                +r'\begin{semanticframedtable}[Four chosen fields]{4}{'+spec+r'}{'+caption+r'}{tab:semantic-four}'+'\n'
+                +r'\toprule '+rows+r'\midrule\multicolumn{4}{p{\framedtablewidth+6\tabcolsep}}'
+                +r'{\noindent\rule{.25pt}{12pt}\hfill\rule{.25pt}{12pt}}\\\bottomrule\end{semanticframedtable}'+'\n'
+                +r'\typeout{MODECALLS|\arabic{boxcalls}|\arabic{captioncalls}}'+'\n'
+                +r'\en{References: }\autoref{tab:semantic-two}, \nameref{tab:fit-five}, \ref{tab:semantic-four}.'+'\n'
+                +r'\listoftables\end{document}')
+
+        def geometry(directory, main, theme='core'):
+            with fitz.open(directory/'main.pdf') as doc:
+                self.assertEqual(len(doc), 1)
+                page = doc[0]
+                fills = [d['rect'] for d in page.get_drawings()
+                         if d['fill'] and d['rect'].width > 40 and d['rect'].height > 25]
+                def enclosing(marker):
+                    rect = page.search_for(marker)[0]
+                    return max((f for f in fills if f.contains(rect)), key=lambda f:f.width*f.height)
+                reference = enclosing('BOXREFMARK')
+                short = enclosing('SID2')
+                fit = enclosing('CID5')
+                long = enclosing('WRAPTEXT')
+                for frame in (short, long):
+                    self.assertAlmostEqual(frame.x0, reference.x0, delta=.3)
+                    self.assertAlmostEqual(frame.x1, reference.x1, delta=.3)
+                self.assertLess(fit.width, reference.width-40)
+                # The outer frame is wide; natural short rows still occupy
+                # their own compact width, rather than filling it with glue.
+                sid, value = page.search_for('SID2')[0], page.search_for('VAL2')[0]
+                self.assertLess(abs(sid.x0-value.x0), short.width/2)
+                self.assertLess(sid.x0,value.x0) if main=='english' else self.assertGreater(sid.x0,value.x0)
+                five = [page.search_for(t)[0] for t in ('CID5','CNT5','MEAN5','SD5','STATE5')]
+                self.assertEqual(len({round(r.x0,1) for r in five}), 5)
+                self.assertLess(five[0].x0,five[-1].x0) if main=='english' else self.assertGreater(five[0].x0,five[-1].x0)
+                self.assertGreater(len({round(r.y0,1) for r in page.search_for('WRAPTEXT')}),2)
+                # Actual PDF ink markers expose the inherited left/right
+                # inset: the table adds exactly its normal cell padding.
+                marks = [d['rect'] for d in page.get_drawings()
+                         if d['type']=='s' and d['color']==(0.,0.,0.)
+                         and .15 < d['width'] < .4 and d['rect'].width < .5
+                         and 10 < d['rect'].height < 14]
+                ref_marks=sorted([r for r in marks if reference.y0 < r.y0 < reference.y1],key=lambda r:r.x0)
+                table_marks=sorted([r for r in marks if long.y0 < r.y0 < long.y1],key=lambda r:r.x0)
+                self.assertEqual((len(ref_marks),len(table_marks)),(2,2))
+                cell_pad = 6*72/72.27
+                self.assertAlmostEqual(table_marks[0].x0-ref_marks[0].x0,cell_pad,delta=.3)
+                self.assertAlmostEqual(ref_marks[1].x1-table_marks[1].x1,cell_pad,delta=.3)
+                sites=[s for s in render.caption_sites(page) if s[0]=='tbl']
+                numbers=('1','2','3') if theme in ('academic','reference') else ('1.1','1.2','1.3')
+                self.assertCountEqual([(s[0],s[1]) for s in sites], [('tbl',n) for n in numbers])
+                dests=doc.resolve_names()
+                for number,frame in zip(numbers,(short,fit,long)):
+                    dest=dests['tbl.'+number]
+                    self.assertEqual(dest['page'],0)
+                    self.assertAlmostEqual(page.rect.height-dest['to'][1],frame.y0,delta=2)
+                links=page.get_links()
+                self.assertTrue(any(l.get('uri')=='https://example.org/frame-modes' for l in links))
+                for block in page.get_text('dict')['blocks']:
+                    for line in block.get('lines',[]):
+                        for span in line['spans']:
+                            if 'MODELINK' in span['text']:
+                                self.assertEqual(span['color'],0)
+                                self.assertFalse(span['flags'] & 16)
+                                self.assertAlmostEqual(span['size'],9.96264,delta=.12)
+
+        for theme in ('core','reader','academic','reference','core-custom'):
+            for main in ('english','hebrew'):
+                with self.subTest(theme=theme,main=main):
+                    source=source_for(main,theme)
+                    result,directory=self.compile(source,'frame-modes-'+theme+'-'+main,passes=3)
+                    self.assertEqual(result.returncode,0,result.stdout[-6000:])
+                    log=(directory/'main.log').read_text()
+                    self.assertIn('MODECALLS|1|1',log)
+                    for bad in ('Overfull','Missing character:','undefined references','multiply defined'):
+                        self.assertNotIn(bad,log)
+                    geometry(directory,main,theme)
+                    lot=(directory/'main.lot').read_text()
+                    for entry in ('Two chosen fields','Five chosen fields','Four chosen fields'):
+                        self.assertEqual(lot.count(entry),1)
+                    nav=subprocess.run([sys.executable,str(ROOT/'scripts/check_pdf_navigation.py'),
+                                        str(directory/'main.pdf')],capture_output=True,text=True)
+                    self.assertEqual(nav.returncode,0,nav.stdout+nav.stderr)
+        for name,source in (
+            ('wrong-width',source_for('english','core').replace('semanticframedtable','framedtable')),
+            ('wrong-insets',source_for('english','core').replace(r'\begin{document}',
+                r'\renewcommand{\hllpdfsemanticframestyle}{hllpdftablegeometry}\begin{document}'))):
+            result,directory=self.compile(source,'frame-modes-'+name,passes=2)
+            self.assertEqual(result.returncode,0,result.stdout[-3000:])
+            with self.assertRaises(AssertionError): geometry(directory,'english')
+        for mode in ('framedtable','semanticframedtable'):
+            for name,spec,rows,phrase in (
+                ('width',r'p{\linewidth}','Too wide.','exceeds the available width'),
+                ('height','l',(r'Record\\'+'\n')*90,'exceeds one page'),
+                ('count','l','Invalid.','requires a positive column count')):
+                count='0' if name=='count' else '1'
+                source=(profile_header('english','english')+r'\begin{document}\begin{'+mode+r'}{'+count
+                    +r'}{'+spec+r'}{Caption.}{tab:bad}'+rows+r'\end{'+mode+r'}\end{document}')
+                result,_=self.compile(source,'frame-modes-rejected-'+mode+'-'+name)
+                self.assertNotEqual(result.returncode,0)
+                self.assertIn(phrase,result.stdout)
 
     def test_bad_profiles_fail_before_document_loading(self):
         cases=[('unknown',r'\def\lakitlanguageprofile{french}','unsupported language profile'),

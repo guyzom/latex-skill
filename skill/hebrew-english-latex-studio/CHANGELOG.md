@@ -8,10 +8,14 @@ use natural numeric columns with authored prose widths; continuing tables keep
 outer cell padding and center natural-width specifications. Glossary entries
 use a spaced em dash without altering sentence punctuation. Regression controls
 cover physical caption fragments, mixed direction, wrapping and navigation.
-Optional content-sized `framedtable` reuses the existing frame mechanism, keeps
-captions and rows together, wraps authored prose columns and rejects page-tall
-content. The unframed default remains; data-report recipe revision 4 documents
-the option. Frame/bare-table navigation and black caption links have real PDF
+Optional content-fit `framedtable` and semantic-width `semanticframedtable` reuse
+the existing frame mechanism and live theme geometry, keep captions and rows
+together, wrap authored prose columns and reject page-tall content. Semantic
+outer width/insets match real semantic boxes without stretching natural columns.
+There is no fixed column count: varied RTL/LTR two-, four- and five-field examples
+are adaptable choices, and other structures may fit better. The unframed default
+remains; data-report recipe revision 5 records the authoring guidance.
+Frame/bare-table navigation and black caption links have real PDF
 controls, including width/height failures and a displaced-anchor mutation.
 
 The 138-path tooling license scope and Generated Output Permission are retained;

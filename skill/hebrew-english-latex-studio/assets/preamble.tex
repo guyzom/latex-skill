@@ -650,36 +650,31 @@
 % bug, not an authoring rule). The explicit reset makes every box titleless
 % unless ITS OWN [frametitle={...}] says otherwise; verified both directions:
 % no duplicate on the nested box, an explicit title still renders.
-\newmdenv[frametitle={},linecolor=cBlue,backgroundcolor=cBlueBg,linewidth=1.1pt,
+% Geometry is shared with the optional semantic-width table container. Themes
+% select their own existing semantic style below; neither path fixes columns.
+\mdfdefinestyle{hllpdfsemanticgeometry}{linewidth=1.1pt,
+  innertopmargin=6pt,innerbottommargin=7pt,skipabove=9pt,skipbelow=9pt,
+  innerleftmargin=9pt,innerrightmargin=9pt,everyline=true,
+  splitbottomskip=6pt,splittopskip=12pt,roundcorner=3pt}
+\newcommand{\hllpdfsemanticframestyle}{hllpdfsemanticgeometry}
+\newmdenv[frametitle={},style=hllpdfsemanticgeometry,linecolor=cBlue,backgroundcolor=cBlueBg,
   frametitlebackgroundcolor=cBlue,frametitlefontcolor=white,
-  innertopmargin=6pt,innerbottommargin=7pt,skipabove=9pt,skipbelow=9pt,
-  innerleftmargin=9pt,innerrightmargin=9pt,everyline=true,splitbottomskip=6pt,splittopskip=12pt,
-  roundcorner=3pt]{defbox}   % הגדרה
-\newmdenv[frametitle={},linecolor=cGreen,backgroundcolor=cGreenBg,linewidth=1.1pt,
+  ]{defbox}   % הגדרה
+\newmdenv[frametitle={},style=hllpdfsemanticgeometry,linecolor=cGreen,backgroundcolor=cGreenBg,
   frametitlebackgroundcolor=cGreen,frametitlefontcolor=white,
-  innertopmargin=6pt,innerbottommargin=7pt,skipabove=9pt,skipbelow=9pt,
-  innerleftmargin=9pt,innerrightmargin=9pt,everyline=true,splitbottomskip=6pt,splittopskip=12pt,
-  roundcorner=3pt]{thmbox}   % משפט/טענה
-\newmdenv[frametitle={},linecolor=cAmber,backgroundcolor=cAmberBg,linewidth=1.1pt,
+  ]{thmbox}   % משפט/טענה
+\newmdenv[frametitle={},style=hllpdfsemanticgeometry,linecolor=cAmber,backgroundcolor=cAmberBg,
   frametitlebackgroundcolor=cAmber,frametitlefontcolor=white,
-  innertopmargin=6pt,innerbottommargin=7pt,skipabove=9pt,skipbelow=9pt,
-  innerleftmargin=9pt,innerrightmargin=9pt,everyline=true,splitbottomskip=6pt,splittopskip=12pt,
-  roundcorner=3pt]{notebox}  % הערה
-\newmdenv[frametitle={},linecolor=cPurple,backgroundcolor=cPurpleBg,linewidth=1.1pt,
+  ]{notebox}  % הערה
+\newmdenv[frametitle={},style=hllpdfsemanticgeometry,linecolor=cPurple,backgroundcolor=cPurpleBg,
   frametitlebackgroundcolor=cPurple,frametitlefontcolor=white,
-  innertopmargin=6pt,innerbottommargin=7pt,skipabove=9pt,skipbelow=9pt,
-  innerleftmargin=9pt,innerrightmargin=9pt,everyline=true,splitbottomskip=6pt,splittopskip=12pt,
-  roundcorner=3pt]{exbox}    % דוגמה
-\newmdenv[frametitle={},linecolor=cRed,backgroundcolor=cRedBg,linewidth=1.1pt,
+  ]{exbox}    % דוגמה
+\newmdenv[frametitle={},style=hllpdfsemanticgeometry,linecolor=cRed,backgroundcolor=cRedBg,
   frametitlebackgroundcolor=cRed,frametitlefontcolor=white,
-  innertopmargin=6pt,innerbottommargin=7pt,skipabove=9pt,skipbelow=9pt,
-  innerleftmargin=9pt,innerrightmargin=9pt,everyline=true,splitbottomskip=6pt,splittopskip=12pt,
-  roundcorner=3pt]{warnbox}  % טעות נפוצה
-\newmdenv[frametitle={},linecolor=cTeal,backgroundcolor=cTealBg,linewidth=1.1pt,
+  ]{warnbox}  % טעות נפוצה
+\newmdenv[frametitle={},style=hllpdfsemanticgeometry,linecolor=cTeal,backgroundcolor=cTealBg,
   frametitlebackgroundcolor=cTeal,frametitlefontcolor=white,
-  innertopmargin=6pt,innerbottommargin=7pt,skipabove=9pt,skipbelow=9pt,
-  innerleftmargin=9pt,innerrightmargin=9pt,everyline=true,splitbottomskip=6pt,splittopskip=12pt,
-  roundcorner=3pt]{keybox}   % רעיון מרכזי
+  ]{keybox}   % רעיון מרכזי
 
 % ---- codebox (v4.5.0): the dedicated container for code -------------------
 % An OPTION, not a policy: asmblock unboxed stays canonical for a full listing,
@@ -850,10 +845,13 @@
 % page-tall table. NB: a table taller than ONE FULL PAGE can grind mdframed's
 % split-trial loop (reproduced: minimal doc, minutes of 1pt-step Overfull
 % probes) — break such a monster into two tables.
-\newmdenv[frametitle={},leftline=true,rightline=true,topline=true,bottomline=true,
-  linecolor=cTblLine,backgroundcolor=cTblBg,linewidth=0.9pt,
+\mdfdefinestyle{hllpdftablegeometry}{leftline=true,rightline=true,topline=true,bottomline=true,
+  linewidth=0.9pt,
   innertopmargin=9pt,innerbottommargin=8pt,skipabove=11pt,skipbelow=11pt,
-  innerleftmargin=11pt,innerrightmargin=11pt,roundcorner=4pt,
+  innerleftmargin=11pt,innerrightmargin=11pt,roundcorner=4pt}
+\newcommand{\hllpdftableframestyle}{hllpdftablegeometry}
+\newmdenv[frametitle={},style=hllpdftablegeometry,
+  linecolor=cTblLine,backgroundcolor=cTblBg,
   % v4.2.0 (adopted): tablebox is ATOMIC. Short tableboxes near page bottoms
   % repeatedly entered mdframed's split trial, emitting benign Overfull-vbox
   % bursts and occasionally separating the intro prose from the tabular.

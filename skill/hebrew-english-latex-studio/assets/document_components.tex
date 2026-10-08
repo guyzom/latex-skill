@@ -29,7 +29,8 @@
 \newcommand{\glossaryentry}[2]{%
   \par\noindent #1\nobreak\hspace{.35em}—\hspace{.35em}#2\par}
 
-% Optional, atomic content-sized table using the existing tablebox mechanism.
+% Two optional atomic modes: framedtable fits content; semanticframedtable
+% matches the active semantic-box geometry. Neither chooses a table schema.
 % [short list caption]{column count}{column specification}{caption}{label}
 % Natural l/r/c columns stay natural. Author p/m widths for long prose; the
 % local \framedtablewidth budget deducts frame, cell and intercolumn padding.
@@ -42,11 +43,48 @@
 \newsavebox{\hllpdf@framedcaption}
 \newlength{\hllpdf@frameinner}
 \newlength{\hllpdf@frameouter}
-\NewDocumentEnvironment{framedtable}{O{} m m m m +b}{%
+\newlength{\hllpdf@frameparent}
+\newlength{\hllpdf@framesurround}
+\newlength{\hllpdf@framevertical}
+\newcommand{\hllpdf@frametable}[7]{%
   \par\begingroup
-  \setlength{\hllpdf@frameinner}{\dimexpr\linewidth-22pt-1.8pt\relax}%
-  \setlength{\hllpdf@framecolumns}{\dimexpr\hllpdf@frameinner-2\tabcolsep*#2\relax}%
-  \sbox{\hllpdf@framedrows}{\begin{otherlanguage}{english}\begin{tabular}{#3}#6\end{tabular}\end{otherlanguage}}%
+  \ifnum\numexpr#3\relax<1
+    \PackageError{hllpdf}{framedtable requires a positive column count}%
+      {Choose the actual number of columns from the content, with no fixed schema.}%
+  \fi
+  \setlength{\hllpdf@frameparent}{\linewidth}%
+  \ifnum#1=0
+    \mdfsetup{style=\hllpdftableframestyle}%
+    \def\hllpdf@framealign{center}%
+  \else
+    \mdfsetup{style=\hllpdfsemanticframestyle}%
+    \def\hllpdf@framealign{left}%
+  \fi
+  % Resolve the same mdframed width equation used by real semantic/table boxes.
+  % This reads live theme geometry without typesetting a dummy semantic box or
+  % executing its hooks. Snapshot it before tablebox applies its own defaults.
+  \mdfsetup{userdefinedwidth=\hllpdf@frameparent}%
+  \mdf@styledefinition
+  \mdf@horizontalmargin@equation
+  \setlength{\hllpdf@frameinner}{\mdf@horizontalspaceofbox}%
+  \hsize=\hllpdf@frameparent
+  \setlength{\hllpdf@framesurround}{\dimexpr\hllpdf@frameparent-\hllpdf@frameinner\relax}%
+  \setlength{\hllpdf@framevertical}{\dimexpr
+    \mdf@innertopmargin@length+\mdf@innerbottommargin@length+
+    \mdf@skipabove@length+\mdf@skipbelow@length+
+    \ifmdf@topline\mdf@linewidth@length\else0pt\fi+
+    \ifmdf@bottomline\mdf@linewidth@length\else0pt\fi\relax}%
+  \edef\hllpdf@setframestyle{\noexpand\mdfdefinestyle{hllpdfmeasuredtable}{%
+    leftmargin=\the\mdf@leftmargin@length,rightmargin=\the\mdf@rightmargin@length,
+    innerleftmargin=\the\mdf@innerleftmargin@length,innerrightmargin=\the\mdf@innerrightmargin@length,
+    innertopmargin=\the\mdf@innertopmargin@length,innerbottommargin=\the\mdf@innerbottommargin@length,
+    skipabove=\the\mdf@skipabove@length,skipbelow=\the\mdf@skipbelow@length,
+    linewidth=\the\mdf@linewidth@length,roundcorner=\the\mdf@roundcorner@length,
+    leftline=\ifmdf@leftline true\else false\fi,rightline=\ifmdf@rightline true\else false\fi,
+    topline=\ifmdf@topline true\else false\fi,bottomline=\ifmdf@bottomline true\else false\fi}}%
+  \hllpdf@setframestyle
+  \setlength{\hllpdf@framecolumns}{\dimexpr\hllpdf@frameinner-2\tabcolsep*#3\relax}%
+  \sbox{\hllpdf@framedrows}{\begin{otherlanguage}{english}\begin{tabular}{#4}#7\end{tabular}\end{otherlanguage}}%
   \ifdim\wd\hllpdf@framedrows>\hllpdf@frameinner
     \PackageError{hllpdf}{framedtable exceeds the available width}%
       {Wrap prose with p/m columns within framedtablewidth; do not scale the table.}%
@@ -54,37 +92,48 @@
   % Capture description nodes once, then unbox them into the final paragraph.
   % They remain breakable at the safe width; citations/links are not executed
   % twice. Plain label measurement has no counter or navigation side effects.
-  \sbox{\hllpdf@framedcaption}{\lakitcaptionstyle #4}%
+  \sbox{\hllpdf@framedcaption}{\lakitcaptionstyle #5}%
   \sbox\@tempboxa{\advance\c@tbl by 1\relax
     \lakitcaptionstyle\tablename~\en{\thetbl}\lakitcaptionpunctuation\enspace}%
   \@tempdima=\dimexpr\wd\@tempboxa+\wd\hllpdf@framedcaption\relax
-  \ifdim\@tempdima<\hllpdf@frameinner
-    \setlength{\hllpdf@frameinner}{\@tempdima}%
-  \fi
-  \ifdim\wd\hllpdf@framedrows>\hllpdf@frameinner
-    \setlength{\hllpdf@frameinner}{\wd\hllpdf@framedrows}%
+  \ifnum#1=0
+    \ifdim\@tempdima<\hllpdf@frameinner
+      \setlength{\hllpdf@frameinner}{\@tempdima}%
+    \fi
+    \ifdim\wd\hllpdf@framedrows>\hllpdf@frameinner
+      \setlength{\hllpdf@frameinner}{\wd\hllpdf@framedrows}%
+    \fi
   \fi
   \let\hllpdf@frametitle\lakinrtitle
-  \renewcommand{\lakinrtitle}[1]{\hllpdf@frametitle{#4}}%
+  \renewcommand{\lakinrtitle}[1]{\hllpdf@frametitle{#5}}%
   \begin{lrbox}{\hllpdf@framedbody}%
     \begin{minipage}{\hllpdf@frameinner}\centering
       \usebox{\hllpdf@framedrows}%
       \lakintabframedtrue
-      \tabcap[#1]{\label{#5}\unhcopy\hllpdf@framedcaption}%
+      \tabcap[#2]{\label{#6}\unhcopy\hllpdf@framedcaption}%
     \end{minipage}%
   \end{lrbox}%
-  \setlength{\hllpdf@frameouter}{\dimexpr\hllpdf@frameinner+22pt+1.8pt\relax}%
-  \ifdim\dimexpr\ht\hllpdf@framedbody+\dp\hllpdf@framedbody+40.8pt\relax>\textheight
+  \setlength{\hllpdf@frameouter}{\dimexpr\hllpdf@frameinner+\hllpdf@framesurround\relax}%
+  \ifdim\dimexpr\ht\hllpdf@framedbody+\dp\hllpdf@framedbody+\hllpdf@framevertical\relax>\textheight
     \PackageError{hllpdf}{framedtable exceeds one page}%
       {Split this atomic table or use an unframed flowtable outside a box.}%
   \fi
   % Target this frame's top, using its actual padding rather than the legacy
   % cushion. The existing close hook traverses the captured caption anchor.
-  \renewcommand{\lakintabcushion}{\dimexpr\mdf@innertopmargin@length+\mdf@linewidth@length\relax}%
-  \begin{tablebox}[userdefinedwidth=\hllpdf@frameouter,align=center]
+  \renewcommand{\lakintabcushion}{\dimexpr\mdf@innertopmargin@length+
+    \ifmdf@topline\mdf@linewidth@length\else0pt\fi\relax}%
+  \begin{tablebox}[style=hllpdfmeasuredtable,userdefinedwidth=\hllpdf@frameouter,
+    align=\hllpdf@framealign,nobreak=true,frametitle={},
+    startinnercode=\lakintabboxopen,endinnercode=\lakintabboxclose]
     \global\lakintabcapseentrue
     \noindent\usebox{\hllpdf@framedbody}%
   \end{tablebox}%
   \endgroup
+}
+\NewDocumentEnvironment{framedtable}{O{} m m m m +b}{%
+  \hllpdf@frametable{0}{#1}{#2}{#3}{#4}{#5}{#6}%
+}{ }
+\NewDocumentEnvironment{semanticframedtable}{O{} m m m m +b}{%
+  \hllpdf@frametable{1}{#1}{#2}{#3}{#4}{#5}{#6}%
 }{ }
 \makeatother

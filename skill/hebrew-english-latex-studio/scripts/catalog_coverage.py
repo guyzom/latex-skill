@@ -48,7 +48,7 @@ PUBLIC_API_COVERAGE = {
     'assets/reference_columns.tex': ('referencecolumns', 'referencewide', 'ReferenceColumnCount', 'ReferenceColumnGap', 'ReferenceColumnRule', 'ReferenceColumnSkip', 'ReferenceBodyFontSize', 'ReferenceBodyBaseline', 'ReferenceSelectBodyFont', 'ReferenceMathFontSize', 'ReferenceMathScriptSize', 'ReferenceMathScriptScriptSize'),
     'assets/reference_shell.tex': ('ReferenceTitle', 'ReferenceShortTitle', 'ReferenceSubtitle', 'ReferenceAuthor', 'ReferenceDate', 'makereferencetitle'),
     'assets/reference_components.tex': ('referenceentry', 'referencenote', 'referencewarning', 'referenceformula', 'referenceqa', 'referenceqaseries', 'referencesolutionpart', 'referencequestion', 'referencesolution', 'referencepurpose', 'referenceconditions', 'referencefigcap', 'referencetabcap', 'referencefigure', 'referencetable'),
-    'assets/document_components.tex': ('sourcelink', 'glossaryentry', 'framedtable', 'framedtablewidth'),
+    'assets/document_components.tex': ('sourcelink', 'glossaryentry', 'framedtable', 'semanticframedtable', 'framedtablewidth'),
     'assets/deferred_notes.tex': ('DeclareDocNote', 'DocNoteMark', 'PrintDocNotes'),
     'assets/flow_tables.tex': ('flowtable',),
 }

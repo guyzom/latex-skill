@@ -23,7 +23,7 @@
 % language at the table level and has a separate documented column contract.
 % ============================================================================
 \input{preamble.tex}
-\input{document_components.tex} % opt-in content-sized framedtable (pattern 13)
+\input{document_components.tex} % two opt-in frame modes, adaptable patterns 13–15
 \usepackage{colortbl}   % per-DOCUMENT load for \rowcolor (pattern 11) — NOT a
                         % preamble package; copy this line only when you need it.
 \newcommand{\patternheading}[1]{%
@@ -385,27 +385,70 @@ $\checkmark$ & $\times$ & $\times$ & \h{גישה ישירה לזיכרון}\\
 \end{center}
 
 \clearpage
-\patternheading{13. מסגרת לבחירה — רוחב לפי התוכן}
-\noindent מסגרת עדינה לטבלה קצרה ושלמה בעמוד אחד. גם הכיתוב משתתף במדידת הרוחב;
-אין מתיחה אוטומטית או הקטנת גופן. לטקסט ארוך בוחרים עמודת פסקה, ולריבוי עמודים משתמשים
-ב־\code{flowtable} ללא מסגרת. ברירת המחדל נשארת הטבלה הפתוחה.
-\begin{framedtable}[נתונים קצרים במסגרת]{2}{rr}
-  {נתונים קצרים.}{tab:optional-short}
+\patternheading{13. שתי מסגרות לבחירה — מבנה לפי התוכן}
+\noindent ברירת המחדל נשארת טבלה פתוחה. אפשר לבחור מסגרת ברוחב הקופסאות הסמנטיות
+של המסמך, או מסגרת המתאימה לתוכן. מספר העמודות, סדרן, הכותרות ויישורן נבחרים לפי
+התוכן; הדוגמאות אינן סכמת חובה. לעיתים רשימה או פסקה מתאימות יותר מטבלה.
+\begin{defbox}[frametitle={קופסה סמנטית להשוואת הרוחב}]
+\noindent המסגרת הסמנטית של הטבלה הבאה משתמשת באותו רוחב ובאותם שוליים פנימיים.
+העמודות עצמן נשארות קצרות ואינן נמתחות כדי למלא את הקופסה.
+\end{defbox}
+\begin{semanticframedtable}[נתונים קצרים ברוחב סמנטי]{2}{rr}
+  {מדידות קצרות.}{tab:optional-semantic}
 \toprule\h{ערך}&\h{מזהה}\\\midrule
 \en{-12.50}&\en{001}\\\en{0.00}&\en{002}\\\bottomrule
+\end{semanticframedtable}
+\begin{framedtable}[חמישה שדות במסגרת לפי התוכן]{5}{lcrrr}
+  {חמישה שדות שנבחרו מן הנתונים.}{tab:optional-short}
+\toprule\h{מצב}&\h{מודל}&\h{ממוצע}&\h{כמות}&\h{מזהה}\\\midrule
+\h{נצפה}&$x^2$&\en{1.25}&\en{12}&\en{001}\\
+\h{אומת}&$x^3$&\en{-0.50}&\en{8}&\en{002}\\\bottomrule
 \end{framedtable}
-\begin{framedtable}[תיאור ארוך במסגרת]{2}
-  {>{\raggedleft\arraybackslash}p{\framedtablewidth-2cm}r}
+\noindent הפניה ל־\autoref{tab:optional-semantic} ול־\autoref{tab:optional-short}.
+\clearpage
+\patternheading{14. תיאור נשבר וערכים — ארבע עמודות שנבחרו לתוכן}
+\noindent כאן השוואת התוכן מצדיקה תיאור, מודל, ערך ומזהה. אין דרישה לארבע עמודות:
+במסמך אחר אפשר לבחור מספר, סדר, כותרות ורוחבים אחרים, או מבנה שאינו טבלה.
+רוחב התיאור הוקצה לאחר בחינת שלוש העמודות הקצרות; הגופן נשאר בגודל הרגיל.
+\begin{semanticframedtable}[תיאור נשבר ברוחב סמנטי]{4}
+  {>{\raggedleft\arraybackslash}p{\framedtablewidth-4.6cm}crr}
   {תיאור ארוך עם \en{LLVM} ועם $x^2$, הנשבר לשורות בכיתוב אחיד ובאותו רוחב בטוח.}{tab:optional-long}
-\toprule\h{תיאור}&\h{מזהה}\\\midrule
-\h{תיאור עברי ארוך נשבר באופן טבעי בשורות העמודה, ללא כיווץ הגופן וללא חריגה מהמסגרת. יש מקום למונח \en{LLVM} ולנוסחה $x^2$.}&\en{001}\\
-\h{תיאור קצר להשוואה.}&\en{002}\\\bottomrule
-\end{framedtable}
-\noindent הפניה ל־\autoref{tab:optional-short} ול־\autoref{tab:optional-long}.
+\toprule\h{תיאור}&\h{מודל}&\h{ערך}&\h{מזהה}\\\midrule
+\h{תיאור עברי ארוך נשבר באופן טבעי בשורות העמודה, ללא כיווץ הגופן וללא חריגה מהמסגרת.
+המונח \en{LLVM} והנוסחה $x^2$ נשארים קריאים ומשולבים בהסבר.}&$x^2+\sigma^2$&\en{-3.50}&\en{101}\\
+\h{תיאור קצר להשוואה עם מונח \en{control} בתוך המשפט.}&$x^2$&\en{0.75}&\en{102}\\\bottomrule
+\end{semanticframedtable}
+\noindent הכיתוב, העמודות והמסגרת נבדקים יחד. לטבלה העוברת בין עמודים משתמשים
+ב־\code{flowtable} ללא מסגרת, או מפצלים את התוכן. שתי המסגרות כאן מחזיקות טבלה
+שלמה בעמוד אחד בלבד. הפניה ל־\autoref{tab:optional-long}.
+\clearpage
+\patternheading{15. בחירות תוכן באנגלית — מבנים חלופיים}
 \begin{englishprose}
-\begin{framedtable}[English framed records]{2}{rr}
-  {Compact records.}{tab:optional-english}
+\noindent Choose the fields from the content; these layouts are adaptable examples.
+The semantic-width option matches the real semantic box below. Natural inner
+columns remain compact. A content-fit frame follows its rows and caption.
+\begin{defbox}[frametitle={Semantic reference in this document}]
+\noindent This box and the next table share their outer width and inset conventions.
+\end{defbox}
+\begin{semanticframedtable}[English compact semantic records]{2}{rr}
+  {Compact values.}{tab:optional-english-semantic}
 \toprule ID&Value\\\midrule 001&-12.50\\002&0.00\\\bottomrule
+\end{semanticframedtable}
+\begin{framedtable}[English five-field records]{5}{rrrrl}
+  {Five selected fields.}{tab:optional-english}
+\toprule ID&Count&Mean&Model&State\\\midrule
+001&12&1.25&$x^2$&Observed\\002&8&-0.50&$x^3$&Checked\\\bottomrule
 \end{framedtable}
+\begin{semanticframedtable}[English wrapped four-field records]{4}
+  {rrc>{\raggedright\arraybackslash}p{\framedtablewidth-4.8cm}}
+  {Four selected fields with a wrapped explanation, $x^2$ and \h{מונח}.}{tab:optional-english-wrapped}
+\toprule ID&Value&Model&Explanation\\\midrule
+101&-3.50&$x^2+\sigma^2$&Long explanatory prose wraps within its chosen column.
+The formula and the Hebrew term \h{מונח} stay readable without scaling the table.\\
+102&0.75&$x^2$&A shorter comparison.\\\bottomrule
+\end{semanticframedtable}
+\noindent See \autoref{tab:optional-english-semantic}, \autoref{tab:optional-english},
+and \autoref{tab:optional-english-wrapped}. A list or another structure can be a
+better fit when the content does not need a table.
 \end{englishprose}
 \end{document}

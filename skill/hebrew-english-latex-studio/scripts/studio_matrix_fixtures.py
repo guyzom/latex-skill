@@ -361,6 +361,11 @@ def write_fixture(root: Path, project: Path, family: str, language: str) -> dict
                  r'{\en{Optional framed records.}}{tab:optional-frame}' + '\n'
                  + r'\toprule\en{ID}&\en{State}\\\midrule\en{001}&\en{Observed.}\\\bottomrule'
                  + '\n' + r'\end{framedtable}' + '\n')
+        body += (r'\begin{semanticframedtable}[Adaptable controls]{5}{rrrrl}'
+                 r'{\en{Five content-selected fields.}}{tab:semantic-frame}' + '\n'
+                 + r'\toprule\en{ID}&\en{N}&\en{Mean}&\en{SD}&\en{State}\\'
+                 + r'\midrule\en{001}&\en{12}&\en{1.25}&$x^2$&\en{Observed.}\\\bottomrule'
+                 + '\n' + r'\end{semanticframedtable}' + '\n')
     pre += r'\hypersetup{pdftitle={Synthetic component QA},pdfauthor={}}' + '\n'
     source = pre + r'\begin{document}' + '\n' + body + r'\end{document}' + '\n'
     if any(ord(char) < 32 and char not in '\n\t' for char in source):

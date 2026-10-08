@@ -2,6 +2,10 @@
 
 Choose the structure and width from the actual content, then inspect the PDF.
 A width is a budget, not a target that every table must fill.
+There is no required number of columns. Choose the number, widths, alignment,
+headers, row hierarchy and order from the data and the reader's task. Two-,
+four- and five-column examples below are demonstrations, not mandatory schemas.
+A transposed table, several smaller tables, a list or prose may fit better.
 
 | Content | Starting point | Width decision |
 |---|---|---|
@@ -9,7 +13,8 @@ A width is a budget, not a target that every table must fill.
 | Short table with prose | Natural key/value columns plus authored `p/m` text columns | Enough space to wrap comfortably, within local `\linewidth` |
 | Many rows crossing a page | `flowtable` in outer single-column text | Natural columns or balanced H/E/N prose widths |
 | Genuinely wide comparative data | Wrapped columns at the available local width | Deduct all padding; give prose more room than IDs |
-| Optional framed table | `framedtable` from `document_components.tex` | Measure rows and caption, preserve internal padding; one complete page only |
+| Optional content-fit outer frame | `framedtable` from `document_components.tex` | Measure rows and caption, preserve active table-box padding; one complete page only |
+| Optional semantic-width outer box | `semanticframedtable` from `document_components.tex` | Match the active semantic boxes' actual outer width and inset conventions; inner columns remain content-appropriate |
 | Explicitly requested full-width framed panel | Existing `tablebox` | Keep padding and the caption inside; short enough to be atomic |
 
 Do not use `tabular*`/`extracolsep{\fill}` or full-width `tabularx` as a blanket
@@ -44,10 +49,14 @@ rule width need not equal the paragraph or caption width. A frame is optional.
 `flowtable` deducts all outer/intercolumn padding from `\flowtablewidth`; its
 natural-width specifications are centered. Do not put it inside a frame/float.
 
-## Optional content-sized frame
+## Two optional frame modes
 
-Load `document_components.tex` after `preamble.tex`. This option reuses `tablebox`
-without changing the unframed default or the existing full-width panel API.
+Load `document_components.tex` after `preamble.tex`. Both modes reuse the existing
+box mechanism without changing the unframed default or the `tablebox` panel API.
+`framedtable` follows the widest actual line of rows or caption up to the safe
+local width. `semanticframedtable` follows the semantic boxes' actual width and
+insets in the same document. That wide outer box does not stretch natural columns
+or add fill glue between short values.
 
 ```latex
 \begin{framedtable}[Compact records]{2}{rr}{Compact records.}{tab:framed}
@@ -60,24 +69,53 @@ ID & Value\\
 \end{framedtable}
 ```
 
-The arguments are optional short list text, column count, column specification,
+For a comparison requiring five fields, a different natural structure is valid:
+
+```latex
+\begin{semanticframedtable}[Five selected fields]{5}{rrrrl}
+  {Five selected fields.}{tab:semantic}
+\toprule
+ID & Count & Mean & Model & State\\
+\midrule
+001 & 12 & 1.25 & $x^2$ & Observed\\
+002 & 8 & -0.50 & $x^3$ & Checked\\
+\bottomrule
+\end{semanticframedtable}
+```
+
+Both interfaces take optional short list text, the chosen positive column count, column specification,
 caption and label. Do not add a second `tabcap` or `label`. Captions are captured
 once, retain the normal counter/list/reference behavior and share one black
-regular font style. The frame follows the widest actual line of rows or caption,
-up to the available local width, with 11pt padding and a restrained border.
+regular font style. The count describes the author's actual structure; it has
+no prescribed value and must agree with the physical columns in the specification.
+The content-fit mode inherits the active table box's geometry. The semantic-width
+mode resolves the same mdframed width equation and shared style as real semantic
+boxes, including external margins, inner padding and active border sides.
 Caption text is captured once and remains breakable in the final paragraph.
+
+Core callouts share `hllpdfsemanticgeometry`; reader, reference and academic
+themes select their existing semantic styles. Changes to the active shared style
+therefore affect both the semantic boxes and semantic-width tables. Per-box custom
+options are not inferred from some earlier box: put a document-wide geometry
+choice in the shared style when both objects must match. In the clean theme the
+framed semantic reference is `defbox`/`thmbox`/`warnbox`, not the plain note text.
+The reader's side-bar convention and academic frameless convention are preserved;
+request a deliberate theme override when an outlined design is explicitly needed.
 
 For prose, replace `rr` with, for example,
 `r>{\raggedright\arraybackslash}p{\framedtablewidth-2cm}` in an English context.
-The budget deducts border, inner frame padding and all standard cell padding;
+The same `\framedtablewidth` budget works in either mode. It deducts the actual
+border, external margins, inner frame padding and all standard cell padding;
 the count must match the columns. Choose a key-column allowance from its actual
 content. For Hebrew-primary content, declare table order explicitly and use
 right-aligned wrapped Hebrew cell islands. `framedtable` gives columns explicit
 English order, with the first declared column physically leftmost; place the
-Hebrew key last. Gallery pattern 13 provides a tested
-example. Preserve font size and inspect both the caption and the rows.
+Hebrew key last. Gallery patterns 13–15 show compact two-field data, five-field
+comparisons and four-field wrapped prose/numeric/math content in RTL and LTR.
+Adapt those counts, widths, headers and orders freely; do not copy a schema merely
+because it is illustrated. Preserve font size and inspect both caption and rows.
 
-This environment captures an atomic table and rejects widths beyond the safe
+Both environments capture an atomic table and reject widths beyond the safe
 budget or total height beyond one page. It may move as a whole to the next page.
 It does not promise framed multipage tables: split the content or use `flowtable`
 outside a frame. Explicit `@{}`/vertical-rule column specifications change cell

@@ -415,7 +415,7 @@
     },
     {
       "id": "data-report",
-      "recipe_revision": 4,
+      "recipe_revision": 5,
       "title": {
         "he": "דוח נתונים",
         "en": "Data report"
@@ -425,7 +425,7 @@
         {
           "language": "hebrew",
           "asset_path": "assets/starter_data_report.tex",
-          "sha256": "0375efc97dcf2eb4b17bbeb884d33fb2b522bec9d218e28b2f47d86ffd667a3e",
+          "sha256": "5c14103e9e7371b8e4d51998036f37467472f5bf085e8c59696212c036d42fb0",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "11pt,a4paper",
@@ -437,7 +437,7 @@
         {
           "language": "english",
           "asset_path": "assets/starter_data_report_english.tex",
-          "sha256": "b84254673958d7fe05f2ade4b45f4b4c455a7be51e7f3028c237e907a9541c40",
+          "sha256": "7431b447f78eb61dca372324bb054df65fd6d79d36f6f5292e0743367351860d",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "11pt,a4paper",
@@ -472,7 +472,9 @@
         "recipe-revision",
         "composer",
         "source-handler",
-        "paragraph-style"
+        "paragraph-style",
+        "table-structure",
+        "table-frame-mode"
       ],
       "acceptance": [
         "template:data-report:native",
@@ -1377,7 +1379,9 @@
       ],
       "glossary_refs": [
         "starter",
-        "public-api"
+        "public-api",
+        "table-structure",
+        "table-frame-mode"
       ],
       "acceptance": [
         "example:tables:runtime"
