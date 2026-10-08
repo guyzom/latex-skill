@@ -550,13 +550,13 @@ else bad "font bundle verification tests failed"; fi
 echo "═══ T2d: build trust/path guards ═══"
 BUILD_GUARD_ARGS=()
 if [ "${FAST:-0}" = "1" ]; then BUILD_GUARD_ARGS+=(--fast); fi
-if python3 scripts/test_build_guards.py "${BUILD_GUARD_ARGS[@]}" >/dev/null 2>&1; then
+if python3 scripts/test_build_guards.py ${BUILD_GUARD_ARGS[@]+"${BUILD_GUARD_ARGS[@]}"} >/dev/null 2>&1; then
   if [ "${FAST:-0}" = "1" ]; then
     ok "invalid project root and build configuration are hard pre-engine failures"
   else
     ok "invalid project root/config and pass-2 recorder escape are hard failures"
   fi
-else bad "build guard tests failed (run: python3 scripts/test_build_guards.py ${BUILD_GUARD_ARGS[*]})"; fi
+else bad "build guard tests failed (run: python3 scripts/test_build_guards.py ${BUILD_GUARD_ARGS[*]-})"; fi
 
 echo "═══ T2d2: package architecture contract ═══"
 if python3 scripts/test_architecture.py >/dev/null 2>&1; then

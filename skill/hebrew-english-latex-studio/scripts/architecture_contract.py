@@ -406,7 +406,7 @@ ASSET_SPECS: tuple[AssetSpec, ...] = (
         "semantic-extension",
         requires_roles=("mechanism-core",),
         provides=("semantic.document-api",),
-        public_symbols=("sourcelink", "glossaryentry"),
+        public_symbols=("sourcelink", "glossaryentry", "framedtable", "framedtablewidth"),
         runtime_requires=("assets/preamble.tex",),
         maintenance_sync=True,
         density_exempt=True,

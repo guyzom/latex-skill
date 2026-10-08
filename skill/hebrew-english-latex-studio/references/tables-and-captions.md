@@ -9,7 +9,8 @@ A width is a budget, not a target that every table must fill.
 | Short table with prose | Natural key/value columns plus authored `p/m` text columns | Enough space to wrap comfortably, within local `\linewidth` |
 | Many rows crossing a page | `flowtable` in outer single-column text | Natural columns or balanced H/E/N prose widths |
 | Genuinely wide comparative data | Wrapped columns at the available local width | Deduct all padding; give prose more room than IDs |
-| Explicitly requested framed panel | `tablebox` | Keep padding and the caption inside; short enough to be atomic |
+| Optional framed table | `framedtable` from `document_components.tex` | Measure rows and caption, preserve internal padding; one complete page only |
+| Explicitly requested full-width framed panel | Existing `tablebox` | Keep padding and the caption inside; short enough to be atomic |
 
 Do not use `tabular*`/`extracolsep{\fill}` or full-width `tabularx` as a blanket
 short-table policy. They remain valid when a specified design needs them; they
@@ -43,6 +44,45 @@ rule width need not equal the paragraph or caption width. A frame is optional.
 `flowtable` deducts all outer/intercolumn padding from `\flowtablewidth`; its
 natural-width specifications are centered. Do not put it inside a frame/float.
 
+## Optional content-sized frame
+
+Load `document_components.tex` after `preamble.tex`. This option reuses `tablebox`
+without changing the unframed default or the existing full-width panel API.
+
+```latex
+\begin{framedtable}[Compact records]{2}{rr}{Compact records.}{tab:framed}
+\toprule
+ID & Value\\
+\midrule
+001 & -12.50\\
+002 & 0.00\\
+\bottomrule
+\end{framedtable}
+```
+
+The arguments are optional short list text, column count, column specification,
+caption and label. Do not add a second `tabcap` or `label`. Captions are captured
+once, retain the normal counter/list/reference behavior and share one black
+regular font style. The frame follows the widest actual line of rows or caption,
+up to the available local width, with 11pt padding and a restrained border.
+Caption text is captured once and remains breakable in the final paragraph.
+
+For prose, replace `rr` with, for example,
+`r>{\raggedright\arraybackslash}p{\framedtablewidth-2cm}` in an English context.
+The budget deducts border, inner frame padding and all standard cell padding;
+the count must match the columns. Choose a key-column allowance from its actual
+content. For Hebrew-primary content, declare table order explicitly and use
+right-aligned wrapped Hebrew cell islands. `framedtable` gives columns explicit
+English order, with the first declared column physically leftmost; place the
+Hebrew key last. Gallery pattern 13 provides a tested
+example. Preserve font size and inspect both the caption and the rows.
+
+This environment captures an atomic table and rejects widths beyond the safe
+budget or total height beyond one page. It may move as a whole to the next page.
+It does not promise framed multipage tables: split the content or use `flowtable`
+outside a frame. Explicit `@{}`/vertical-rule column specifications change cell
+padding; budget those deliberately rather than assuming the standard count.
+
 ## One caption paragraph
 
 The core defaults to regular black text at one local small size, with a colon:
@@ -50,13 +90,17 @@ The core defaults to regular black text at one local small size, with a colon:
 `טבלה 1: תיאור`. Number format still follows `within-major` or the existing
 explicit `continuous` policy. The complete caption uses `\lakitcaptionstyle`;
 `\lakitcaptionlabelstyle` is retained as an identity compatibility hook.
+Caption hyperlinks keep their actions while inheriting the paragraph color;
+the local default also sets hyperlink colors to black.
 Choose a deliberate whole-paragraph override for a requested template rather
 than styling its label independently. Preserve math fonts and appropriate
 Hebrew/Latin faces within the same family/size policy.
 
 Custom `\figcap` / `\tabcap` retain their counters, raised object destinations,
 `nameref` metadata and optional short list entries. Put `\label` inside their
-caption argument. Native `\caption` / `\captionof` use the caption package's
+caption argument. Frameless tables target the measured table top; the historical
+frame cushion applies only within `tablebox`. Check that a reference lands at its
+own table rather than above the preceding heading. Native `\caption` / `\captionof` use the caption package's
 own counters and anchors; optional subcaption inherits the paragraph font.
 Do not manually synchronize counters or duplicate labels/list entries.
 `flowtable` shares the custom table counter but retains its native top anchor.

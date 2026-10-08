@@ -397,6 +397,7 @@ See \autoref{ch:en} and \autoref{app:en}.
                 term = 'Compiler' if main == 'english' else r'\en{Compiler}'
                 definition = ('Translates source. Sentence punctuation stays intact.' if main == 'english'
                               else r'מתרגם קוד מקור. פיסוק במשפט נשמר, עם $x^2$ ועם \en{LLVM}.')
+                longtext += r' \href{https://example.org/caption}{CAPTIONLINK}'
                 source = (profile_header(profile, main) + r'\usepackage{subcaption}' + '\n'
                     + r'\newsavebox{\naturaltable}' + '\n'
                     + r'\begin{document}\section{\en{Style controls}}' + '\n'
@@ -427,7 +428,7 @@ See \autoref{ch:en} and \autoref{app:en}.
                     self.assertIn(('tbl', '1.1'), [(r[0],r[1]) for r in sites])
                     spans = [span for page in doc for block in page.get_text('dict')['blocks']
                              for line in block.get('lines', []) for span in line['spans']]
-                    for marker in ('CAPTIONBODY','NATIVEBODY','SUBBODY','NATIVEFIG','FLOWBODY'):
+                    for marker in ('CAPTIONBODY','CAPTIONLINK','NATIVEBODY','SUBBODY','NATIVEFIG','FLOWBODY'):
                         actual = [span for span in spans if marker in span['text']]
                         self.assertTrue(actual, marker)
                         # The first occurrence is the caption; later ones are
@@ -441,6 +442,8 @@ See \autoref{ch:en} and \autoref{app:en}.
                     self.assertIn('—', text)
                     self.assertNotIn('Compiler.', text)
                     self.assertEqual(sum(text.count('Valid record '+str(i)+'\n') for i in range(1,46)),45)
+                    self.assertTrue(any(link.get('uri')=='https://example.org/caption'
+                                        for page in doc for link in page.get_links()))
                 if profile in ('english', 'hebrew'):
                     broken, mutant = self.compile(source, 'styles-split-'+main, passes=1,
                         mutate=lambda t:t.replace(r'\newcommand{\lakitcaptionlabelstyle}[1]{#1}',
@@ -493,6 +496,100 @@ See \autoref{ch:en} and \autoref{app:en}.
         self.assertEqual(result.returncode, 0, result.stdout[-5000:])
         bad_prose, _, _ = column_edges(mutant/'main.pdf')
         self.assertGreater(max(bad_prose)-min(bad_prose), 20)
+
+    def test_optional_frames_size_wrap_and_preserve_navigation(self):
+        import check_pdf_render as render
+        for main in ('english', 'hebrew'):
+            with self.subTest(main=main):
+                short = 'Compact records.' if main == 'english' else 'נתונים קצרים.'
+                long = (r'FRAMECAP Long consistent caption with $x^2$ and \h{תוצאה}. '*4
+                        if main == 'english' else
+                        r'\en{FRAMECAP} תיאור ארוך עם $x^2$ ועם \en{LLVM}, הנשבר באופן טבעי. '*4)
+                long += r' \href{https://example.org/framed-caption}{FRAMELINK}'
+                prose = (r'Long prose wraps safely inside the chosen text column. '*5
+                         if main == 'english' else
+                         r'\h{תיאור עברי ארוך נשבר בעמודה בבטחה ושומר על גופן קריא, עם \en{LLVM}.} '*5)
+                spec = (r'r>{\raggedright\arraybackslash}p{\framedtablewidth-2cm}'
+                        if main == 'english' else
+                        r'>{\raggedleft\arraybackslash}p{\framedtablewidth-2cm}r')
+                row = r'\en{101}&'+prose+r'\\' if main == 'english' else prose+r'&\en{101}\\'
+                source = (profile_header(main, main) + r'\newcounter{captioncalls}' + '\n'
+                    + r'\newcommand{\captiononce}{\stepcounter{captioncalls}}' + '\n'
+                    + r'\begin{document}\section{\en{Frame controls}}' + '\n'
+                    + r'\begin{framedtable}[Short frame]{2}{rr}{\captiononce '+short+r'}{tab:frame-short}' + '\n'
+                    + r'\toprule\en{ID}&\en{Value}\\\midrule\en{001}&\en{-12.50}\\\en{002}&\en{0.00}\\\bottomrule' + '\n'
+                    + r'\end{framedtable}' + '\n'
+                    + r'\begin{framedtable}[Long frame]{2}{'+spec+'}{'+long+r'}{tab:frame-long}' + '\n'
+                    + r'\toprule'+row+r'\bottomrule\end{framedtable}' + '\n'
+                    + r'\typeout{FRAMECALLS|\arabic{captioncalls}}' + '\n'
+                    + r'\en{See }\autoref{tab:frame-short}, \nameref{tab:frame-short}, \ref{tab:frame-long}.' + '\n'
+                    + r'\listoftables\end{document}')
+                result, directory = self.compile(source, 'frames-'+main, passes=3)
+                self.assertEqual(result.returncode, 0, result.stdout[-6000:])
+                log = (directory/'main.log').read_text()
+                for bad in ('Overfull', 'Missing character:', 'undefined references', 'multiply defined'):
+                    self.assertNotIn(bad, log)
+                self.assertIn('FRAMECALLS|1', log)  # no duplicate caption side effects
+                with fitz.open(directory/'main.pdf') as doc:
+                    self.assertEqual(len(doc), 1)
+                    page = doc[0]
+                    # Background rectangles are the actual frame interiors,
+                    # not a source-width assertion. Include long wrapped cells.
+                    frames = sorted([x['rect'] for x in page.get_drawings()
+                                     if x['fill'] and x['rect'].height > 40
+                                     and x['rect'].width > 40], key=lambda r:r.y0)
+                    self.assertEqual(len(frames), 2)
+                    self.assertLess(frames[0].width, page.rect.width/2)
+                    self.assertGreater(frames[1].width, frames[0].width)
+                    for frame in frames:
+                        self.assertGreater(frame.x0, 55)
+                        self.assertLess(frame.x1, page.rect.width-55)
+                        words = [w for w in page.get_text('words')
+                                 if frame.y0 < w[1] and w[3] < frame.y1]
+                        self.assertTrue(words)
+                        self.assertGreaterEqual(min(w[0] for w in words)-frame.x0, 9)
+                        self.assertGreaterEqual(frame.x1-max(w[2] for w in words), 9)
+                    sites = [x for x in render.caption_sites(page) if x[0]=='tbl']
+                    self.assertCountEqual([(x[0],x[1]) for x in sites], [('tbl','1.1'),('tbl','1.2')])
+                    for block in page.get_text('dict')['blocks']:
+                        for line in block.get('lines', []):
+                            for span in line['spans']:
+                                if 'FRAMECAP' in span['text'] or 'FRAMELINK' in span['text']:
+                                    self.assertEqual(span['color'], 0)
+                                    self.assertFalse(span['flags'] & 16)
+                                    self.assertAlmostEqual(span['size'], 9.96264, delta=.12)
+                    dests = doc.resolve_names()
+                    for number, frame in zip(('1.1','1.2'), frames):
+                        dest = dests['tbl.'+number]
+                        self.assertEqual(dest['page'], 0)
+                        y = page.rect.height-dest['to'][1]
+                        self.assertAlmostEqual(y, frame.y0-.9, delta=2)
+                    text = page.get_text()
+                    self.assertIn('001', text)
+                    self.assertIn('101', text)
+                    self.assertTrue(any(link.get('uri')=='https://example.org/framed-caption'
+                                        for link in page.get_links()))
+                    # Explicit LTR column order: the first declared numeric
+                    # key in English is left; the last Hebrew key is right.
+                    key = page.search_for('101')[0]
+                    if main == 'english': self.assertLess(key.x0, frames[1].x0+50)
+                    else: self.assertGreater(key.x1, frames[1].x1-50)
+                self.assertIn('Short frame', (directory/'main.lot').read_text())
+                self.assertIn('Long frame', (directory/'main.lot').read_text())
+                self.assertIn(short.rstrip('.'), (directory/'main.aux').read_text())
+                nav = subprocess.run([sys.executable, str(ROOT/'scripts/check_pdf_navigation.py'),
+                                      str(directory/'main.pdf')], capture_output=True, text=True)
+                self.assertEqual(nav.returncode, 0, nav.stdout+nav.stderr)
+        # Actual engine failures, before mdframed can enter split trials.
+        for name, spec, rows, phrase in (
+                ('width', r'p{\linewidth}', 'Too wide.', 'exceeds the available width'),
+                ('height', 'l', (r'Record\\'+'\n')*90, 'exceeds one page')):
+            bad = (profile_header('english','english')+r'\begin{document}'
+                   +r'\begin{framedtable}{1}{'+spec+r'}{Caption.}{tab:bad}'+rows
+                   +r'\end{framedtable}\end{document}')
+            result, _ = self.compile(bad, 'frames-rejected-'+name)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn(phrase, result.stdout)
 
     def test_bad_profiles_fail_before_document_loading(self):
         cases=[('unknown',r'\def\lakitlanguageprofile{french}','unsupported language profile'),

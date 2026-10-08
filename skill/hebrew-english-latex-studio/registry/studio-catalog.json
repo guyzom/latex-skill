@@ -415,7 +415,7 @@
     },
     {
       "id": "data-report",
-      "recipe_revision": 3,
+      "recipe_revision": 4,
       "title": {
         "he": "דוח נתונים",
         "en": "Data report"
@@ -461,7 +461,8 @@
       ],
       "docs": [
         "references/template-catalog.md",
-        "references/catalog-development.md"
+        "references/catalog-development.md",
+        "references/tables-and-captions.md"
       ],
       "glossary_refs": [
         "template",
@@ -1366,11 +1367,13 @@
       "id": "tables",
       "asset_path": "assets/example_tables.tex",
       "architecture_assets": [
-        "assets/preamble.tex"
+        "assets/preamble.tex",
+        "assets/document_components.tex"
       ],
       "language_profile": "hebrew",
       "docs": [
-        "references/template-catalog.md"
+        "references/template-catalog.md",
+        "references/tables-and-captions.md"
       ],
       "glossary_refs": [
         "starter",

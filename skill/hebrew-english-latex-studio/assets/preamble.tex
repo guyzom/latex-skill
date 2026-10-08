@@ -941,7 +941,7 @@
 % One paragraph style covers label, number, separator and description.
 % Explicit project/template overrides remain possible; the label hook is kept
 % for compatibility, with an identity default. Counters/anchors stay unchanged.
-\newcommand{\lakitcaptionstyle}{\normalfont\small\color{black}}
+\newcommand{\lakitcaptionstyle}{\normalfont\small\color{black}\hypersetup{allcolors=black}}
 \newcommand{\lakitcaptionlabelstyle}[1]{#1}
 \newcommand{\lakitcaptionpunctuation}{:}
 % Native floats, captionof and longtable use the same presentation policy.
@@ -1021,7 +1021,12 @@
   \ifdim\lakintabraise>0pt
     \H@refstepcounter{tbl}\HyCnt@ProvideTheHCounter{tbl}\hyper@makecurrent{tbl}%
     \begingroup
-      \edef\HyperRaiseLinkDefault{\the\dimexpr\lakintabraise+42pt\relax}%
+      % A frameless table targets its measured top. The frame's historical
+      % cushion belongs only to tablebox and is corrected at box close.
+      \edef\HyperRaiseLinkDefault{\the\lakintabraise}%
+      \iflakintabframed
+        \edef\HyperRaiseLinkDefault{\the\dimexpr\lakintabraise+42pt\relax}%
+      \fi
       \Hy@raisedlink{\hyper@anchorstart{\@currentHref}\hyper@anchorend}%
     \endgroup
     \global\lakintabraise 0pt\relax
@@ -1261,6 +1266,7 @@
 % page-fitting arithmetic to close the residue would be a heuristic with its own
 % failure mode, which is the trade this repo has repeatedly refused.
 \newif\iflakintabcapseen
+\newif\iflakintabframed
 % The Lua lives in ONE \directlua at load time, and is written with NO
 % backslash, %, # or ~ : \directlua expands its argument like \edef, so an
 % active ~ would expand to \nobreakspace and a % would eat the rest of the line
@@ -1345,13 +1351,13 @@
 % @-FREE NAMES ON PURPOSE: these two are named in the `tablebox` key list at
 % \newmdenv above, which is tokenised OUTSIDE any \makeatletter region — a
 % \lakin@... there would tokenise as \lakin followed by the letters @tabopen.
-\newcommand{\lakintabboxopen}{\global\lakintabcapseenfalse}
+\newcommand{\lakintabboxopen}{\lakintabframedtrue\global\lakintabcapseenfalse}
 \newcommand{\lakintabboxclose}{%
   \iflakintabcapseen
     \directlua{lakintab.fix(-\number\dimexpr\lakintabcushion\relax,
                             \number\dimexpr\textheight\relax)}%
     \global\lakintabcapseenfalse
-  \fi}
+  \fi\lakintabframedfalse}
 % The cushion above the box's CONTENT top. 42pt puts the dest 32.0pt above the
 % frame top (42pt - innertopmargin 9pt - linewidth 0.9pt), i.e. exactly where
 % the 295 correct dests already are — the correction moves only the broken ones.

@@ -143,7 +143,7 @@ Acceptance case identifiers: `template:formula-sheet:native`, `template:formula-
 
 ### Template data-report
 
-**דוח נתונים — Data report**. Recipe revision: 3.
+**דוח נתונים — Data report**. Recipe revision: 4.
 
 | Native source language | Starter | Authored declarations |
 |---|---|---|
@@ -154,7 +154,7 @@ Bilingual composer: `paired-full-pages`; minority-language composer: `append-not
 Additional copied components: [flow_tables.tex](../assets/flow_tables.tex).
 Closed source handlers: `declare-note-language`, `data-heading-guard`.
 
-Guides: [template-catalog.md](../references/template-catalog.md), [catalog-development.md](../references/catalog-development.md).
+Guides: [template-catalog.md](../references/template-catalog.md), [catalog-development.md](../references/catalog-development.md), [tables-and-captions.md](../references/tables-and-captions.md).
 Vocabulary: [template](glossary-he-en.md#term-template), [starter](glossary-he-en.md#term-starter), [document-kind](glossary-he-en.md#term-document-kind), [content-profile](glossary-he-en.md#term-content-profile), [recipe-revision](glossary-he-en.md#term-recipe-revision), [composer](glossary-he-en.md#term-composer), [source-handler](glossary-he-en.md#term-source-handler), [paragraph-style](glossary-he-en.md#term-paragraph-style).
 Acceptance case identifiers: `template:data-report:native`, `template:data-report:mixed`, `template:data-report:bilingual`.
 
@@ -355,7 +355,7 @@ Examples demonstrate components and compatibility paths; they are not additional
 | `notes` | [example_notes.tex](../assets/example_notes.tex) | `hebrew` | [preamble.tex](../assets/preamble.tex), [document_components.tex](../assets/document_components.tex), [deferred_notes.tex](../assets/deferred_notes.tex), [reader_theme.tex](../assets/reader_theme.tex) |
 | `reader` | [example_reader.tex](../assets/example_reader.tex) | `hebrew` | [preamble.tex](../assets/preamble.tex), [document_components.tex](../assets/document_components.tex), [reader_theme.tex](../assets/reader_theme.tex) |
 | `references` | [example_references.tex](../assets/example_references.tex) | `hebrew` | [preamble.tex](../assets/preamble.tex), [reader_theme.tex](../assets/reader_theme.tex), [document_components.tex](../assets/document_components.tex) |
-| `tables` | [example_tables.tex](../assets/example_tables.tex) | `hebrew` | [preamble.tex](../assets/preamble.tex) |
+| `tables` | [example_tables.tex](../assets/example_tables.tex) | `hebrew` | [preamble.tex](../assets/preamble.tex), [document_components.tex](../assets/document_components.tex) |
 | `topicrail` | [example_topicrail.tex](../assets/example_topicrail.tex) | `hebrew` | [preamble.tex](../assets/preamble.tex), [topicrail.tex](../assets/topicrail.tex) |
 
 ### Example bibliography
@@ -430,7 +430,7 @@ Acceptance case identifiers: `example:references:runtime`.
 
 ### Example tables
 
-Guides: [template-catalog.md](../references/template-catalog.md).
+Guides: [template-catalog.md](../references/template-catalog.md), [tables-and-captions.md](../references/tables-and-captions.md).
 Vocabulary: [starter](glossary-he-en.md#term-starter), [public-api](glossary-he-en.md#term-public-api).
 Acceptance case identifiers: `example:tables:runtime`.
 

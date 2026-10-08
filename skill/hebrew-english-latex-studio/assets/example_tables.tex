@@ -23,12 +23,13 @@
 % language at the table level and has a separate documented column contract.
 % ============================================================================
 \input{preamble.tex}
+\input{document_components.tex} % opt-in content-sized framedtable (pattern 13)
 \usepackage{colortbl}   % per-DOCUMENT load for \rowcolor (pattern 11) — NOT a
                         % preamble package; copy this line only when you need it.
 \newcommand{\patternheading}[1]{%
   \Needspace{11\baselineskip}%
   {\large\bfseries\noindent #1\par}\smallskip}
-% (No \setcounter{chapter} hack needed: since v3.30 \tabcap prints "טבלה N."
+% (No \setcounter{chapter} hack needed: \tabcap prints "טבלה N:"
 %  while no \chapter exists, and "טבלה C.N" once chapters start.)
 \begin{document}
 
@@ -383,4 +384,28 @@ $\checkmark$ & $\times$ & $\times$ & \h{גישה ישירה לזיכרון}\\
 \tabcap{חלוקת אחסון ויתירות ברמות \en{RAID}.}
 \end{center}
 
+\clearpage
+\patternheading{13. מסגרת לבחירה — רוחב לפי התוכן}
+\noindent מסגרת עדינה לטבלה קצרה ושלמה בעמוד אחד. גם הכיתוב משתתף במדידת הרוחב;
+אין מתיחה אוטומטית או הקטנת גופן. לטקסט ארוך בוחרים עמודת פסקה, ולריבוי עמודים משתמשים
+ב־\code{flowtable} ללא מסגרת. ברירת המחדל נשארת הטבלה הפתוחה.
+\begin{framedtable}[נתונים קצרים במסגרת]{2}{rr}
+  {נתונים קצרים.}{tab:optional-short}
+\toprule\h{ערך}&\h{מזהה}\\\midrule
+\en{-12.50}&\en{001}\\\en{0.00}&\en{002}\\\bottomrule
+\end{framedtable}
+\begin{framedtable}[תיאור ארוך במסגרת]{2}
+  {>{\raggedleft\arraybackslash}p{\framedtablewidth-2cm}r}
+  {תיאור ארוך עם \en{LLVM} ועם $x^2$, הנשבר לשורות בכיתוב אחיד ובאותו רוחב בטוח.}{tab:optional-long}
+\toprule\h{תיאור}&\h{מזהה}\\\midrule
+\h{תיאור עברי ארוך נשבר באופן טבעי בשורות העמודה, ללא כיווץ הגופן וללא חריגה מהמסגרת. יש מקום למונח \en{LLVM} ולנוסחה $x^2$.}&\en{001}\\
+\h{תיאור קצר להשוואה.}&\en{002}\\\bottomrule
+\end{framedtable}
+\noindent הפניה ל־\autoref{tab:optional-short} ול־\autoref{tab:optional-long}.
+\begin{englishprose}
+\begin{framedtable}[English framed records]{2}{rr}
+  {Compact records.}{tab:optional-english}
+\toprule ID&Value\\\midrule 001&-12.50\\002&0.00\\\bottomrule
+\end{framedtable}
+\end{englishprose}
 \end{document}

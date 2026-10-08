@@ -28,3 +28,63 @@
 % the authored definition. Isolate minority-language terms with \en or \h.
 \newcommand{\glossaryentry}[2]{%
   \par\noindent #1\nobreak\hspace{.35em}—\hspace{.35em}#2\par}
+
+% Optional, atomic content-sized table using the existing tablebox mechanism.
+% [short list caption]{column count}{column specification}{caption}{label}
+% Natural l/r/c columns stay natural. Author p/m widths for long prose; the
+% local \framedtablewidth budget deducts frame, cell and intercolumn padding.
+% Unlike flowtable this environment deliberately does not span pages.
+\makeatletter
+\newlength{\hllpdf@framecolumns}
+\newcommand{\framedtablewidth}{\hllpdf@framecolumns}
+\newsavebox{\hllpdf@framedrows}
+\newsavebox{\hllpdf@framedbody}
+\newsavebox{\hllpdf@framedcaption}
+\newlength{\hllpdf@frameinner}
+\newlength{\hllpdf@frameouter}
+\NewDocumentEnvironment{framedtable}{O{} m m m m +b}{%
+  \par\begingroup
+  \setlength{\hllpdf@frameinner}{\dimexpr\linewidth-22pt-1.8pt\relax}%
+  \setlength{\hllpdf@framecolumns}{\dimexpr\hllpdf@frameinner-2\tabcolsep*#2\relax}%
+  \sbox{\hllpdf@framedrows}{\begin{otherlanguage}{english}\begin{tabular}{#3}#6\end{tabular}\end{otherlanguage}}%
+  \ifdim\wd\hllpdf@framedrows>\hllpdf@frameinner
+    \PackageError{hllpdf}{framedtable exceeds the available width}%
+      {Wrap prose with p/m columns within framedtablewidth; do not scale the table.}%
+  \fi
+  % Capture description nodes once, then unbox them into the final paragraph.
+  % They remain breakable at the safe width; citations/links are not executed
+  % twice. Plain label measurement has no counter or navigation side effects.
+  \sbox{\hllpdf@framedcaption}{\lakitcaptionstyle #4}%
+  \sbox\@tempboxa{\advance\c@tbl by 1\relax
+    \lakitcaptionstyle\tablename~\en{\thetbl}\lakitcaptionpunctuation\enspace}%
+  \@tempdima=\dimexpr\wd\@tempboxa+\wd\hllpdf@framedcaption\relax
+  \ifdim\@tempdima<\hllpdf@frameinner
+    \setlength{\hllpdf@frameinner}{\@tempdima}%
+  \fi
+  \ifdim\wd\hllpdf@framedrows>\hllpdf@frameinner
+    \setlength{\hllpdf@frameinner}{\wd\hllpdf@framedrows}%
+  \fi
+  \let\hllpdf@frametitle\lakinrtitle
+  \renewcommand{\lakinrtitle}[1]{\hllpdf@frametitle{#4}}%
+  \begin{lrbox}{\hllpdf@framedbody}%
+    \begin{minipage}{\hllpdf@frameinner}\centering
+      \usebox{\hllpdf@framedrows}%
+      \lakintabframedtrue
+      \tabcap[#1]{\label{#5}\unhcopy\hllpdf@framedcaption}%
+    \end{minipage}%
+  \end{lrbox}%
+  \setlength{\hllpdf@frameouter}{\dimexpr\hllpdf@frameinner+22pt+1.8pt\relax}%
+  \ifdim\dimexpr\ht\hllpdf@framedbody+\dp\hllpdf@framedbody+40.8pt\relax>\textheight
+    \PackageError{hllpdf}{framedtable exceeds one page}%
+      {Split this atomic table or use an unframed flowtable outside a box.}%
+  \fi
+  % Target this frame's top, using its actual padding rather than the legacy
+  % cushion. The existing close hook traverses the captured caption anchor.
+  \renewcommand{\lakintabcushion}{\dimexpr\mdf@innertopmargin@length+\mdf@linewidth@length\relax}%
+  \begin{tablebox}[userdefinedwidth=\hllpdf@frameouter,align=center]
+    \global\lakintabcapseentrue
+    \noindent\usebox{\hllpdf@framedbody}%
+  \end{tablebox}%
+  \endgroup
+}{ }
+\makeatother
