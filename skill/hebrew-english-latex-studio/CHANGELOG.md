@@ -1,5 +1,17 @@
 # Hebrew English LaTeX Studio — release metadata
 
+## v5.4.6
+
+Captions now use one regular black paragraph style and a colon separator in
+all shipped themes, native captions and continuing tables. Short table samples
+use natural numeric columns with authored prose widths; continuing tables keep
+outer cell padding and center natural-width specifications. Glossary entries
+use a spaced em dash without altering sentence punctuation. Regression controls
+cover physical caption fragments, mixed direction, wrapping and navigation.
+
+The 138-path tooling license scope and Generated Output Permission are retained;
+no template or third-party license grant is added.
+
 ## v5.4.5
 
 Standalone source package for English, Hebrew, and bilingual LuaLaTeX

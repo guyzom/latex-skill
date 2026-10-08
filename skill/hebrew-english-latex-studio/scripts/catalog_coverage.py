@@ -48,7 +48,7 @@ PUBLIC_API_COVERAGE = {
     'assets/reference_columns.tex': ('referencecolumns', 'referencewide', 'ReferenceColumnCount', 'ReferenceColumnGap', 'ReferenceColumnRule', 'ReferenceColumnSkip', 'ReferenceBodyFontSize', 'ReferenceBodyBaseline', 'ReferenceSelectBodyFont', 'ReferenceMathFontSize', 'ReferenceMathScriptSize', 'ReferenceMathScriptScriptSize'),
     'assets/reference_shell.tex': ('ReferenceTitle', 'ReferenceShortTitle', 'ReferenceSubtitle', 'ReferenceAuthor', 'ReferenceDate', 'makereferencetitle'),
     'assets/reference_components.tex': ('referenceentry', 'referencenote', 'referencewarning', 'referenceformula', 'referenceqa', 'referenceqaseries', 'referencesolutionpart', 'referencequestion', 'referencesolution', 'referencepurpose', 'referenceconditions', 'referencefigcap', 'referencetabcap', 'referencefigure', 'referencetable'),
-    'assets/document_components.tex': ('sourcelink',),
+    'assets/document_components.tex': ('sourcelink', 'glossaryentry'),
     'assets/deferred_notes.tex': ('DeclareDocNote', 'DocNoteMark', 'PrintDocNotes'),
     'assets/flow_tables.tex': ('flowtable',),
 }
@@ -66,7 +66,7 @@ HOOK_FAMILIES = {
                      'ReferenceMathFontSize', 'ReferenceMathScriptSize', 'ReferenceMathScriptScriptSize'), 'reference-all'),
     **dict.fromkeys(('ReferenceTitle', 'ReferenceShortTitle', 'ReferenceSubtitle',
                      'ReferenceAuthor', 'ReferenceDate'), 'reference-all'),
-    **dict.fromkeys(('lakitcaptionlabelstyle', 'lakitcaptionpunctuation'), 'core'),
+    **dict.fromkeys(('lakitcaptionstyle', 'lakitcaptionlabelstyle', 'lakitcaptionpunctuation'), 'core'),
     **dict.fromkeys(('referencenotestyle', 'referencewarningstyle', 'referenceformulastyle',
                      'referenceqastyle'), 'reference-all'),
 }
@@ -311,7 +311,7 @@ def hook_coverage() -> list[dict]:
     result = []
     for hook in HOOK_SPECS:
         positive = ['scripts/test_component_fixtures.py:test_every_configuration_hook_is_declared_in_native_fixtures',
-                    'scripts/test_template_registry.py:test_hook_inventory_all_29_have_explicit_owners_and_scopes']
+                    'scripts/test_template_registry.py:test_hook_inventory_all_30_have_explicit_owners_and_scopes']
         negative = ['scripts/test_component_fixtures.py:test_hook_claim_without_declaration_is_rejected']
         runtime = []
         if hook.scope == 'reference-layout':

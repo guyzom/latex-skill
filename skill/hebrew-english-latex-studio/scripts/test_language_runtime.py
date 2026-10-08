@@ -383,6 +383,77 @@ See \autoref{ch:en} and \autoref{app:en}.
                         self.assertLess(old[0],2)
                         self.assertLess(old[2],0)
 
+
+    def test_uniform_captions_natural_tables_and_glossary_all_profiles(self):
+        # Real TeX -> PDF controls, including native captionof/subcaption and
+        # longtable. Marker text and glyph geometry check the output contract;
+        # retained evidence still requires actual page-by-page visual review.
+        import check_pdf_render as render
+        for profile, main in self.profiles[1:]:
+            with self.subTest(profile=profile, main=main):
+                longtext = ('CAPTIONBODY ' + r'A deliberately long description with consistent typography, $x^2$ and \h{תוצאה}. '*8
+                            if main == 'english' else
+                            r'\en{CAPTIONBODY} ' + r'תיאור ארוך שנשבר לשורות ושומר על גופן וצבע אחידים, עם $x^2$ ועם \en{LLVM}. '*10)
+                term = 'Compiler' if main == 'english' else r'\en{Compiler}'
+                definition = ('Translates source. Sentence punctuation stays intact.' if main == 'english'
+                              else r'מתרגם קוד מקור. פיסוק במשפט נשמר, עם $x^2$ ועם \en{LLVM}.')
+                source = (profile_header(profile, main) + r'\usepackage{subcaption}' + '\n'
+                    + r'\newsavebox{\naturaltable}' + '\n'
+                    + r'\begin{document}\section{\en{Style controls}}' + '\n'
+                    + r'\begin{tikzpic}\begin{tikzpicture}\draw (0,0) rectangle (2,1);\end{tikzpicture}\end{tikzpic}' + '\n'
+                    + r'{\bfseries\sffamily\Large\figcap[Short figure]{\label{fig:uniform}' + longtext + r'}}' + '\n'
+                    + r'\begin{center}\sbox{\naturaltable}{\begin{tabular}{rr}\en{001}&\en{-12.50}\\\en{002}&\en{0.00}\\\end{tabular}}' + '\n'
+                    + r'\typeout{NATURALWIDTH|\the\wd\naturaltable|\the\linewidth}' + '\n'
+                    + r'\usebox{\naturaltable}\tabcap[Short table]{\label{tab:natural}\en{Compact records.}}\end{center}' + '\n'
+                    + r'\glossaryentry{' + term + '}{' + definition + '}\n'
+                    + r'\begin{center}\rule{2cm}{1cm}\captionof{table}{\en{NATIVEBODY Native table caption.}}\label{tab:native}\end{center}' + '\n'
+                    + r'\begin{figure}[H]\centering\begin{subfigure}{.45\linewidth}\centering\rule{1cm}{1cm}\caption{\en{SUBBODY Subfigure caption.}}\label{fig:sub}\end{subfigure}' + '\n'
+                    + r'\caption{\en{NATIVEFIG Native figure caption.}}\label{fig:native}\end{figure}' + '\n'
+                    + r'\begin{flowtable}{2}{ll}{\en{FLOWBODY Continuing table.}}{tab:flowstyle}{\en{State}&\en{Value}}' + '\n'
+                    + '\n'.join(r'\en{Valid record '+str(i)+r'}&\en{-12.50}\\' for i in range(1,46)) + '\n'
+                    + r'\end{flowtable}\en{See }\ref{fig:uniform}, \autoref{tab:natural}, \nameref{tab:native}, \ref{fig:sub}.' + '\n'
+                    + r'\listoffigures\listoftables\end{document}')
+                result, directory = self.compile(source, 'styles-'+profile+'-'+main, passes=3)
+                self.assertEqual(result.returncode, 0, result.stdout[-6000:])
+                log = (directory/'main.log').read_text()
+                self.assertNotIn('Overfull', log)
+                self.assertNotIn('undefined references', log)
+                self.assertNotIn('Missing character:', log)
+                width, limit = re.search(r'NATURALWIDTH\|([\d.]+)pt\|([\d.]+)pt', log).groups()
+                self.assertLess(float(width), .75*float(limit))
+                with fitz.open(directory/'main.pdf') as doc:
+                    sites = [row for page in doc for row in render.caption_sites(page)]
+                    self.assertIn(('fig', '1.1'), [(r[0],r[1]) for r in sites])
+                    self.assertIn(('tbl', '1.1'), [(r[0],r[1]) for r in sites])
+                    spans = [span for page in doc for block in page.get_text('dict')['blocks']
+                             for line in block.get('lines', []) for span in line['spans']]
+                    for marker in ('CAPTIONBODY','NATIVEBODY','SUBBODY','NATIVEFIG','FLOWBODY'):
+                        actual = [span for span in spans if marker in span['text']]
+                        self.assertTrue(actual, marker)
+                        # The first occurrence is the caption; later ones are
+                        # native list entries or nameref prose at body size.
+                        for span in actual[:1]:
+                            self.assertEqual(span['color'], 0, (marker,span))
+                            self.assertFalse(span['flags'] & 16, (marker,span))
+                            self.assertAlmostEqual(span['size'], 9.96264, delta=.12)
+                    text = ''.join(page.get_text() for page in doc)
+                    self.assertIn('Compiler', text)
+                    self.assertIn('—', text)
+                    self.assertNotIn('Compiler.', text)
+                    self.assertEqual(sum(text.count('Valid record '+str(i)+'\n') for i in range(1,46)),45)
+                if profile in ('english', 'hebrew'):
+                    broken, mutant = self.compile(source, 'styles-split-'+main, passes=1,
+                        mutate=lambda t:t.replace(r'\newcommand{\lakitcaptionlabelstyle}[1]{#1}',
+                            r'\newcommand{\lakitcaptionlabelstyle}[1]{\textcolor{cGray}{\textbf{#1}}}'))
+                    self.assertEqual(broken.returncode,0,broken.stdout[-5000:])
+                    with fitz.open(mutant/'main.pdf') as doc:
+                        detected = [(r[0],r[1]) for page in doc for r in render.caption_sites(page)]
+                        self.assertNotIn(('fig','1.1'),detected)
+                        self.assertIn('CAPTIONBODY',''.join(page.get_text() for page in doc))
+                nav = subprocess.run([sys.executable, str(ROOT/'scripts/check_pdf_navigation.py'),
+                                      str(directory/'main.pdf')], capture_output=True, text=True)
+                self.assertEqual(nav.returncode,0,nav.stdout+nav.stderr)
+
     def test_bad_profiles_fail_before_document_loading(self):
         cases=[('unknown',r'\def\lakitlanguageprofile{french}','unsupported language profile'),
                ('bilingual-missing',r'\def\lakitlanguageprofile{bilingual}','requires explicit lakitmainlanguage'),

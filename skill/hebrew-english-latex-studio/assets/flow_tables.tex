@@ -1,7 +1,8 @@
 % flow_tables.tex — opt-in, single-column Hebrew or English multipage tables.
 % Source columns follow the surrounding language (first right in Hebrew, left in English).
 % H{width}: Hebrew prose; E{width}: English text; N{width}: LTR numeric/token cell.
-% Width fractions apply to \flowtablewidth, which excludes intercolumn padding.
+% Width fractions apply to \flowtablewidth, which excludes ALL cell padding.
+% Natural l/r/c columns are allowed; their table is centered without stretching.
 % <hllpdf:architecture-guard>
 \ifdefined\hllpdfcoreloaded\else
   \errmessage{hllpdf: flow_tables.tex requires preamble.tex first}
@@ -68,12 +69,12 @@
   \let\theHtable\theHtbl
   \def\LTcaptype{table}%
   \def\fnum@table{\mbox{\tablename~\en{\thetable}}}%
-  \setlength{\flowtablewidth}{\dimexpr\linewidth-2\tabcolsep*(#1-1)\relax}%
+  \setlength{\flowtablewidth}{\dimexpr\linewidth-2\tabcolsep*#1\relax}%
   \setlength{\LTcapwidth}{\linewidth}%
-  \setlength{\LTleft}{0pt}%
-  \setlength{\LTright}{0pt}%
+  \setlength{\LTleft}{\fill}%
+  \setlength{\LTright}{\fill}%
   \renewcommand{\arraystretch}{1.15}%
-  \longtable{@{}#2@{}}%
+  \longtable{#2}%
   \caption[#3]{#3}\label{#4}\\
   \toprule
   #5\\

@@ -263,12 +263,12 @@ force a new content genre, replace prose, or silently rename semantic boxes.
 
 The rendered destination checker recognizes canonical Hebrew `איור`/`טבלה`
 and English `Figure`/`Table` caption labels by the complete label, declared
-weight and exact declared color. Its defaults are `555555` and `bold`, matching
-the core's caption presentation. The academic and reference themes use `000000` and
-`normal`; its generated wrapper declares both settings only when unset.
+weight and exact declared color. Its defaults are `000000` and `normal`, matching
+the complete core caption paragraph. All shipped themes use the same defaults;
+generated academic/reference wrappers retain explicit unset-only declarations.
 When a custom theme changes the label style, declare the matching settings in
-the build environment. For example, a theme using
-`\definecolor{cGray}{HTML}{536570}` must build with:
+the build environment. For example, a theme using `\renewcommand{\lakitcaptionstyle}{\normalfont\small\color{cGray}}`
+with `\definecolor{cGray}{HTML}{536570}` must build with:
 
 ```bash
 PDF_CAPTION_COLOR=536570 bash scripts/build.sh document.tex

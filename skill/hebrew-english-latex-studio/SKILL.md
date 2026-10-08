@@ -154,6 +154,10 @@ Keep a symbolic heading expression in one math span; provide a plain bookmark al
 
 The source gate rejects `PGFPLOTS-CONTOUR-EXTERNAL`: precompute contours and plot their coordinates instead of compile-time `contour lua` / `contour gnuplot` — why, and the precomputed form: [precomputed contours](references/figures-boxes-listings.md#pgfplots-קווי-גובה-מחושבים-מראש). See also [technical symbols and preflight](references/technical-symbols-and-preflight.md).
 
+Choose table widths from content. Short numeric/lookup tables use natural `l/r/c` columns; authored `p/m` columns wrap prose. A short centered `tabular` does not need a full-width frame. Use `tablebox` only for an explicitly requested grouped panel, and keep its caption inside. Use `flowtable` for genuinely multipage records: natural columns stay centered; wide prose columns may use the available budget with all cell padding deducted. Inspect the actual column order and safe margins after rendering. Never stretch every short table to `\linewidth`, impose one percentage on all tables, shrink fonts or use `resizebox` to hide overflow. See [tables and captions](references/tables-and-captions.md).
+
+The default caption is `Figure 1: Description` / `איור 1: תיאור` (and Table / טבלה), with the document's existing numbering policy. Apply `\lakitcaptionstyle` to the complete paragraph: regular black text at one local size, including label, number and separator. Keep authored mathematics and language islands; avoid incidental label-only color, weight or font changes. Native `caption`, `captionof`, optional `subcaption` and `flowtable` share that presentation. Honor explicitly requested template styling. For terminology paragraphs load `document_components.tex` and use `\glossaryentry{term}{definition}` with a spaced em dash; sentence punctuation remains authored.
+
 Use `tikzpic`/`qcirc` as direction/centering wrappers; place an actual `tikzpicture`/`quantikz` environment inside. Put `\figcap{\label{...}...}` immediately after the object; use `\tabcap` for short tables. `flowtable` owns its caption and label. Put an actual `lstlisting` inside `asmblock`, with its code body starting on a new line; `asmblock` itself only switches language and does not typeset code. Use `codebox` for framed numbered code. Keep atomic `tablebox` shorter than a page. Do not shrink text into unreadability.
 
 ## 5. Build and inspect
@@ -173,7 +177,7 @@ The build validates configuration, dependencies, font identity, source hazards, 
 - `EXPECTED_PAPER=a3|a4|a5|letter|legal` must match source.
 - `CONTENT_PROFILE=generic|study-guide|report|exam|formula-sheet|review-sheet` selects advisory editorial checks, not a template.
 - `PDF_FOLIO_LAYOUT` and `PDF_FOLIO_BAND` declare folio placement; see [folios](references/pdf-folios.md) for coverage and limitations.
-- `PDF_CAPTION_COLOR=RRGGBB` and `PDF_CAPTION_LABEL_WEIGHT=bold|normal` must match the actual caption labels (defaults `555555` and `bold`). Generated academic and reference-theme projects declare black (`000000`) labels of normal weight; explicit caller settings remain authoritative.
+- `PDF_CAPTION_COLOR=RRGGBB` and `PDF_CAPTION_LABEL_WEIGHT=bold|normal` must match the actual caption paragraph (defaults `000000` and `normal`). All shipped themes use black (`000000`) captions of normal weight; explicit caller settings remain authoritative.
 - `PDF_REQUIRE_TITLE`, `PDF_MIN_BOOKMARKS`, `PDF_MIN_BOOKMARK_DEPTH` express actual project requirements; do not invent quotas.
 - `REPRO=1` adds exact-byte rebuilding under the same environment.
 - `SECTION_MACROS` declares custom section macros for content analysis.

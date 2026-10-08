@@ -800,9 +800,9 @@
 % ============================================================================
 % Unified TABLE presentation: subtle uniform slate frame + auto-numbered
 % caption rendered INSIDE the frame. Use:
-%   \begin{tablebox}\centering\small  <tabular>  \tabcap{<description>}\end{tablebox}
+%   \begin{tablebox}\centering  <tabular>  \tabcap{<description>}\end{tablebox}
 % Replaces the buggy \caption* (which emitted a stray "טבלה N : *" line) and
-% gives every table one identical frame + numbered caption "טבלה N.M.".
+% provides an explicit framed option + numbered caption "טבלה N.M: תיאור".
 % Optional intro text may be placed at the TOP, before the tabular, inside the box.
 % ============================================================================
 \definecolor{cTblLine}{HTML}{B9C4D2}  \definecolor{cTblBg}{HTML}{FAFBFC}
@@ -938,12 +938,24 @@
 % it is manufactured by this macro, which is why every source linter was blind.
 % \mbox makes the label one atomic box so nothing can reorder across it. Verified
 % zero-regression: an ordinary Hebrew caption keeps identical x-geometry.
-% Public caption-presentation hooks. Their core defaults retain the historical
-% gray bold label and period exactly. Themes may change these two hooks, while
-% the core remains the sole owner of counters, label state and raised anchors.
-% The enclosing \mbox in both caption commands keeps the entire label atomic.
-\newcommand{\lakitcaptionlabelstyle}[1]{\textcolor{cGray}{\textbf{#1}}}
-\newcommand{\lakitcaptionpunctuation}{.}
+% One paragraph style covers label, number, separator and description.
+% Explicit project/template overrides remain possible; the label hook is kept
+% for compatibility, with an identity default. Counters/anchors stay unchanged.
+\newcommand{\lakitcaptionstyle}{\normalfont\small\color{black}}
+\newcommand{\lakitcaptionlabelstyle}[1]{#1}
+\newcommand{\lakitcaptionpunctuation}{:}
+% Native floats, captionof and longtable use the same presentation policy.
+% subcaption is optional and inherits the same font rather than a second size.
+\usepackage{caption}
+\DeclareCaptionFont{lakit}{\lakitcaptionstyle}
+\DeclareCaptionLabelFormat{lakit}{\lakitcaptionlabelstyle{#1~\en{#2}}}
+\DeclareCaptionLabelSeparator{lakit}{\lakitcaptionpunctuation\enspace}
+\captionsetup{font=lakit,labelfont={},textfont={},labelformat=lakit,
+  labelsep=lakit,justification=centering}
+\makeatletter
+\AtBeginDocument{\@ifpackageloaded{subcaption}{%
+  \captionsetup[sub]{font=lakit,labelfont={},textfont={},labelsep=lakit}}{}}
+\makeatother
 % v3.64: OPT-IN list-of-figures/tables entry via an optional short caption.
 % \listoffigures and \listoftables are inherited from report.cls and LOOK available,
 % but \figcap/\tabcap step the custom \c@fig/\c@tbl counters and never call
@@ -1019,13 +1031,13 @@
   \lakinrtitle{#2}\par\nopagebreak\addvspace{6pt}%
   \def\lakin@short{#1}\ifx\lakin@short\@empty\else
     \addcontentsline{lot}{table}{\protect\numberline{\thetbl}{\protect\ignorespaces #1}}\fi
-  {\centering\small\mbox{\lakitcaptionlabelstyle{\tablename~\thetbl\lakitcaptionpunctuation}}\enspace #2\par}}
+  {\centering\lakitcaptionstyle\mbox{\lakitcaptionlabelstyle{\tablename~\en{\thetbl}\lakitcaptionpunctuation}}\enspace #2\par}}
 \makeatother
 
 % ============================================================================
 % Unified FIGURE caption — the \tabcap twin for TikZ/plot figures (v3.34.0).
 % A figure (tikzpic) sits inline in the prose; put \figcap BELOW it for a
-% numbered, \ref-able caption "איור N.M." in the same gray style as \tabcap:
+% numbered, \ref-able caption "איור N.M: תיאור" in the same style as \tabcap:
 %   \begin{tikzpic} ... \end{tikzpic}
 %   \figcap{\label{fig:foo}description}     % \label FIRST, inside the argument
 % WHY a macro, not a hand-written gray line: a manual
@@ -1073,7 +1085,7 @@
   \lakinrtitle{#2}\par\nopagebreak\addvspace{4pt}%
   \def\lakin@short{#1}\ifx\lakin@short\@empty\else
     \addcontentsline{lof}{figure}{\protect\numberline{\thefig}{\protect\ignorespaces #1}}\fi
-  {\centering\lakin@pend\small\mbox{\lakitcaptionlabelstyle{\figurename~\thefig\lakitcaptionpunctuation}}\enspace #2\par}}
+  {\centering\lakin@pend\lakitcaptionstyle\mbox{\lakitcaptionlabelstyle{\figurename~\en{\thefig}\lakitcaptionpunctuation}}\enspace #2\par}}
 \makeatother
 
 % ============================================================================

@@ -3,8 +3,8 @@
 # Original project code; scope and terms: ../LICENSING.md.
 """Bounded academic caption contract controls using actual PDF glyphs.
 
-The default bold contract is protected by test_caption_styles.py. These cases
-exercise the explicit regular/black contract and its destination ownership;
+The explicit legacy bold contract is protected by test_caption_styles.py.
+These cases exercise the default regular/black contract and its destination ownership;
 they do not infer document semantics or attest visual review.
 """
 from __future__ import annotations
@@ -57,6 +57,18 @@ class AcademicCaptionContract(unittest.TestCase):
             self.assertLess(abs(sites[0][2].x1-label.x1), .01)
             self.assertEqual(self.findings(doc), ([], []))
 
+    def test_adjacent_pdf_fragments_on_one_physical_caption_baseline(self):
+        with caption_document(label='') as doc:
+            page = doc[0]
+            first = 'Figure '
+            page.insert_text((120, 200), first, fontname='tiro', fontsize=11)
+            x = 120 + fitz.get_text_length(first, fontname='tiro', fontsize=11)
+            page.insert_text((x, 200), '1:', fontname='helv', fontsize=11)
+            x += fitz.get_text_length('1:', fontname='helv', fontsize=11) + 5
+            page.insert_text((x, 200), 'Fragmented caption.', fontname='tiro', fontsize=11)
+            self.assertEqual([(row[0], row[1]) for row in self.sites(page)], [('fig', '1')])
+            self.assertEqual(self.findings(doc), ([], []))
+
     def test_table_appendix_and_multi_digit_numbers(self):
         for label, number in [('Table 12: Data.', '12'), ('Table A.2: Data.', 'A.2'),
                               ('Table 3.12: Data.', '3.12')]:
@@ -64,10 +76,10 @@ class AcademicCaptionContract(unittest.TestCase):
                 self.assertEqual([(x[0], x[1]) for x in self.sites(doc[0])], [('tbl', number)])
                 self.assertEqual(self.findings(doc), ([], []))
 
-    def test_default_bold_contract_does_not_implicitly_accept_regular_black(self):
+    def test_default_regular_contract_and_explicit_legacy_contract(self):
         with caption_document() as doc:
-            self.assertEqual(render.caption_sites(doc[0]), [])
-            self.assertEqual(render.caption_sites(doc[0], 0), [])
+            self.assertEqual([(x[0], x[1]) for x in render.caption_sites(doc[0])], [('fig', '1')])
+            self.assertEqual(render.caption_sites(doc[0], 0x555555, 'bold'), [])
 
     def test_regular_contract_rejects_body_reference_and_wrong_style(self):
         controls = [('See Figure 1: Central result.', 'tiro', 0),

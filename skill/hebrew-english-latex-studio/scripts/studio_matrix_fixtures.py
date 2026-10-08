@@ -320,8 +320,9 @@ def write_fixture(root: Path, project: Path, family: str, language: str) -> dict
     # Caption hooks are declared using their public signatures, then the
     # chosen theme may deliberately override these shared presentation hooks.
     pre += r'\input{preamble.tex}' + '\n'
-    pre += (r'\renewcommand{\lakitcaptionlabelstyle}[1]{\textcolor{cGray}{\textbf{#1}}}' + '\n'
-            + r'\renewcommand{\lakitcaptionpunctuation}{.}' + '\n'
+    pre += (r'\renewcommand{\lakitcaptionstyle}{\normalfont\small\color{black}}' + '\n'
+            + r'\renewcommand{\lakitcaptionlabelstyle}[1]{#1}' + '\n'
+            + r'\renewcommand{\lakitcaptionpunctuation}{:}' + '\n'
             + r'\lakitcaptionnumbering{continuous}' + '\n')
     pre += ''.join(r'\input{' + name + '}\n' for name in assets[1:])
     if family == 'custom':
@@ -353,7 +354,8 @@ def write_fixture(root: Path, project: Path, family: str, language: str) -> dict
         label = 'Synthetic source annotation' if language == 'english' else 'תווית מקור סינתטית'
         other = 'hebrew' if language == 'english' else 'english'
         minority_label = 'תווית מקור בעברית' if other == 'hebrew' else 'A local English source'
-        body += (rf'\sourcelink{{https://example.org/control?first=1&second=2\#part}}{{{label}}}{{{label}}}' + '\n'
+        body += (rf'\glossaryentry{{{label}}}{{{minority_label}}}' + '\n'
+                 + rf'\sourcelink{{https://example.org/control?first=1&second=2\#part}}{{{label}}}{{{label}}}' + '\n'
                  + rf'\begin{{{other}prose}}\sourcelink{{https://example.org/local}}{{{minority_label}}}{{{minority_label}}}\end{{{other}prose}}' + '\n')
     pre += r'\hypersetup{pdftitle={Synthetic component QA},pdfauthor={}}' + '\n'
     source = pre + r'\begin{document}' + '\n' + body + r'\end{document}' + '\n'

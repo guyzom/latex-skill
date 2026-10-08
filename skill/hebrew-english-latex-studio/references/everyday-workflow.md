@@ -237,8 +237,8 @@ and `PDF_FOLIO_BAND` values. A declared contract does not alter the source layou
 
 A wrapper selecting the academic or reference theme also supplies `PDF_CAPTION_COLOR=000000` and
 `PDF_CAPTION_LABEL_WEIGHT=normal` only when those variables are unset.
-Other themes retain the managed builder's gray/bold baseline unless explicitly
-configured. When customizing captions, match verification settings to the
+All shipped themes inherit the managed builder's regular black paragraph
+baseline (`000000` / `normal`) unless explicitly configured. When customizing captions, match verification settings to the
 actual label style; the variables do not recolor or change the PDF.
 
 `project.json` records the skill version, independent choices, selected packages,

@@ -218,7 +218,9 @@ wide content, language blocks and component boundaries.
 
 `exam_components.tex` owns `\qlabel`, `\pts`, `\finalans`, `\srcfig`, and
 `\srcfigdir`. It neither selects exam styling nor activates `showonlyrefs`.
-`document_components.tex` owns `\sourcelink`; it is not a bibliography system.
+`document_components.tex` owns `\sourcelink` and `\glossaryentry`.
+The latter joins a term and definition with a spaced em dash and adds no period.
+Neither helper is a bibliography system.
 `deferred_notes.tex` owns `\DeclareDocNote`, `\DocNoteMark`, `\PrintDocNotes`.
 `flow_tables.tex` owns `flowtable` and the documented H/E/N column convention;
 existing column-name collisions are rejected rather than overwritten.
@@ -294,7 +296,11 @@ The reference layouts and theme are independently selectable; explicit generator
 theme choices remain authoritative.
 
 The core owns the public presentation hooks
-`\lakitcaptionlabelstyle{complete label}` and `\lakitcaptionpunctuation`.
+`\lakitcaptionstyle` for the complete paragraph, the compatibility hook
+`\lakitcaptionlabelstyle{complete label}`, and `\lakitcaptionpunctuation`.
+The defaults are regular black text at one local small size and a colon.
+Native captions and continuing tables share the same style; label-only
+formatting is an explicit project override rather than the default.
 Themes may redefine those hooks without replacing `\figcap`, `\tabcap`,
 their language labels, anchors or reference semantics. The preamble-only
 `\lakitcaptionnumbering{continuous|within-major}` API changes reset edges,
@@ -403,7 +409,7 @@ excluded or granted a false clean bill of health.
 
 `PDF_CAPTION_COLOR` and `PDF_CAPTION_LABEL_WEIGHT` describe the actual caption
 label palette and weight for rendered destination checks. Defaults preserve
-the core's `555555`/`bold` labels; generated academic and reference-theme wrappers declare
+the core's `000000`/`normal` captions; generated academic and reference-theme wrappers declare
 `000000`/`normal` when those variables are unset. These settings do not restyle
 the PDF and do not waive missing or displaced caption destinations.
 

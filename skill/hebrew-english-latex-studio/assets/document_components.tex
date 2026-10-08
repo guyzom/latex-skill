@@ -21,3 +21,10 @@
   \href{#1}{\textcolor{cBlue}{\textbf{#2}}}\par\nobreak
   \noindent #3\par
   \endgroup\addvspace{6pt}}
+
+
+% \glossaryentry{term}{definition}: an ordinary paragraph, not a caption.
+% The spaced em dash is a relation separator; sentence punctuation belongs to
+% the authored definition. Isolate minority-language terms with \en or \h.
+\newcommand{\glossaryentry}[2]{%
+  \par\noindent #1\nobreak\hspace{.35em}—\hspace{.35em}#2\par}
