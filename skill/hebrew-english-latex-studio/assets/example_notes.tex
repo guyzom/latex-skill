@@ -26,17 +26,21 @@
 \section{הערה מתוך טבלה קצרה}
 ערכי הטבלה הם נתוני הדגמה בלבד. ההסבר ליחידה אינו נדחס לתוך כותרת העמודה,
 אלא נשאר זמין דרך סימון ממוספר.
-\begin{tablebox}\centering
-\begin{tabular}{@{}p{4.3cm}p{4.2cm}p{4.2cm}@{}}
+% Short records stay unframed and content-sized. Declare physical column order
+% explicitly: Hebrew keys last/right; preserve keyed-note identities in cells.
+\begin{center}
+\begin{otherlanguage}{english}
+\begin{tabular}{@{}rcr@{}}
 \toprule
-פירוש & ערך הדגמה & פרמטר\\\midrule
-פרמטר המודל & $f_0=500\punit{Hz}$ & תדירות\DocNoteMark{units}\\
-גודל חסר יחידות & $\xi=0.20$ & מקדם ריסון\\
-סימון לצורך מעקב & \code{run[12]} & מזהה רשומה\DocNoteMark{trace}\\
+\h{פירוש} & \h{ערך הדגמה} & \h{פרמטר}\\\midrule
+\h{פרמטר המודל} & $f_0=500\punit{Hz}$ & \h{תדירות\DocNoteMark{units}}\\
+\h{גודל חסר יחידות} & $\xi=0.20$ & \h{מקדם ריסון}\\
+\h{סימון לצורך מעקב} & \code{run[12]} & \h{מזהה רשומה\DocNoteMark{trace}}\\
 \bottomrule
 \end{tabular}
+\end{otherlanguage}
 \tabcap[פרמטרים להדגמה]{\label{tab:notes-demo}דוגמה קצרה שמפרידה נתון, יחידה והסבר.}
-\end{tablebox}
+\end{center}
 \PrintDocNotes
 הערה רגילה שנוספת כעת מקבלת את המספר הבא\footnote{הערה זו באה אחרי שתי הערות הטבלה; היא אינה חוזרת בטעות על המספרים שלהן.}.
 \clearpage

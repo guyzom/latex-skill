@@ -90,7 +90,7 @@ class DeferredNotesRuntime(unittest.TestCase):
     @classmethod
     def compile(cls, text, name, passes=1, mutate=None, production=False):
         directory = cls.root/name; directory.mkdir()
-        for asset in ['preamble.tex','reader_theme.tex','deferred_notes.tex']:
+        for asset in ['preamble.tex','reader_theme.tex','deferred_notes.tex','document_components.tex']:
             shutil.copyfile(ROOT/'assets'/asset, directory/asset)
         if mutate:
             p=directory/'deferred_notes.tex'; old=p.read_text(); new=mutate(old)
@@ -130,6 +130,40 @@ class DeferredNotesRuntime(unittest.TestCase):
             self.assertEqual(linked_digits(d,'Hfootnote.1'),['1'])
             self.assertEqual(linked_digits(d,'Hfootnote.2'),['4'])
             self.assertEqual(linked_digits(d,'Hfootnote.3'),['6'])
+
+    def test_note_gallery_table_is_unframed_natural_and_preserves_note_identity(self):
+        r, p = self.compile((ROOT/'assets/example_notes.tex').read_text(),
+                            'unframed-note-gallery', passes=3)
+        self.assertEqual(r.returncode, 0, r.stdout[-4000:])
+        log = (p/'main.log').read_text()
+        for bad in ('Overfull', 'Missing character:', 'undefined references', 'multiply defined'):
+            self.assertNotIn(bad, log)
+        with fitz.open(p/'main.pdf') as d:
+            self.assertEqual(len(d), 2)
+            page = d[0]
+            value = page.search_for('ערך הדגמה')[0]
+            key = next(x for x in page.search_for('פרמטר') if abs(x.y0-value.y0)<1)
+            description = next(x for x in page.search_for('פירוש') if abs(x.y0-value.y0)<1)
+            self.assertTrue(description.x0 < value.x0 < key.x0)
+            rules = [x['rect'] for x in page.get_drawings() if x['color']==(0.,0.,0.)
+                     and x['rect'].height<1 and x['rect'].width>40
+                     and value.y0-12 < x['rect'].y0 < value.y1+90]
+            self.assertGreaterEqual(len(rules), 3)
+            self.assertLess(max(x.width for x in rules), page.rect.width*.8)
+            self.assertFalse(any(x['fill'] and x['rect'].contains(value)
+                                 for x in page.get_drawings()))
+            for name, digits in [('model',['2','2']),('units',['3']),('trace',['4','4'])]:
+                self.assertEqual(linked_digits(d,'hllnote.'+name), digits)
+            self.assertEqual(linked_digits(d,'Hfootnote.2'), ['5'])
+            names = d.resolve_names()
+            self.assertTrue(all(names['hllnote.'+k]['page']==0 for k in ('model','units','trace')))
+            self.assertEqual(names['tbl.2.1']['page'], 0)
+            text = ''.join(page.get_text() for page in d)
+            self.assertEqual(text.count('The label'), 1)
+            self.assertIn('run[12]', text)
+        nav = subprocess.run([sys.executable,str(ROOT/'scripts/check_pdf_navigation.py'),str(p/'main.pdf')],
+                             capture_output=True,text=True)
+        self.assertEqual(nav.returncode, 0, nav.stdout+nav.stderr)
 
     def test_each_key_links_near_its_own_body_not_just_any_valid_target(self):
         with self.positive() as d:

@@ -21,6 +21,8 @@ regressions reject the former blue tint. Data-report recipe revision 6 records
 the unframed-default and neutral-frame authoring guidance.
 Frame/bare-table navigation and black caption links have real PDF
 controls, including width/height failures and a displaced-anchor mutation.
+The short keyed-note gallery table also uses natural unframed columns with
+explicit Hebrew key order; its note identities and repeated links are validated.
 The recorder escape regression checks the canonical rejected path on both
 Linux and macOS, preserving the same pass-two trust failure.
 
