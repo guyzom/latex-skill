@@ -8,6 +8,11 @@ use natural numeric columns with authored prose widths; continuing tables keep
 outer cell padding and center natural-width specifications. Glossary entries
 use a spaced em dash without altering sentence punctuation. Regression controls
 cover physical caption fragments, mixed direction, wrapping and navigation.
+Optional content-sized `framedtable` reuses the existing frame mechanism, keeps
+captions and rows together, wraps authored prose columns and rejects page-tall
+content. The unframed default remains; data-report recipe revision 4 documents
+the option. Frame/bare-table navigation and black caption links have real PDF
+controls, including width/height failures and a displaced-anchor mutation.
 
 The 138-path tooling license scope and Generated Output Permission are retained;
 no template or third-party license grant is added.
