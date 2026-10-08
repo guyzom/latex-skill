@@ -143,7 +143,7 @@ Acceptance case identifiers: `template:formula-sheet:native`, `template:formula-
 
 ### Template data-report
 
-**דוח נתונים — Data report**. Recipe revision: 5.
+**דוח נתונים — Data report**. Recipe revision: 6.
 
 | Native source language | Starter | Authored declarations |
 |---|---|---|
@@ -355,7 +355,7 @@ Examples demonstrate components and compatibility paths; they are not additional
 | `notes` | [example_notes.tex](../assets/example_notes.tex) | `hebrew` | [preamble.tex](../assets/preamble.tex), [document_components.tex](../assets/document_components.tex), [deferred_notes.tex](../assets/deferred_notes.tex), [reader_theme.tex](../assets/reader_theme.tex) |
 | `reader` | [example_reader.tex](../assets/example_reader.tex) | `hebrew` | [preamble.tex](../assets/preamble.tex), [document_components.tex](../assets/document_components.tex), [reader_theme.tex](../assets/reader_theme.tex) |
 | `references` | [example_references.tex](../assets/example_references.tex) | `hebrew` | [preamble.tex](../assets/preamble.tex), [reader_theme.tex](../assets/reader_theme.tex), [document_components.tex](../assets/document_components.tex) |
-| `tables` | [example_tables.tex](../assets/example_tables.tex) | `hebrew` | [preamble.tex](../assets/preamble.tex), [document_components.tex](../assets/document_components.tex) |
+| `tables` | [example_tables.tex](../assets/example_tables.tex) | `hebrew-with-english` | [preamble.tex](../assets/preamble.tex), [document_components.tex](../assets/document_components.tex) |
 | `topicrail` | [example_topicrail.tex](../assets/example_topicrail.tex) | `hebrew` | [preamble.tex](../assets/preamble.tex), [topicrail.tex](../assets/topicrail.tex) |
 
 ### Example bibliography

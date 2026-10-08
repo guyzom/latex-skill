@@ -498,6 +498,70 @@ See \autoref{ch:en} and \autoref{app:en}.
         bad_prose, _, _ = column_edges(mutant/'main.pdf')
         self.assertGreater(max(bad_prose)-min(bad_prose), 20)
 
+    def test_gallery_keeps_unframed_examples_prominent_and_content_sized(self):
+        import check_pdf_render as render
+        result, directory = self.compile((ROOT/'assets/example_tables.tex').read_text(),
+                                         'unframed-gallery', passes=3)
+        self.assertEqual(result.returncode, 0, result.stdout[-6000:])
+        log = (directory/'main.log').read_text()
+        for bad in ('Overfull', 'Missing character:', 'undefined references', 'multiply defined'):
+            self.assertNotIn(bad, log)
+        with fitz.open(directory/'main.pdf') as doc:
+            sites = [(i, site) for i, page in enumerate(doc) for site in render.caption_sites(page)]
+            self.assertEqual(len(sites), 19)
+            self.assertEqual([site[1] for _, site in sites], list(map(str, range(1, 20))))
+            # Actual filled containers: six optional frames, all after the
+            # thirteen unframed captions. Grid exceptions stay unframed too.
+            frames = [(i, d['rect']) for i, page in enumerate(doc) for d in page.get_drawings()
+                      if d['fill'] == (1., 1., 1.) and d['rect'].width > 40
+                      and d['rect'].height > 25]
+            self.assertEqual(len(frames), 6)
+            self.assertTrue(all(i > sites[12][0] for i, _ in frames))
+            for i, frame in frames: self.assert_neutral_table_frame(doc[i], frame)
+            page = next(p for p in doc if p.search_for('Configuration'))
+            compact = [page.search_for(t)[0] for t in ('Configuration', 'Hit rate', 'Access time')]
+            self.assertTrue(compact[0].x0 < compact[1].x0 < compact[2].x0)
+            self.assertLess(compact[-1].x1-compact[0].x0, page.rect.width/2)
+            standard = page.search_for('Standard')[0]
+            # Select the five-field table's physical header baseline, rather
+            # than other occurrences of ID/Value in captions or examples.
+            wide = [next(r for r in page.search_for(t) if abs(r.y0-standard.y0)<1)
+                    for t in ('ID', 'Standard', 'Value', 'Model', 'Explanation')]
+            self.assertTrue(all(a.x0 < b.x0 for a,b in zip(wide, wide[1:])))
+            words = [w for w in page.get_text('words') if w[0] >= wide[-1].x0
+                     and standard.y1 < w[1] < standard.y1+65]
+            self.assertGreater(len({round(w[1], 1) for w in words}), 2)
+            self.assertTrue(page.search_for('USB 3.0'))
+            self.assertTrue(page.search_for('IEEE 802.11'))
+            # Check the real row rules, not just word extents: a compact
+            # table must not acquire fill glue or a full-width rule/frame.
+            rules = [d['rect'] for d in page.get_drawings() if d['color']==(0.,0.,0.)
+                     and d['rect'].height < 1 and d['rect'].width > 40
+                     and compact[0].y0-12 < d['rect'].y0 < compact[0].y1+65]
+            self.assertTrue(rules)
+            self.assertLess(max(r.width for r in rules), page.rect.width*.6)
+            dests = doc.resolve_names()
+            for i, site in sites:
+                self.assertEqual(dests['tbl.0.'+site[1]]['page'], i)
+        nav = subprocess.run([sys.executable, str(ROOT/'scripts/check_pdf_navigation.py'),
+                              str(directory/'main.pdf')], capture_output=True, text=True)
+        self.assertEqual(nav.returncode, 0, nav.stdout+nav.stderr)
+
+    def assert_neutral_table_frame(self, page, frame, visible_border=True):
+        # Actual PDF paints, not source declarations: table containers must
+        # stay distinct from semantic blue/green/etc. White fill and gray ink.
+        bounds = fitz.Rect(frame); bounds += (-3, -3, 3, 3)
+        paints = [color for d in page.get_drawings() if bounds.contains(d['rect'])
+                  for color in (d['color'], d['fill']) if color is not None]
+        gray = 118 / 255
+        allowed = ((0., 0., 0.), (1., 1., 1.), (gray, gray, gray))
+        self.assertTrue(paints)
+        for color in paints:
+            self.assertTrue(any(all(abs(a-b)<.005 for a,b in zip(color,want))
+                                for want in allowed), color)
+        if visible_border:
+            self.assertTrue(any(all(abs(v-gray)<.005 for v in color) for color in paints))
+
     def test_optional_frames_size_wrap_and_preserve_navigation(self):
         import check_pdf_render as render
         for main in ('english', 'hebrew'):
@@ -543,6 +607,7 @@ See \autoref{ch:en} and \autoref{app:en}.
                     self.assertLess(frames[0].width, page.rect.width/2)
                     self.assertGreater(frames[1].width, frames[0].width)
                     for frame in frames:
+                        self.assert_neutral_table_frame(page, frame)
                         self.assertGreater(frame.x0, 55)
                         self.assertLess(frame.x1, page.rect.width-55)
                         words = [w for w in page.get_text('words')
@@ -650,6 +715,8 @@ See \autoref{ch:en} and \autoref{app:en}.
                 short = enclosing('SID2')
                 fit = enclosing('CID5')
                 long = enclosing('WRAPTEXT')
+                for frame in (short, fit, long):
+                    self.assert_neutral_table_frame(page, frame, theme != 'academic')
                 for frame in (short, long):
                     self.assertAlmostEqual(frame.x0, reference.x0, delta=.3)
                     self.assertAlmostEqual(frame.x1, reference.x1, delta=.3)
@@ -676,7 +743,7 @@ See \autoref{ch:en} and \autoref{app:en}.
                 self.assertAlmostEqual(table_marks[0].x0-ref_marks[0].x0,cell_pad,delta=.3)
                 self.assertAlmostEqual(ref_marks[1].x1-table_marks[1].x1,cell_pad,delta=.3)
                 sites=[s for s in render.caption_sites(page) if s[0]=='tbl']
-                numbers=('1','2','3') if theme in ('academic','reference') else ('1.1','1.2','1.3')
+                numbers=('1','2','3') if theme in ('academic','reference','clean') else ('1.1','1.2','1.3')
                 self.assertCountEqual([(s[0],s[1]) for s in sites], [('tbl',n) for n in numbers])
                 dests=doc.resolve_names()
                 for number,frame in zip(numbers,(short,fit,long)):
@@ -693,7 +760,7 @@ See \autoref{ch:en} and \autoref{app:en}.
                                 self.assertFalse(span['flags'] & 16)
                                 self.assertAlmostEqual(span['size'],9.96264,delta=.12)
 
-        for theme in ('core','reader','academic','reference','core-custom'):
+        for theme in ('core','reader','academic','reference','clean','core-custom'):
             for main in ('english','hebrew'):
                 with self.subTest(theme=theme,main=main):
                     source=source_for(main,theme)
@@ -713,7 +780,11 @@ See \autoref{ch:en} and \autoref{app:en}.
         for name,source in (
             ('wrong-width',source_for('english','core').replace('semanticframedtable','framedtable')),
             ('wrong-insets',source_for('english','core').replace(r'\begin{document}',
-                r'\renewcommand{\hllpdfsemanticframestyle}{hllpdftablegeometry}\begin{document}'))):
+                r'\renewcommand{\hllpdfsemanticframestyle}{hllpdftablegeometry}\begin{document}')),
+            ('wrong-palette',source_for('english','core').replace(r'\begin{document}',
+                r'\definecolor{cTblLine}{HTML}{B9C4D2}\begin{document}')),
+            ('wrong-fill',source_for('english','core').replace(r'\begin{document}',
+                r'\definecolor{cTblBg}{HTML}{FAFBFC}\begin{document}'))):
             result,directory=self.compile(source,'frame-modes-'+name,passes=2)
             self.assertEqual(result.returncode,0,result.stdout[-3000:])
             with self.assertRaises(AssertionError): geometry(directory,'english')

@@ -3,7 +3,7 @@
 Choose the structure and width from the actual content, then inspect the PDF.
 A width is a budget, not a target that every table must fill.
 There is no required number of columns. Choose the number, widths, alignment,
-headers, row hierarchy and order from the data and the reader's task. Two-,
+headers, row hierarchy and order from the data and the reader's task. Two-, three-,
 four- and five-column examples below are demonstrations, not mandatory schemas.
 A transposed table, several smaller tables, a list or prose may fit better.
 
@@ -49,6 +49,33 @@ rule width need not equal the paragraph or caption width. A frame is optional.
 `flowtable` deducts all outer/intercolumn padding from `\flowtablewidth`; its
 natural-width specifications are centered. Do not put it inside a frame/float.
 
+## Wide unframed prose table
+
+Keep short identifiers, values and formulas natural; give the explanatory column
+an authored wrapping budget after inspecting the actual short fields. For this
+five-field English example the 7.1 cm allowance fits its content; it is not a
+universal rule. Change the fields, order, allowance or structure for other data.
+
+```latex
+\begin{center}
+\begin{tabular}{@{}rlrc>{\raggedright\arraybackslash}p{\dimexpr\linewidth-7.1cm\relax}@{}}
+\toprule
+ID & Standard & Value & Model & Explanation\\
+\midrule
+101 & USB 3.0 & -3.50 & $x^2$ & An explanation long enough to wrap naturally.\\
+102 & RAID 5 & 0.75 & $x^3$ & A shorter comparison.\\
+\bottomrule
+\end{tabular}
+\tabcap{\label{tab:wide-open}Selected fields with wrapping prose.}
+\end{center}
+```
+
+The gallery's first twelve patterns predominantly teach open booktabs tables:
+compact lookup/numeric/mathematical examples, Hebrew wrapped explanations and
+English compact and five-field wrapped comparisons. Patterns 8–9 demonstrate
+explicit grid exceptions. Patterns 13–15 present only the optional frame modes.
+The column counts illustrate content choices, not schemas to impose on a document.
+
 ## Two optional frame modes
 
 Load `document_components.tex` after `preamble.tex`. Both modes reuse the existing
@@ -56,7 +83,10 @@ box mechanism without changing the unframed default or the `tablebox` panel API.
 `framedtable` follows the widest actual line of rows or caption up to the safe
 local width. `semanticframedtable` follows the semantic boxes' actual width and
 insets in the same document. That wide outer box does not stretch natural columns
-or add fill glue between short values.
+or add fill glue between short values. Both use neutral gray `767676` frame ink
+and white fill. They do not borrow blue or another semantic category color.
+The complete caption stays black. Theme geometry (including an explicitly
+frameless academic style) remains independent of this neutral palette.
 
 ```latex
 \begin{framedtable}[Compact records]{2}{rr}{Compact records.}{tab:framed}

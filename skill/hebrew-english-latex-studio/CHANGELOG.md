@@ -14,7 +14,11 @@ together, wrap authored prose columns and reject page-tall content. Semantic
 outer width/insets match real semantic boxes without stretching natural columns.
 There is no fixed column count: varied RTL/LTR two-, four- and five-field examples
 are adaptable choices, and other structures may fit better. The unframed default
-remains; data-report recipe revision 5 records the authoring guidance.
+remains prominent: redundant row-color/grid samples become English compact
+and five-field wrapped open tables. Optional frames use neutral gray ink and
+white fill, distinct from the semantic category palette; actual PDF paint
+regressions reject the former blue tint. Data-report recipe revision 6 records
+the unframed-default and neutral-frame authoring guidance.
 Frame/bare-table navigation and black caption links have real PDF
 controls, including width/height failures and a displaced-anchor mutation.
 The recorder escape regression checks the canonical rejected path on both

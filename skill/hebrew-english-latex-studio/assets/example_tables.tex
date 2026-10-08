@@ -22,6 +22,7 @@
 % Use flowtable outside boxes for actual multipage data; it follows its local
 % language at the table level and has a separate documented column contract.
 % ============================================================================
+\def\lakitlanguageprofile{hebrew-with-english}
 \input{preamble.tex}
 \input{document_components.tex} % two opt-in frame modes, adaptable patterns 13–15
 \usepackage{colortbl}   % per-DOCUMENT load for \rowcolor (pattern 11) — NOT a
@@ -39,8 +40,9 @@
 הגדר סדר עמודות אנגלי, בודד תאים עבריים ב-\code{\textbackslash h},
 והצהר את עמודת המפתח אחרונה — היא נוחתת מימין,
 והקורא פוגש אותה ראשונה; כשהתוכן \en{LTR}־ראשי (קוד, נוסחאות, טבלת אמת), עטוף ב-\en{otherlanguage}.
-תבניות \en{1–6} הן משפחת ה-\en{booktabs} הפתוחה (קווים אופקיים בלבד); תבניות 8, 9 ו-12
-הן דוגמאות לרשת מלאה כאשר מסמך המקור מבקש זאת במפורש.
+רוב הדוגמאות הן טבלאות פתוחות ממשפחת \en{booktabs}, בעברית ובאנגלית;
+תבניות 8 ו-9 מדגימות רשת רק כאשר המקור מבקש אותה במפורש.
+שתי המסגרות האפורות בתבניות \en{13–15} הן אפשרויות בלבד, ולא ברירת המחדל.
 \bigskip
 
 % +--- PATTERN 1: basic data table --------------------------------
@@ -339,56 +341,63 @@ $\checkmark$ & $\times$ & $\times$ & \h{גישה ישירה לזיכרון}\\
 % |              it before the lint caught the idea).
 % |           ✅ \en{1.9\,ns} — one island, order fixed.
 % +----------------------------------------------------------------
-\patternheading{11. הדגשת שורת התשובה (\en{rowcolor})}
+\patternheading{11. טבלה פתוחה קומפקטית באנגלית}
+\begin{englishprose}
+\noindent A compact unframed table uses three selected fields. Its rows stay
+at their natural width; a restrained row highlight marks the chosen option.
 \begin{center}
 \begin{otherlanguage}{english}
 \begin{tabular}{@{}ll l@{}}
 \toprule
-\h{\textbf{זמן גישה}} & \textbf{\en{hit rate}} & \h{\textbf{תצורה}}\\
+\textbf{Configuration} & \textbf{Hit rate} & \textbf{Access time}\\
 \midrule
-\en{2.4\,ns} & \en{89\%} & \h{מטמון ישיר}\\
+Direct & \en{89\%} & \en{2.4\,ns}\\
 \rowcolor{black!12}
-\en{1.9\,ns} & \en{94\%} & \h{\en{two-way} — נבחרה}\\
-\en{2.1\,ns} & \en{95\%} & \en{four-way}\\
+Two-way (selected) & \en{94\%} & \en{1.9\,ns}\\
+Four-way & \en{95\%} & \en{2.1\,ns}\\
 \bottomrule
 \end{tabular}
 \end{otherlanguage}
-\tabcap{בחירת תצורת מטמון לפי זמן גישה ושיעור פגיעה.}
+\tabcap{\label{tab:unframed-english-compact}Compact cache comparison with one selected row.}
 \end{center}
+\end{englishprose}
 \bigskip
 
-% +--- PATTERN 12: reference table, Latin term+number (v3.40.2) ---
-% | USE WHEN: source-document style lookup tables keyed by a Latin
-% |           term WITH a number (RAID 5, USB 3.0, IEEE 802.11).
-% | KEY:      the term AND its number are ONE island: \en{RAID 0}.
-% |           Real course material shipped "0 RAID" by typing them
-% |           as separate runs (user-supplied screenshot). Grid look:
-% |           outer frame + column separators, \hline only at top /
-% |           below header / bottom.
+% +--- PATTERN 12: wide unframed English table, five chosen fields ---
+% | USE WHEN: five fields support a real comparison with wrapping prose.
+% | KEY: natural short fields, a content-based allowance for the prose column;
+% |      keep Latin term + number together. This replaces a redundant grid
+% |      example. Neither five fields nor this allowance is a prescribed schema.
 % +----------------------------------------------------------------
-\patternheading{12. טבלת עיון — מונח לועזי ממוספר}
+\patternheading{12. טבלה פתוחה רחבה — חמישה שדות וטקסט נשבר באנגלית}
+\begin{englishprose}
+\noindent These synthetic records need five fields; long explanations wrap
+while short values and formulas retain their own widths. Choose another count
+or a list when it communicates the information better.
 \begin{center}
 \begin{otherlanguage}{english}
-\begin{tabular}{|l|l|l|}
-\hline
-\multicolumn{1}{|c|}{\h{\textbf{שימוש}}} & \multicolumn{1}{c|}{\h{\textbf{תיאור}}} & \multicolumn{1}{c|}{\h{\textbf{רמה}}}\\
-\hline
-\h{ביצועים, לא יתירות} & \h{\en{Striping} בלבד} & \en{RAID 0}\\
-\h{אמינות גבוהה} & \en{Mirroring}                     & \en{RAID 1}\\
-\h{איזון ביצועים/מקום} & \h{\en{Striping + Parity} מבוזר} & \en{RAID 5}\\
-\h{סובלנות ל־2 כשלים} & \h{כמו 5 עם 2 בלוקי \en{parity}} & \en{RAID 6}\\
-\h{ביצועים + יתירות} & \en{Mirror of Stripes}             & \en{RAID 10}\\
-\hline
+\begin{tabular}{@{}rlrc>{\raggedright\arraybackslash}p{\dimexpr\linewidth-7.1cm\relax}@{}}
+\toprule
+\textbf{ID} & \textbf{Standard} & \textbf{Value} & \textbf{Model} & \textbf{Explanation}\\
+\midrule
+101 & USB 3.0 & -3.50 & $x^2+\sigma^2$ &
+A long explanation wraps within its chosen column. The Hebrew term \h{ערוץ}
+and the formula stay readable without shrinking the table.\\
+102 & IEEE 802.11 & 0.75 & $x^2$ & A shorter comparison keeps its term and number together.\\
+103 & RAID 5 & 1.25 & $x^3$ & Another illustrative record; these values are synthetic.\\
+\bottomrule
 \end{tabular}
 \end{otherlanguage}
-\tabcap{חלוקת אחסון ויתירות ברמות \en{RAID}.}
+\tabcap{\label{tab:unframed-english-wide}Five selected fields with wrapping prose, mathematics and a Hebrew term.}
 \end{center}
+\end{englishprose}
 
 \clearpage
 \patternheading{13. שתי מסגרות לבחירה — מבנה לפי התוכן}
 \noindent ברירת המחדל נשארת טבלה פתוחה. אפשר לבחור מסגרת ברוחב הקופסאות הסמנטיות
 של המסמך, או מסגרת המתאימה לתוכן. מספר העמודות, סדרן, הכותרות ויישורן נבחרים לפי
 התוכן; הדוגמאות אינן סכמת חובה. לעיתים רשימה או פסקה מתאימות יותר מטבלה.
+המסגרות אפורות והרקע לבן, כדי לא לסמן את הטבלה כקטגוריה סמנטית צבעונית.
 \begin{defbox}[frametitle={קופסה סמנטית להשוואת הרוחב}]
 \noindent המסגרת הסמנטית של הטבלה הבאה משתמשת באותו רוחב ובאותם שוליים פנימיים.
 העמודות עצמן נשארות קצרות ואינן נמתחות כדי למלא את הקופסה.

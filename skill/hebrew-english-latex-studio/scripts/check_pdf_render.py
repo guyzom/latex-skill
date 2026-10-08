@@ -77,8 +77,9 @@ Checks (all empirically validated against deliberately-broken fixtures):
             tablebox frame its own caption lives in. The frame is the only
             self-identifying object in the PDF: \\newmdenv strokes it 0.9pt
             (LuaTeX emits 0.897) in cTblLine, and over 1875 fleet pages that
-            width occurs with exactly the two cTblLine values and no third,
-            so (width, colour) is an exact key. Ownership runs through the
+            width occurred with two legacy cTblLine values. Current neutral
+            gray and those legacy values form the explicit frame-color key.
+            Ownership runs through the
             CAPTION — the frame that contains "טבלה N.M" IS that table's
             frame — never through "which frame encloses the dest", the
             broken rule that produced BOTH numbers of the v3.77 cycle: the
@@ -503,13 +504,15 @@ def _ASCII_TAG_CHAR(ch):
 # ----------------------------------------------------------------- R6 -------
 # tablebox frame identity (preamble constants, measured on the fleet).
 # \newmdenv[...linecolor=cTblLine,linewidth=0.9pt...]{tablebox}; cTblLine is
-# #B9C4D2 in preamble.tex and #C8C8C8 in clean_theme.tex. Measured over 1875
+# #767676 in current themes; #B9C4D2 / #C8C8C8 remain legacy diagnostic inputs.
+# Historical measurements over 1875
 # fleet pages: stroke width 0.897 occurs with exactly those two colours (1092 +
 # 128 segments) and with no third one, so (width, colour) is an exact key for
-# "this stroke is a tablebox edge".
+# "this stroke is a legacy tablebox edge". Current neutral ink is added
+# explicitly; theme-specific geometry is validated by the runtime controls.
 FRAME_W = 0.897
 FRAME_W_TOL = 0.02
-FRAME_COLORS = {(0.725, 0.769, 0.824), (0.784, 0.784, 0.784)}
+FRAME_COLORS = {(0.463, 0.463, 0.463), (0.725, 0.769, 0.824), (0.784, 0.784, 0.784)}
 CAP_COLOR = 0x000000            # regular black — the caption paragraph color
 CAP_WORD = {"טבלה": "tbl", "איור": "fig"}
 EN_CAP_WORD = {"Table": "tbl", "Figure": "fig"}

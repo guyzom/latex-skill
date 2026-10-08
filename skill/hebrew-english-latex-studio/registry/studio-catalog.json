@@ -415,7 +415,7 @@
     },
     {
       "id": "data-report",
-      "recipe_revision": 5,
+      "recipe_revision": 6,
       "title": {
         "he": "דוח נתונים",
         "en": "Data report"
@@ -425,7 +425,7 @@
         {
           "language": "hebrew",
           "asset_path": "assets/starter_data_report.tex",
-          "sha256": "5c14103e9e7371b8e4d51998036f37467472f5bf085e8c59696212c036d42fb0",
+          "sha256": "2346da8865d33ec31fc2f9479dd032406d32ccf8af237f77a71fcf6988e097da",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "11pt,a4paper",
@@ -437,7 +437,7 @@
         {
           "language": "english",
           "asset_path": "assets/starter_data_report_english.tex",
-          "sha256": "7431b447f78eb61dca372324bb054df65fd6d79d36f6f5292e0743367351860d",
+          "sha256": "5ed03a765fa31d5e001f851e52eefa3c61278309ef0ef441c4b837c334bea98b",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "11pt,a4paper",
@@ -1372,7 +1372,7 @@
         "assets/preamble.tex",
         "assets/document_components.tex"
       ],
-      "language_profile": "hebrew",
+      "language_profile": "hebrew-with-english",
       "docs": [
         "references/template-catalog.md",
         "references/tables-and-captions.md"
