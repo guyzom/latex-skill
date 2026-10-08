@@ -240,7 +240,15 @@ class ReferenceRuntimeTests(unittest.TestCase):
                               r'\protected\def\eqref#1{\HEB@nativeeqref{#1}}')
         self.assertNotEqual(old,self.base)
         p=self.compile('no-isolation',HEADER+BODY,preamble=old)
-        with self.assertRaises(AssertionError): self.check_references(p)
+        try:
+            self.check_references(p)
+        except AssertionError:
+            pass
+        else:
+            # Removing isolation is a historical witness, not a guarantee
+            # that every future engine must reproduce the old defect. The
+            # positive checks and explicit corrupt-renderer controls always run.
+            self.skipTest('this engine renders the historical no-isolation witness correctly')
         with fitz.open(p/'main.pdf') as doc:
             self.assertTrue(any(list(mirrored_paren_digits(page)) for page in doc))
 
@@ -253,7 +261,31 @@ class ReferenceRuntimeTests(unittest.TestCase):
             target=equation_dest(doc)
             strings=[reference_string(page,ln) for page in doc for ln in page.get_links()
                      if ln.get('nameddest')==target]
-            self.assertTrue(any('21' in text for text in strings),strings)
+            self.assertEqual(len(strings),11)
+            self.assertTrue(any('21' in text or ')12(' in text for text in strings),strings)
+
+    def test_corrupt_reference_glyphs_are_rejected_with_valid_navigation(self):
+        # Change only the displayed reference, retaining the native equation
+        # number (12) and all eleven links to its actual destination on page 2.
+        # Both wrong digits and reversed delimiters must fail on every engine.
+        for visible in ('(21)', ')12('):
+            with self.subTest(visible=visible):
+                override = r'\renewcommand{\eqref}[1]{\hyperref[#1]{\en{'+visible+'}}}'
+                p=self.compile('corrupt-reference-'+('digits' if visible=='(21)' else 'delimiters'),
+                               HEADER+override+'\n'+BODY)
+                with fitz.open(p/'main.pdf') as doc:
+                    target=equation_dest(doc)
+                    links=[(page,ln) for page in doc for ln in page.get_links()
+                           if ln.get('nameddest')==target]
+                    self.assertEqual(len(links),11)
+                    self.assertTrue(all(ln.get('page')==1 for _,ln in links))
+                    strings=[reference_string(page,ln) for page,ln in links]
+                    if visible=='(21)':
+                        self.assertTrue(all('21' in text for text in strings),strings)
+                    else:
+                        self.assertTrue(any(')12(' in text for text in strings),strings)
+                    self.assertIn('(12)', doc[1].get_text())
+                with self.assertRaises(AssertionError): self.check_references(p)
 
     def test_valid_but_wrong_pdf_destination_is_not_accepted(self):
         p=self.root/'wrong-valid-destination';p.mkdir()

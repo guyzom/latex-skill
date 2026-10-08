@@ -24,7 +24,7 @@ ROOT = Path(__file__).resolve().parent.parent
 # so -- references/output-recovery.md records its measurement "בסביבת האימות,
 # LuaHBTeX 1.18.0" and adds, in as many words, that this is an observation in
 # the documented environment and "לא טענה שההתנהגות קיימת בכל גרסאות המנוע".
-# On LuaHBTeX 1.17.0 (TeX Live 2023) the unprotected form happens to lay out
+# On LuaHBTeX 1.17.0 (TeX Live 2023) and 1.24.0 (TeX Live 2026) the unprotected form lays out
 # correctly, so the control cannot fire. The PROTECTION is still exercised by
 # the positive tests in this file, which pass on both engines; only the proof
 # that the protection is necessary needs the engine that exhibits the defect.
@@ -47,8 +47,8 @@ def _engine_version():
 
 ENGINE = _engine_version()
 requires_reproduction_engine = unittest.skipUnless(
-    ENGINE is not None and ENGINE >= REPRODUCTION_ENGINE,
-    f'defect reproduction needs LuaHBTeX >= '
+    ENGINE == REPRODUCTION_ENGINE,
+    f'historical defect was measured on LuaHBTeX '
     f'{".".join(str(n) for n in REPRODUCTION_ENGINE)}; found '
     f'{".".join(str(n) for n in ENGINE) if ENGINE else "unknown"}')
 
@@ -106,8 +106,10 @@ def numeric_column(doc):
 class Runtime490Tests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.tmp = tempfile.TemporaryDirectory(prefix='hllpdf-490-runtime-')
-        cls.root = Path(cls.tmp.name)
+        evidence = os.environ.get('HLLPDF_FLOW_EVIDENCE')
+        cls.tmp = None if evidence else tempfile.TemporaryDirectory(prefix='hllpdf-490-runtime-')
+        cls.root = Path(evidence) if evidence else Path(cls.tmp.name)
+        if evidence: cls.root.mkdir(parents=True, exist_ok=False)
         for name in ['preamble.tex', 'flow_tables.tex', 'reader_theme.tex']:
             shutil.copyfile(ROOT / 'assets' / name, cls.root / name)
         fonts = str(font_dir()); cls.env = os.environ.copy()
@@ -116,7 +118,8 @@ class Runtime490Tests(unittest.TestCase):
         cls.result = cls.compile(HEADER + BODY, 'positive', passes=3)
 
     @classmethod
-    def tearDownClass(cls): cls.tmp.cleanup()
+    def tearDownClass(cls):
+        if cls.tmp: cls.tmp.cleanup()
 
     @classmethod
     def compile(cls, text, name, passes=1):
@@ -178,6 +181,32 @@ class Runtime490Tests(unittest.TestCase):
                 numbers = numeric_column(doc)
                 self.assertNotEqual(numbers, [str(i) for i in range(1001, 1055)]+['2001','2002'])
                 self.assertIn('2001', numbers[:5])
+        finally: path.write_text(original)
+
+    def test_pdf_digit_order_check_rejects_a_corrupt_cell_formatter(self):
+        # An engine-independent adversarial formatter reverses the source
+        # digits while leaving row tokens and table/navigation structure intact.
+        # Inspect the rendered PDF: compile success cannot accept this defect.
+        path = self.root / 'flow_tables.tex'; original = path.read_text()
+        old = r'\newcolumntype{N}[1]{>{\iflanguage{hebrew}{\raggedright}{\raggedleft}\arraybackslash\collectcell\en}p{#1}<{\endcollectcell}}'
+        broken = original.replace(old, r'''\ExplSyntaxOn
+\cs_new:Npn \qaReverseNumber #1 { \en{\tl_reverse:n{#1}} }
+\ExplSyntaxOff
+\newcolumntype{N}[1]{>{\raggedright\arraybackslash\collectcell\qaReverseNumber}p{#1}<{\endcollectcell}}''')
+        self.assertNotEqual(original, broken)
+        try:
+            path.write_text(broken)
+            result = self.compile(HEADER+BODY, 'corrupt-number-formatter', passes=3)
+            self.assertEqual(result.returncode, 0, result.stdout[-2000:])
+            with fitz.open(self.root / 'corrupt-number-formatter.pdf') as doc:
+                expected = [str(i) for i in range(1001, 1055)]+['2001','2002']
+                numbers = numeric_column(doc)
+                self.assertEqual(numbers, [n[::-1] for n in expected])
+                with self.assertRaises(AssertionError): self.assertEqual(numbers, expected)
+                text = '\n'.join(page.get_text() for page in doc)
+                for i in range(1, 55): self.assertEqual(text.count(f'item[{i:02d}]'), 1)
+                self.assertTrue(any(link.get('nameddest') == 'table.1.2'
+                                    for page in doc for link in page.get_links()))
         finally: path.write_text(original)
 
     def test_english_context_is_supported_and_stays_on_page(self):

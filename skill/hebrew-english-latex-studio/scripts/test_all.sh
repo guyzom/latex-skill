@@ -1092,7 +1092,8 @@ if [ "${FAST:-0}" != "1" ]; then
   cp assets/preamble.tex assets/clean_theme.tex assets/exam_components.tex assets/example_exam.tex "$MUT/"
   HOOK='AtBeginEnvironment.*thelstnumber'
   NHOOK=$(grep -c "$HOOK" "$MUT/clean_theme.tex" || true)
-  sed -i "/$HOOK/d" "$MUT/clean_theme.tex"
+  sed "/$HOOK/d" "$MUT/clean_theme.tex" > "$MUT/clean_theme.mutated"
+  mv "$MUT/clean_theme.mutated" "$MUT/clean_theme.tex"
   if [ "${NHOOK:-0}" != "3" ]; then
     bad "negative control is DEAD: found ${NHOOK:-0} \thelstnumber restore hooks in clean_theme.tex (want 3) — the source-of-truth mutation no longer reproduces the pre-v3.78 rendering"
   else
@@ -1118,7 +1119,9 @@ if [ "${FAST:-0}" != "1" ]; then
   MUT=$(mktemp -d)
   cp assets/preamble.tex assets/example_listings.tex "$MUT/"
   NNUM=$(sed -n '/lstdefinestyle{pystyle}/,$p' "$MUT/preamble.tex" | grep -c "numbers=left" || true)
-  sed -i '/lstdefinestyle{pystyle}/,$ {/numbers=left/d}' "$MUT/preamble.tex"
+  sed -e '/lstdefinestyle{pystyle}/,$ {' -e '/numbers=left/d' -e '}' \
+    "$MUT/preamble.tex" > "$MUT/preamble.mutated"
+  mv "$MUT/preamble.mutated" "$MUT/preamble.tex"
   if [ "${NNUM:-0}" != "2" ]; then
     bad "negative control is DEAD: found ${NNUM:-0} numbers=left keys at/after pystyle in preamble.tex (want 2) — the mutation no longer reproduces the pre-v3.78 rendering"
   else

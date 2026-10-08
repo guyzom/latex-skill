@@ -25,6 +25,11 @@ The short keyed-note gallery table also uses natural unframed columns with
 explicit Hebrew key order; its note identities and repeated links are validated.
 Nested-container regressions identify white table fills by their actual neutral
 edges, preserving four-edge, missing-border and nearest-listing-scope controls.
+Historical engine-specific reversal witnesses no longer assume that every newer
+LuaHBTeX reproduces an old defect. Independent corrupt cell/reference formatters
+must still fail actual PDF glyph checks while preserving valid navigation.
+Listing mutations use portable sed output files, so both BSD/macOS and GNU/Linux
+actually remove the hooks before their rendered negative controls run.
 The recorder escape regression checks the canonical rejected path on both
 Linux and macOS, preserving the same pass-two trust failure.
 
