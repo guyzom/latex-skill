@@ -17,6 +17,8 @@ are adaptable choices, and other structures may fit better. The unframed default
 remains; data-report recipe revision 5 records the authoring guidance.
 Frame/bare-table navigation and black caption links have real PDF
 controls, including width/height failures and a displaced-anchor mutation.
+The recorder escape regression checks the canonical rejected path on both
+Linux and macOS, preserving the same pass-two trust failure.
 
 The 138-path tooling license scope and Generated Output Permission are retained;
 no template or third-party license grant is added.
