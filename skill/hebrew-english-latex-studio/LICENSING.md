@@ -1,123 +1,130 @@
-# PDF QA tooling license scope
+# Project tooling license scope
 
-The original project code in the exact files enumerated by
+The original project code in the **138 individual paths** enumerated by
 [`LICENSE-SCOPE.json`](LICENSE-SCOPE.json) is licensed under the GNU Affero
-General Public License, version 3 only (`AGPL-3.0-only`). The grant covers those
-files in full, including their embedded QA fixture code. It does not extend to
-other files by directory membership, packaging, or file extension. Existing
-third-party notices and terms remain applicable to their respective material.
-This grant does not establish the provenance or ownership of every line of code.
-The scoped licensing notices and package checks were added on 2026-10-08.
+General Public License, version 3 only (`AGPL-3.0-only`), with the additional
+Generated Output Permission described below. The grant covers those source files
+in full, including their embedded fixture code. It does not extend to other
+files by directory membership, packaging, or file extension. Existing third-party
+notices and terms remain applicable to their respective material. This grant
+does not establish the provenance or ownership of every line of code.
 
 The unmodified GNU license text is in
 [`LICENSES/AGPL-3.0-only.txt`](LICENSES/AGPL-3.0-only.txt). The tagged upstream
-PyMuPDF license and dependency attribution are preserved in
+PyMuPDF license and attribution are preserved in
 [`LICENSES/PyMuPDF-1.26.7-COPYING`](LICENSES/PyMuPDF-1.26.7-COPYING) and
-[`NOTICE.md`](NOTICE.md). These files, the scope manifest, and the covered source
-ship in the standalone `.skill` archive. The archive does not bundle PyMuPDF or
-MuPDF binaries or source; installing the dependency is a separate operation.
+[`NOTICE.md`](NOTICE.md). These texts, the additional permission, exact manifest,
+and covered source ship in the standalone `.skill` archive. The archive does not
+bundle PyMuPDF or MuPDF binaries or source; dependency installation is separate.
 
-## Covered source and build support
+## Covered programs and supporting source
 
-The manifest lists individual paths without wildcard grants. Its categories
-cover:
+The manifest contains explicit paths in six groups:
 
-- PDF checks, geometry, folios, navigation, raster review, PDF probes, environment
-  diagnosis, and catalog review orchestration that directly import PyMuPDF.
-- PyMuPDF-integrated Python regression programs and the shell regression harness.
-- The mandatory QA builder `scripts/build.sh`, its source checks, configuration,
-  font verification, source resolution, hashing, and output publication helpers.
-- Shared modules imported by those programs, plus packaging and license checks
-  and the pinned QA dependency specification.
+- 12 PDF QA/review programs, including catalog review and environment diagnosis.
+- 41 PyMuPDF-integrated regression programs.
+- 28 build and shared-support files, including mandatory `build.sh` orchestration,
+  source checks, configuration, fonts, hashing and publication helpers.
+- 9 licensing and packaging files.
+- 7 generator, catalog, documentation and maintenance programs:
+  `new_document.py`, `template_registry.py`, `generate_studio_docs.py`,
+  `studio_glossary.py`, `render_architecture_guards.py`,
+  `render_compat_bundles.py` and `sync_preamble.sh` in `scripts/`.
+- 41 additional QA regressions and support programs required by the harness,
+  shared contracts, source resolution, documentation checks and font tooling.
 
-In particular, `check_pdf_render.py` imports `build_contract.py` and
-`pdf_folios.py`; `check_pdf_page_size.py` imports `build_contract.py` and
-`pdf_geometry.py`; `render_review.py` imports `atomic_replace.py`,
-`pdf_geometry.py`, and `render_backends.py`. Those supporting modules are
-explicitly covered. `render_backends.py` imports `fitz` even with the Poppler
-backend, and review metadata and geometry also use PyMuPDF. Choosing Poppler
-does not remove this integration. `build.sh` requires `fitz` and runs the PDF
-checks after LuaLaTeX; the scoped grant includes this build orchestration and
-its original supporting code rather than treating every subprocess as an
-independent licensing boundary.
+The initial QA grant is extended to the seven named programs and the 41 explicit
+QA/support paths. The additional permission and closure checks were added on
+2026-10-08. The manifest records the source baseline before this extension.
+No directory wildcard grants are used and future files require a deliberate
+scope decision.
 
-The covered shell regression harness also invokes unlisted static tests and
-TeX fixtures. Those calls are not a determination that the unlisted programs
-are independent works or that the archive is solely an aggregate.
+`render_backends.py` imports `fitz` even with the Poppler backend, and
+`render_review.py` uses PyMuPDF for metadata and geometry. Choosing Poppler does
+not remove the integration. `build.sh` requires `fitz` and runs mandatory PDF
+checks after LuaLaTeX; its original source and called support are covered.
 
-## Excluded material and document output
+## Closed local source boundary
 
-Files absent from the manifest receive no new license grant from this change.
-In particular, TeX templates, themes, components, examples, and fixtures in
-`assets/` and `tests/`, catalog data in `registry/`, font programs and their
-license texts, other documentation, and unrelated repository material are
-excluded. No MIT or AGPL license is assigned to the TeX assets by this grant.
-The generator `scripts/new_document.py`, the catalog resolver
-`scripts/template_registry.py`, and documentation generator
-`scripts/generate_studio_docs.py` are also excluded.
+The manifest's `dependency_boundary` declares `closed_project_tooling`:
+all project modules imported by covered Python programs are explicitly covered,
+as are project callers of those modules. The shared `architecture_contract.py`
+and `build_contract.py` modules now have covered callers in both generator and
+QA code. The previous 13 imports into excluded generator/catalog/documentation
+programs are covered by the explicit extension. The transitive
+`generate_studio_docs.py` import of `studio_glossary.py` is also covered.
+Architecture guard/bundle generation and maintenance consumers of the shared
+contract are included, along with the regression harness and its support.
+
+The checks inspect ordinary and literal dynamic Python imports, and fixed
+references to existing project scripts in the covered source. They reject a
+new import across the declared boundary in either direction, an unlisted
+PyMuPDF importer, or unlisted script support. There is no allowlist of unresolved
+project imports. These checks validate the current technical source boundary;
+they do not establish ownership or decide every legal combined-work question.
+External dependencies keep their upstream terms, and process boundaries alone
+are not treated as proof of independence.
+
+## Generated Output Permission
+
+[`LICENSES/Generated-Output-Permission.txt`](LICENSES/Generated-Output-Permission.txt)
+contains the additional permission under GNU AGPLv3 section 7. For original
+project material the licensor is authorized to license, it permits reproduction,
+modification and distribution of original text and code fragments emitted during
+normal operation of the seven named programs, including fragments derived from
+their original project support modules, as part of the specified outputs under
+terms of the recipient's choice. An output need not be AGPL solely because it
+contains those emitted fragments. Distribution of the programs themselves and
+arbitrary copying of their source are outside this permission.
+
+`new_document.py` verifies the exact permission text before creating a project,
+copies it as `GENERATED-OUTPUT-PERMISSION.txt`, and includes that copy in
+`project.json`'s creation-time source hashes. The generated README explains its
+limited scope. The normal TeX, wrapper and structured-data generation algorithms
+are preserved; no AGPL license is assigned to input templates or whole generated
+documents by adding this permission copy. The installed package retains the
+permission for catalog, glossary, architecture and maintenance operations too.
+
+## Excluded input material and document output
+
+Files absent from the manifest receive no new grant. TeX templates, themes,
+components, examples and fixtures in `assets/` and `tests/`, catalog data in
+`registry/`, glossary records in `references/glossary/terms.json`, other unlisted
+documentation and repository material, fonts and their license texts are
+excluded. No MIT or AGPL license is assigned to TeX assets by this grant.
 
 Using these tools does not automatically license original user document content
-or output PDFs under AGPL. GNU AGPL section 2 applies to output only when its
-content constitutes a covered work. Merely supplying TeX or PDF input to a
-checker is not a license grant for that input. Copied source retains its actual
-license: copying a template, component, covered program, or embedded fixture
-does not erase its applicable terms. Output that includes covered source or
-other protected material requires its own assessment. Absence of a license
-notice is not permission to redistribute excluded material.
+or output PDFs under AGPL. GNU AGPL section 2 applies to output when its content
+constitutes a covered work. Merely supplying TeX/PDF input to a checker is not a
+license grant for that input. Copied source retains its actual license: the
+additional permission covers only the specified original emitted fragments,
+not copied input assets, records, fonts, PyMuPDF/MuPDF or other third-party
+material. Their applicable terms and required notices remain. Absence of a
+license notice is not permission to redistribute excluded material.
 
-## Shared-code boundaries that remain unresolved
+## Distribution obligations and verification
 
-The manifest's `unresolved_local_imports` records the exact import edges from
-covered programs to excluded project modules. These are present in the current
-architecture, not hypothetical integration points:
-
-- `studio_matrix.py` imports and calls `new_document.create` in the same Python
-  program as its PyMuPDF review operations; it also uses `template_registry.py`.
-  `studio_matrix_fixtures.py` calls the same generator.
-- `test_generated_runtime.py`, `test_paragraph_style.py`,
-  `test_reference_runtime.py`, `test_v480.py`, and `test_v490.py` import the
-  generator while also using PyMuPDF. Paragraph-style tests also import the
-  catalog resolver.
-- `catalog_coverage.py` imports the catalog resolver. `test_release_contract.py`
-  imports the resolver, generator, and `generate_studio_docs.py` while validating
-  a package that contains the integrated tooling.
-- The excluded generator imports `architecture_contract.py` and
-  `template_registry.py`; the resolver imports `architecture_contract.py` and
-  `build_contract.py`. The two shared contract modules are covered here. This
-  generator dependency chain contains no PyMuPDF import, but shared code still
-  requires analysis. The generator copies TeX assets and emits a wrapper that
-  invokes the covered builder; those facts do not automatically license the
-  copied assets or the wrapper under this grant.
-
+The explicit rights-holder grant and closed local source graph resolve the
+identified project-source licensing gaps. They are distinct from a legal
+certification of every distribution obligation or proof of all provenance.
 GNU AGPL sections 1 and 5 address Corresponding Source and combined works;
-section 5 also distinguishes independent aggregation. A path list describes
-the explicit grant but cannot decide whether the combined programs require a
-broader license or additional Corresponding Source. In-process imports and
-shared modules are concrete unresolved boundaries here; a process boundary
-alone would not prove independence either. Resolving them may require permission
-for a broader grant over the generator/catalog code, a justified separation of
-the programs, or an appropriate upstream commercial license. The current scoped
-grant does not resolve those choices, certify AGPL compliance for the complete
-skill, or establish rights to all bundled material. Exclusions do not override
-any obligations imposed by upstream terms or applicable law.
+section 5 also distinguishes independent aggregation. Preserve applicable
+notices and provide required source when conveying covered software. Binary
+redistribution and modified programs offered over a network need assessment
+under sections 6 and 13. The package grant and source archive do not waive
+upstream terms or certify those obligations. This is technical scope
+documentation, not legal certification.
 
-When conveying covered software, preserve applicable notices and provide the
-source required by the license. Binary redistribution and modified programs
-offered over a network need assessment under sections 6 and 13 respectively;
-the source archive and dependency pin alone are not a certification of those
-obligations. This is technical scope documentation, not legal certification.
+`python3 scripts/test_license_scope.py` mutation-tests the exact grant,
+forward/reverse imports, script support, exclusion guards and additional
+permission. `python3 scripts/test_packaging.py` checks the actual archive and
+proves missing licensing files stop packaging. Generator regressions verify
+permission retention, fail-before-write behavior and input/output exclusions.
 
-## Sources and maintenance
+## Sources
 
 - [GNU AGPLv3 text](https://www.gnu.org/licenses/agpl-3.0.txt) and
-  [sections 1, 2, 5, 6, and 13](https://www.gnu.org/licenses/agpl-3.0.html).
+  [sections 1, 2, 5, 6, 7 and 13](https://www.gnu.org/licenses/agpl-3.0.html).
+- [GNU guidance on program output](https://www.gnu.org/licenses/gpl-faq.en.html#WhatCaseIsOutputGPL).
 - [PyMuPDF 1.26.7 COPYING](https://github.com/pymupdf/PyMuPDF/blob/1.26.7/COPYING)
-  and [README license and attribution](https://github.com/pymupdf/PyMuPDF/blob/1.26.7/README.md).
-
-`python3 scripts/test_license_scope.py` checks the explicit manifest, source
-notices, direct PyMuPDF imports, documented unresolved imports, and exclusion
-guards. `python3 scripts/test_packaging.py` additionally checks the actual
-archive and proves missing licensing files stop packaging. These are regression
-checks for the declared boundary, not a legal analysis. New imports or paths
-must receive a deliberate scope review; the checks never license files
-automatically.
+  and [README attribution](https://github.com/pymupdf/PyMuPDF/blob/1.26.7/README.md).

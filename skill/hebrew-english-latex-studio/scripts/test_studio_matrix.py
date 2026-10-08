@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Build the authoritative catalog matrix, or verify/seal its retained evidence.
 
 --theme retains the old explicit single-theme selection (all supported routes

@@ -50,7 +50,8 @@ copy and never saves those changes to the source PDF.
 
 Both backend choices still import PyMuPDF: `render_backends.py` imports `fitz`
 at module load, and `render_review.py` uses it for PDF metadata and geometry.
-See the [scoped AGPLv3 grant and unresolved shared-code boundaries](../LICENSING.md)
+See the [scoped AGPLv3 grant and closed local source boundary](../LICENSING.md),
+[Generated Output Permission](../LICENSES/Generated-Output-Permission.txt),
 and [upstream notices](../NOTICE.md). Rendering/checking does not automatically
 license original user content or output PDFs under AGPL; copied source retains
 its actual license.

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Opt-in download of official fonts; stage and hash-verify before installation.
 
 This utility is never invoked by build.sh. Run only when network acquisition

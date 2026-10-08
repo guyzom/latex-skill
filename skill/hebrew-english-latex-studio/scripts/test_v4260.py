@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """v4.26.0 static contracts — no LuaLaTeX process.
 
 BLD-69: a pass that fails is NAMED — its error record and TeX's l.N line —

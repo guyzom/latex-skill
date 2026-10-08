@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: AGPL-3.0-only
 # Original project code; scope and terms: ../LICENSING.md.
+# Additional output permission: ../LICENSES/Generated-Output-Permission.txt.
 """Lightweight canonical build-contract definitions.
 
 This module deliberately has no third-party imports.  Build configuration must
@@ -10,7 +11,24 @@ of truth for supported content profiles, paper sizes and SECTION_MACROS syntax.
 """
 from __future__ import annotations
 
+import hashlib
+from pathlib import Path
 import re
+
+OUTPUT_PERMISSION_PATH = "LICENSES/Generated-Output-Permission.txt"
+OUTPUT_PERMISSION_SHA256 = "db332369fe4fcb4a6d0f84499cc1c49a0b94f1ceaf063c884a84a36403dee5e1"
+GENERATED_OUTPUT_PERMISSION_NAME = "GENERATED-OUTPUT-PERMISSION.txt"
+
+
+def read_output_permission(root: Path) -> bytes:
+    """Retain the approved permission before packaging or project creation."""
+    try:
+        content = (root / OUTPUT_PERMISSION_PATH).read_bytes()
+    except OSError as exc:
+        raise ValueError(f"generated output permission missing: {OUTPUT_PERMISSION_PATH}") from exc
+    if hashlib.sha256(content).hexdigest() != OUTPUT_PERMISSION_SHA256:
+        raise ValueError(f"generated output permission differs: {OUTPUT_PERMISSION_PATH}")
+    return content
 
 CONTENT_PROFILES = (
     "generic",

@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
+# Additional output permission: ../LICENSES/Generated-Output-Permission.txt.
 """Create a native Hebrew, English, or bilingual LuaLaTeX source project."""
 from __future__ import annotations
 import argparse
@@ -14,6 +17,7 @@ from typing import Iterable
 
 sys.dont_write_bytecode = True
 from architecture_contract import LANGUAGE_PROFILES, SUPPORTED_MAIN_LANGUAGES, resolve_language_profile
+from build_contract import GENERATED_OUTPUT_PERMISSION_NAME, read_output_permission
 from template_registry import compatibility_tables, load_catalog, resolve_recipe, ResolvedRecipe
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -40,6 +44,14 @@ CUSTOM_THEME = r'''% Local presentation overlay: edit this file to match the doc
 % Review every page in each language actually used, including callout edges.
 '''
 README = '''# Editable source project
+
+`GENERATED-OUTPUT-PERMISSION.txt` preserves the additional permission for original
+project text and code fragments emitted by the generator. Those fragments may be
+reproduced, modified and distributed as part of normal generated output under
+terms of your choice. The generator programs themselves remain under AGPLv3.
+Copied templates, assets and third-party material retain their actual terms;
+this permission does not grant rights in them. Tool use does not automatically
+license original user document content or output PDFs under AGPL.
 
 Edit `main.tex`, replace all sample content and metadata, and choose a design
 appropriate to the audience. The language profile, genre, theme, and optional
@@ -507,6 +519,7 @@ def create(kind: str, destination: Path, *, language: str = 'hebrew',
     destination = Path(destination).expanduser().absolute()
     if destination.exists() or destination.is_symlink():
         raise ValueError(f'destination already exists; choose a new directory: {destination}')
+    output_permission = read_output_permission(ROOT)
     assets = [Path(path).name for path in recipe.copy_plan]
     selection_assets = [Path(path).name for path in recipe.package_scan_plan]
     selections = package_selections(packages, selection_assets)
@@ -536,6 +549,7 @@ exec bash "$HEBREW_LATEX_SKILL_ROOT/scripts/build.sh" "$HERE/main.tex"
         (stage / 'build.sh').write_text(script, encoding='utf-8')
         (stage / 'build.sh').chmod(0o755)
         (stage / 'README.md').write_text(README, encoding='utf-8')
+        (stage / GENERATED_OUTPUT_PERMISSION_NAME).write_bytes(output_permission)
         manifest = {'schema': 3, 'skill_version': (ROOT / 'VERSION').read_text().strip(),
                     'kind': kind, 'content_profile': profile,
                     'language_profile': language, 'main_language': main_language,

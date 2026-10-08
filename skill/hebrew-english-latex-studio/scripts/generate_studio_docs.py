@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
+# Additional output permission: ../LICENSES/Generated-Output-Permission.txt.
 """Generate/check Studio catalog and glossary from their canonical records.
 
 No TeX engine, font installer or renderer is invoked. Check mode never writes.

@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
+# Additional output permission: ../LICENSES/Generated-Output-Permission.txt.
 """Render/check generated compatibility bundles from pure architecture layers."""
 from __future__ import annotations
 

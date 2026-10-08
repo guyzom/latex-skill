@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Verify source-resolution fixtures against LuaLaTeX's recorder and PDF bytes.
 
 Each successful fixture builds in two separate clean directories, with three

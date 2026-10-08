@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
+# Additional output permission: ../LICENSES/Generated-Output-Permission.txt.
 """Validate and render the maintained Hebrew-English Studio glossary.
 
 Records explain public vocabulary; they do not duplicate component ownership or

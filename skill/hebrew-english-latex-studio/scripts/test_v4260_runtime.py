@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """v4.26.0 real-engine controls for BLD-69 and BLD-70.
 
 Every managed build here is preceded by a raw-engine PRECONDITION, so a later

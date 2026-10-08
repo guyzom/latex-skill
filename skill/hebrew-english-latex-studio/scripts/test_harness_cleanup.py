@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Contract tests for clean_harness_artifacts.py (DEFECTS BLD-58).
 
 Four assertions, in the order that makes each one mean something:

@@ -1,0 +1,30 @@
+Generated Output Permission
+
+As an additional permission under section 7 of the GNU Affero General Public
+License, version 3, the licensor permits the use described below of original
+project material emitted during normal operation of:
+
+- `scripts/new_document.py`
+- `scripts/template_registry.py`
+- `scripts/generate_studio_docs.py`
+- `scripts/studio_glossary.py`
+- `scripts/render_architecture_guards.py`
+- `scripts/render_compat_bundles.py`
+- `scripts/sync_preamble.sh`
+
+You may reproduce, modify and distribute original project text and code fragments
+emitted by these programs, including fragments derived from their original
+project support modules, as part of generated documents, build wrappers,
+architecture guards, compatibility bundles, catalog and glossary documentation,
+and structured metadata, under terms of your choice. Such an output need not be
+licensed under AGPLv3 solely because it contains those emitted fragments.
+
+This permission applies only to material for which the licensor has authority to
+grant copyright permission. It does not cover distribution of the programs
+themselves, or copying program source other than as normal emitted output. It
+does not grant rights in input templates, assets, catalog records, glossary data,
+fonts, or other third-party material, including PyMuPDF and MuPDF. Those materials
+retain their applicable terms and required notices.
+
+The programs themselves remain governed by AGPLv3 and their applicable additional
+permissions.

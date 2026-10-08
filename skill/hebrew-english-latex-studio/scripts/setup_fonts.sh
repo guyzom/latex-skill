@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 # Import and verify external fonts. install_fonts.py uses atomic_replace.py,
 # preserving symlink-safe publication. No font binaries ship in this package.
 # Usage: bash scripts/setup_fonts.sh [DEST] [--from-skill PRIOR.skill]
