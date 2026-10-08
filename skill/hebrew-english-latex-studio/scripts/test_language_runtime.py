@@ -454,6 +454,46 @@ See \autoref{ch:en} and \autoref{app:en}.
                                       str(directory/'main.pdf')], capture_output=True, text=True)
                 self.assertEqual(nav.returncode,0,nav.stdout+nav.stderr)
 
+    def test_hebrew_data_starter_aligns_prose_and_numeric_columns(self):
+        source = (ROOT/'assets/starter_data_report.tex').read_text()
+        result, directory = self.compile(source, 'data-starter-alignment', passes=3)
+        self.assertEqual(result.returncode, 0, result.stdout[-6000:])
+        self.assertNotIn('Overfull', (directory/'main.log').read_text())
+
+        def column_edges(pdf):
+            with fitz.open(pdf) as doc:
+                self.assertEqual(len(doc), 1)
+                page = doc[0]
+                ids = [box for text in ('001','002','003','004','005','006')
+                       for box in page.search_for(text)]
+                self.assertEqual(len(ids), 6)
+                # A PDF extractor may join adjacent Hebrew and Latin spans
+                # into one word; locate the actual numeric glyph rectangles.
+                values = [box for text in ('-12.50','0.00','4.25','8.00','13.75','16.50')
+                          for box in page.search_for(text)]
+                self.assertEqual(len(values), 6)
+                top = min(w[1] for w in ids) - .5
+                bottom = max(w[3] for w in ids) + .5
+                prose_edges = []
+                for block in page.get_text('rawdict')['blocks']:
+                    for line in block.get('lines', []):
+                        chars = [c for span in line['spans'] for c in span['chars']
+                                 if '\u0590' <= c['c'] <= '\u05ff']
+                        if chars and top <= line['bbox'][1] and line['bbox'][3] <= bottom:
+                            prose_edges.append(max(c['bbox'][2] for c in chars))
+                self.assertEqual(len(prose_edges), 7)  # six records, one wrapped note
+                return prose_edges, [w[2] for w in values], [w[2] for w in ids]
+
+        prose, values, ids = column_edges(directory/'main.pdf')
+        for edges in (prose, values, ids):
+            self.assertLess(max(edges)-min(edges), .3)
+        wrong = source.replace(r'\raggedleft', r'\raggedright')
+        self.assertNotEqual(source, wrong)
+        result, mutant = self.compile(wrong, 'data-starter-left-mutant')
+        self.assertEqual(result.returncode, 0, result.stdout[-5000:])
+        bad_prose, _, _ = column_edges(mutant/'main.pdf')
+        self.assertGreater(max(bad_prose)-min(bad_prose), 20)
+
     def test_bad_profiles_fail_before_document_loading(self):
         cases=[('unknown',r'\def\lakitlanguageprofile{french}','unsupported language profile'),
                ('bilingual-missing',r'\def\lakitlanguageprofile{bilingual}','requires explicit lakitmainlanguage'),

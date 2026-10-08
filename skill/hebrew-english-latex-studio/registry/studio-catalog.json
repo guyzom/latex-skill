@@ -425,7 +425,7 @@
         {
           "language": "hebrew",
           "asset_path": "assets/starter_data_report.tex",
-          "sha256": "35076bdaf37a488865e6721dbbfe4b7143696dc81e5a8ccc58d06857c0cca5a4",
+          "sha256": "0375efc97dcf2eb4b17bbeb884d33fb2b522bec9d218e28b2f47d86ffd667a3e",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "11pt,a4paper",
