@@ -30,6 +30,9 @@ LuaHBTeX reproduces an old defect. Independent corrupt cell/reference formatters
 must still fail actual PDF glyph checks while preserving valid navigation.
 Listing mutations use portable sed output files, so both BSD/macOS and GNU/Linux
 actually remove the hooks before their rendered negative controls run.
+Render-gate and part-number controls retain their historical witnesses and also
+require deliberately reversed physical Latin glyphs, mirrored parentheses and
+a displaced part number to be detected independently of the engine version.
 The recorder escape regression checks the canonical rejected path on both
 Linux and macOS, preserving the same pass-two trust failure.
 
