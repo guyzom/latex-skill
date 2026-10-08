@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Create a deterministic .skill archive from the standalone package tree."""
 from __future__ import annotations
 
@@ -13,6 +15,7 @@ import zipfile
 
 sys.dont_write_bytecode = True
 from check_package_hygiene import validate  # noqa: E402
+from check_license_scope import validate as validate_license_scope  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 FIXED_TIME = (1980, 1, 1, 0, 0, 0)
@@ -104,6 +107,9 @@ def build_archive(root: Path, output: Path, *, replace_existing: bool = False) -
     errors = validate(root)
     if errors:
         raise ValueError("package hygiene failed:\n  " + "\n  ".join(errors))
+    errors = validate_license_scope(root)
+    if errors:
+        raise ValueError("license scope failed:\n  " + "\n  ".join(errors))
     verify_release_contract(root)
     output.parent.mkdir(parents=True, exist_ok=True)
     # Freeze member enumeration before creating the temporary archive. Source

@@ -7,6 +7,14 @@ description: Create, edit, repair, and visually verify professional LuaLaTeX PDF
 
 Create a document that fits its purpose, preserves its sources, and passes automated and visual checks. Use `$hebrew-english-latex-studio`. Hebrew and English are first-class document languages; retain legacy internal environment variables for existing projects.
 
+Licensing: original PDF QA/review tools and explicitly listed supporting code
+have an [AGPLv3-only scoped grant](LICENSING.md), with an
+[exact file manifest](LICENSE-SCOPE.json) and [upstream notices](NOTICE.md).
+TeX templates and unlisted assets/source receive no new grant. Tool use does not
+automatically license original user content or output PDFs; copied source
+retains its actual license. Shared generator/catalog imports remain unresolved
+as documented in the scope; the grant is not whole-skill compliance certification.
+
 ## 1. Decide before writing
 
 Infer routine choices from the request. Ask only when missing information would materially change the result. Record independent decisions:

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Mutation-test deterministic packaging and package-hygiene failure modes."""
 from __future__ import annotations
 
@@ -9,6 +11,9 @@ import subprocess
 import sys
 import tempfile
 import zipfile
+
+sys.dont_write_bytecode = True
+from check_license_scope import LICENSE_HASHES
 
 ROOT = Path(__file__).resolve().parent.parent
 PACK = ROOT / "scripts" / "package_skill.py"
@@ -77,6 +82,26 @@ with tempfile.TemporaryDirectory() as td:
         assert "SKILL.md" in names and "VERSION" in names and "assets/preamble.tex" in names
         assert all(not n.startswith("/") and ".." not in Path(n).parts for n in names)
         assert not any("__pycache__" in n or n.endswith(".pyc") for n in names)
+        # The standalone artifact must retain the exact grant and notices,
+        # unmodified upstream texts, and every file receiving that grant.
+        import json
+        scope = json.loads(zf.read("LICENSE-SCOPE.json"))
+        for rel in ["LICENSING.md", "NOTICE.md", "LICENSE-SCOPE.json", *LICENSE_HASHES,
+                    *scope["covered_files"]]:
+            assert zf.read(rel) == (ROOT / rel).read_bytes(), f"archive lost licensing/source bytes: {rel}"
+        assert "assets/preamble.tex" not in scope["covered_files"]
+        assert "scripts/new_document.py" not in scope["covered_files"]
+
+    # Missing notices or scope must stop the actual packager, not just tests.
+    for relative in ["LICENSING.md", "NOTICE.md", "LICENSE-SCOPE.json", *LICENSE_HASHES]:
+        path = b / relative
+        original = path.read_bytes()
+        path.unlink()
+        blocked_license = temp / "license-blocked.skill"
+        result = run_pack(b, blocked_license)
+        assert result.returncode == 2 and not blocked_license.exists(), result.stdout + result.stderr
+        assert "license scope failed" in result.stderr, result.stdout + result.stderr
+        path.write_bytes(original)
 
     before_stat = out_a.stat()
     repeated = run_pack(a, out_a)

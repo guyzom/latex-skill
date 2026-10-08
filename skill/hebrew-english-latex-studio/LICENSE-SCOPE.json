@@ -1,0 +1,273 @@
+{
+  "schema": 1,
+  "license": "AGPL-3.0-only",
+  "source_baseline": "d42acc388ce14ebf57b3c1699f2b85e45ec268ef",
+  "covered_files": [
+    "LICENSE-SCOPE.json",
+    "LICENSING.md",
+    "NOTICE.md",
+    "requirements-qa.txt",
+    "scripts/architecture_contract.py",
+    "scripts/architecture_detection.py",
+    "scripts/atomic_replace.py",
+    "scripts/build.sh",
+    "scripts/build_contract.py",
+    "scripts/catalog_coverage.py",
+    "scripts/check_bidi_figures.py",
+    "scripts/check_charset.py",
+    "scripts/check_content_density.py",
+    "scripts/check_license_scope.py",
+    "scripts/check_package_hygiene.py",
+    "scripts/check_pdf_navigation.py",
+    "scripts/check_pdf_page_size.py",
+    "scripts/check_pdf_render.py",
+    "scripts/check_runtime_fonts.py",
+    "scripts/check_source_hazards.py",
+    "scripts/collect_fls_sources.py",
+    "scripts/doctor.py",
+    "scripts/font_paths.py",
+    "scripts/font_policy.py",
+    "scripts/hash_file.py",
+    "scripts/hash_project_inputs.py",
+    "scripts/heading_source.py",
+    "scripts/install_fonts.py",
+    "scripts/language_context.py",
+    "scripts/listing_text_probe.py",
+    "scripts/package_skill.py",
+    "scripts/pdf_folios.py",
+    "scripts/pdf_geometry.py",
+    "scripts/pdf_string_source.py",
+    "scripts/preserve_output.py",
+    "scripts/probe_lstnum.py",
+    "scripts/render_backends.py",
+    "scripts/render_review.py",
+    "scripts/resolve_tex_sources.py",
+    "scripts/studio_matrix.py",
+    "scripts/studio_matrix_fixtures.py",
+    "scripts/test_academic.py",
+    "scripts/test_academic_runtime.py",
+    "scripts/test_all.sh",
+    "scripts/test_caption_styles.py",
+    "scripts/test_deferred_notes_runtime.py",
+    "scripts/test_editorial_boxes.py",
+    "scripts/test_folio_layouts.py",
+    "scripts/test_generated_runtime.py",
+    "scripts/test_language_runtime.py",
+    "scripts/test_license_scope.py",
+    "scripts/test_packaging.py",
+    "scripts/test_paragraph_style.py",
+    "scripts/test_pdf_navigation.py",
+    "scripts/test_reference_runtime.py",
+    "scripts/test_references_runtime.py",
+    "scripts/test_release_contract.py",
+    "scripts/test_toc_layout.py",
+    "scripts/test_topicrail_runtime.py",
+    "scripts/test_v4160.py",
+    "scripts/test_v4180_runtime.py",
+    "scripts/test_v4190.py",
+    "scripts/test_v4190_runtime.py",
+    "scripts/test_v4200.py",
+    "scripts/test_v4200_runtime.py",
+    "scripts/test_v4210.py",
+    "scripts/test_v4210_runtime.py",
+    "scripts/test_v4220_runtime.py",
+    "scripts/test_v4230_runtime.py",
+    "scripts/test_v4240.py",
+    "scripts/test_v4240_runtime.py",
+    "scripts/test_v4270.py",
+    "scripts/test_v4270_runtime.py",
+    "scripts/test_v4280_runtime.py",
+    "scripts/test_v4290_runtime.py",
+    "scripts/test_v4300_runtime.py",
+    "scripts/test_v4310_runtime.py",
+    "scripts/test_v4320_runtime.py",
+    "scripts/test_v480.py",
+    "scripts/test_v480_runtime.py",
+    "scripts/test_v490.py",
+    "scripts/test_v490_runtime.py",
+    "scripts/test_v491.py",
+    "scripts/test_v491_runtime.py",
+    "scripts/test_v5350.py",
+    "scripts/test_v5350_runtime.py",
+    "scripts/tex_error_lines.sh",
+    "scripts/toc_layout_probe.py",
+    "scripts/validate_build_config.py",
+    "scripts/verify_font_bundle.py"
+  ],
+  "file_groups": {
+    "pdf_qa": [
+      "scripts/check_pdf_navigation.py",
+      "scripts/check_pdf_page_size.py",
+      "scripts/check_pdf_render.py",
+      "scripts/doctor.py",
+      "scripts/listing_text_probe.py",
+      "scripts/pdf_folios.py",
+      "scripts/pdf_geometry.py",
+      "scripts/probe_lstnum.py",
+      "scripts/render_backends.py",
+      "scripts/render_review.py",
+      "scripts/studio_matrix.py",
+      "scripts/toc_layout_probe.py"
+    ],
+    "pymupdf_regressions": [
+      "scripts/test_academic.py",
+      "scripts/test_academic_runtime.py",
+      "scripts/test_caption_styles.py",
+      "scripts/test_deferred_notes_runtime.py",
+      "scripts/test_editorial_boxes.py",
+      "scripts/test_folio_layouts.py",
+      "scripts/test_generated_runtime.py",
+      "scripts/test_language_runtime.py",
+      "scripts/test_paragraph_style.py",
+      "scripts/test_pdf_navigation.py",
+      "scripts/test_reference_runtime.py",
+      "scripts/test_references_runtime.py",
+      "scripts/test_toc_layout.py",
+      "scripts/test_topicrail_runtime.py",
+      "scripts/test_v4160.py",
+      "scripts/test_v4180_runtime.py",
+      "scripts/test_v4190.py",
+      "scripts/test_v4190_runtime.py",
+      "scripts/test_v4200.py",
+      "scripts/test_v4200_runtime.py",
+      "scripts/test_v4210.py",
+      "scripts/test_v4210_runtime.py",
+      "scripts/test_v4220_runtime.py",
+      "scripts/test_v4230_runtime.py",
+      "scripts/test_v4240.py",
+      "scripts/test_v4240_runtime.py",
+      "scripts/test_v4270.py",
+      "scripts/test_v4270_runtime.py",
+      "scripts/test_v4280_runtime.py",
+      "scripts/test_v4290_runtime.py",
+      "scripts/test_v4300_runtime.py",
+      "scripts/test_v4310_runtime.py",
+      "scripts/test_v4320_runtime.py",
+      "scripts/test_v480.py",
+      "scripts/test_v480_runtime.py",
+      "scripts/test_v490.py",
+      "scripts/test_v490_runtime.py",
+      "scripts/test_v491.py",
+      "scripts/test_v491_runtime.py",
+      "scripts/test_v5350.py",
+      "scripts/test_v5350_runtime.py"
+    ],
+    "build_and_shared_support": [
+      "requirements-qa.txt",
+      "scripts/architecture_contract.py",
+      "scripts/architecture_detection.py",
+      "scripts/atomic_replace.py",
+      "scripts/build.sh",
+      "scripts/build_contract.py",
+      "scripts/catalog_coverage.py",
+      "scripts/check_bidi_figures.py",
+      "scripts/check_charset.py",
+      "scripts/check_content_density.py",
+      "scripts/check_runtime_fonts.py",
+      "scripts/check_source_hazards.py",
+      "scripts/collect_fls_sources.py",
+      "scripts/font_paths.py",
+      "scripts/font_policy.py",
+      "scripts/hash_file.py",
+      "scripts/hash_project_inputs.py",
+      "scripts/heading_source.py",
+      "scripts/install_fonts.py",
+      "scripts/language_context.py",
+      "scripts/pdf_string_source.py",
+      "scripts/preserve_output.py",
+      "scripts/resolve_tex_sources.py",
+      "scripts/studio_matrix_fixtures.py",
+      "scripts/test_all.sh",
+      "scripts/tex_error_lines.sh",
+      "scripts/validate_build_config.py",
+      "scripts/verify_font_bundle.py"
+    ],
+    "licensing_and_packaging": [
+      "LICENSE-SCOPE.json",
+      "LICENSING.md",
+      "NOTICE.md",
+      "scripts/check_license_scope.py",
+      "scripts/check_package_hygiene.py",
+      "scripts/package_skill.py",
+      "scripts/test_license_scope.py",
+      "scripts/test_packaging.py",
+      "scripts/test_release_contract.py"
+    ]
+  },
+  "excluded_directories": [
+    "assets/",
+    "registry/",
+    "tests/"
+  ],
+  "excluded_files": [
+    "scripts/generate_studio_docs.py",
+    "scripts/new_document.py",
+    "scripts/template_registry.py"
+  ],
+  "unresolved_local_imports": [
+    {
+      "source": "scripts/catalog_coverage.py",
+      "target": "scripts/template_registry.py"
+    },
+    {
+      "source": "scripts/studio_matrix.py",
+      "target": "scripts/new_document.py"
+    },
+    {
+      "source": "scripts/studio_matrix.py",
+      "target": "scripts/template_registry.py"
+    },
+    {
+      "source": "scripts/studio_matrix_fixtures.py",
+      "target": "scripts/new_document.py"
+    },
+    {
+      "source": "scripts/test_generated_runtime.py",
+      "target": "scripts/new_document.py"
+    },
+    {
+      "source": "scripts/test_paragraph_style.py",
+      "target": "scripts/new_document.py"
+    },
+    {
+      "source": "scripts/test_paragraph_style.py",
+      "target": "scripts/template_registry.py"
+    },
+    {
+      "source": "scripts/test_reference_runtime.py",
+      "target": "scripts/new_document.py"
+    },
+    {
+      "source": "scripts/test_release_contract.py",
+      "target": "scripts/generate_studio_docs.py"
+    },
+    {
+      "source": "scripts/test_release_contract.py",
+      "target": "scripts/new_document.py"
+    },
+    {
+      "source": "scripts/test_release_contract.py",
+      "target": "scripts/template_registry.py"
+    },
+    {
+      "source": "scripts/test_v480.py",
+      "target": "scripts/new_document.py"
+    },
+    {
+      "source": "scripts/test_v490.py",
+      "target": "scripts/new_document.py"
+    }
+  ],
+  "license_texts": [
+    {
+      "path": "LICENSES/AGPL-3.0-only.txt",
+      "source": "https://www.gnu.org/licenses/agpl-3.0.txt",
+      "sha256": "0d96a4ff68ad6d4b6f1f30f713b18d5184912ba8dd389f86aa7710db079abcb0"
+    },
+    {
+      "path": "LICENSES/PyMuPDF-1.26.7-COPYING",
+      "source": "https://raw.githubusercontent.com/pymupdf/PyMuPDF/1.26.7/COPYING",
+      "sha256": "57c8ff33c9c0cfc3ef00e650a1cc910d7ee479a8bc509f6c9209a7c2a11399d6"
+    }
+  ]
+}

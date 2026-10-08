@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Real-engine codebox gutters: four styles, RTL/LTR/RTL scope, wide numbers.
 
 The mutation removes only the v4.28 outer-language hook. It must reproduce the

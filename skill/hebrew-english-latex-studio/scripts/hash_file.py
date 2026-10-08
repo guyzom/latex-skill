@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Print a deterministic SHA-256 digest for one file.
 
 Python 3 is already a mandatory dependency of the skill, so this tiny helper

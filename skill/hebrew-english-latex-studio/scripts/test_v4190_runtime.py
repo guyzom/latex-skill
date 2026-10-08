@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 r"""Compile original and explicitly repaired PDF-string fixtures with LuaLaTeX.
 
 The negative source deliberately bypasses build.sh to reproduce the defect.

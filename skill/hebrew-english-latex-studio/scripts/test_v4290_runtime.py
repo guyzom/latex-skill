@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Real-engine nested-container regressions; geometry is not visual sign-off.
 
 The reader/core/clean matrix covers 6 semantic wrappers x 4 listing styles x

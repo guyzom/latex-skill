@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Real LuaLaTeX controls for heading order, deep references and short code flow.
 
 The old-source mutations are compiled deliberately outside build.sh to measure

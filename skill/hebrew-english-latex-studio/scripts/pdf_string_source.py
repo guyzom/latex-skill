@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 r"""Bounded source checks for layout syntax leaking into PDF strings.
 
 The canonical PDF-string hook maps a plain \\ to a space, but does not consume

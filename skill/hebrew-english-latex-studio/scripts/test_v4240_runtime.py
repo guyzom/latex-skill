@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Real-engine Roman/decimal/prefixed folios, wrong footer, and managed gate.
 
 Set HLLPDF_FOLIO_EVIDENCE to an empty directory to retain reproducible sources,

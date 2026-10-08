@@ -92,3 +92,23 @@ LuaHBTeX 1.18+ and report skips on older engines.
 Compile trusted TeX only: disabling shell escape does not sandbox LuaLaTeX.
 Automated checks do not establish scientific correctness, accessibility
 compliance, visual quality on every page, or behavior in every PDF viewer.
+
+## Licensing
+
+The original PDF QA/review code and explicitly listed build, shared-helper,
+regression, and packaging support are licensed under GNU AGPLv3 only. See the
+package's [scope and unresolved boundaries](skill/hebrew-english-latex-studio/LICENSING.md),
+[exact file manifest](skill/hebrew-english-latex-studio/LICENSE-SCOPE.json), and
+[dependency notices](skill/hebrew-english-latex-studio/NOTICE.md). The standalone
+archive includes those files and the unmodified license texts.
+
+This grant excludes TeX templates, assets, fonts, and unlisted source. Using the
+tools does not automatically license original user content or output PDFs under
+AGPL; copied source retains its actual license. The catalog QA and some
+regressions share generator/catalog code outside this grant, so the scoped file
+list does not certify compliance for the complete skill. No blanket license or
+complete provenance claim is made for the repository.
+
+Run `python3 "$STUDIO_ROOT/scripts/test_license_scope.py"` and
+`python3 "$STUDIO_ROOT/scripts/test_packaging.py"` to check scope consistency,
+exclusions, and licensing-file inclusion in the actual archive.

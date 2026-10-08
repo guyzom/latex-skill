@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Actual PDF-object, footer geometry and legacy R3 compatibility tests."""
 from __future__ import annotations
 import contextlib

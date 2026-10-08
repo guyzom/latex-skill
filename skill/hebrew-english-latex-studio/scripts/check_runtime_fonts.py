@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Verify registered canonical font paths/hashes, not font-name lookup.
 
 The core emits a framed hex inventory from finish_pdffile. Registered resources

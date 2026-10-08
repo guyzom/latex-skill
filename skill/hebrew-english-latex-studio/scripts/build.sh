@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 # build.sh — compile a Hebrew LuaLaTeX document and run the mandatory checks.
 # Usage: bash build.sh doc.tex
 #

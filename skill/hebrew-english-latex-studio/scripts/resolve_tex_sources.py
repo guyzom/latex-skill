@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 r"""Resolve the literal local sources that contribute to a TeX document.
 
 The resolver follows \input, \include, \subfile, \subfileinclude, import.sty-family commands,

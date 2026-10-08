@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Shared Unicode coverage policy for the pinned Hebrew font stack."""
 
 HEBREW_ALLOWED = frozenset(

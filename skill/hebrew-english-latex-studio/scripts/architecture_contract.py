@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Canonical architectural schema for the Hebrew LuaLaTeX skill.
 
 The schema is intentionally declarative: TeX assets own runtime behavior, while

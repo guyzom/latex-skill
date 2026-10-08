@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 r"""Bounded, position-preserving heading analysis for the canonical TeX shell.
 
 This is not macro expansion. Direct integer secnumdepth assignments and the

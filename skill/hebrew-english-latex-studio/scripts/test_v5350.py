@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """v5.3.5 static controls: the folio face is the (font, size) pair.
 
 The v5.2.0 folio rewrite dropped v4.25.0's learned folio face (BLD-67); v5.3.5

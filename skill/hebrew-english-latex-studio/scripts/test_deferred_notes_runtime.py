@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Real-engine keyed-note controls: identity, counters, text, links and misuse.
 
 Set HLLPDF_NOTES_EVIDENCE_DIR to a NEW directory to preserve all measured inputs,

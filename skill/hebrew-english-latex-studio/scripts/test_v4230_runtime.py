@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Real LuaLaTeX controls for source-literal boundaries (no font redistribution).
 
 HLLPDF_423_EVIDENCE_DIR retains new external sources/logs/PDFs; it must not exist.

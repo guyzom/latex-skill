@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Cross-check release metadata, validated QA pins, and release-hygiene wiring."""
 from __future__ import annotations
 
@@ -13,6 +15,8 @@ from doctor import EXPECTED_QA, REQUIRED_TEX_FILES  # noqa: E402
 from architecture_contract import ARCHITECTURE_SCHEMA_VERSION, validate_contract  # noqa: E402
 
 errors: list[str] = []
+from check_license_scope import validate as validate_license_scope
+errors.extend(validate_license_scope(ROOT))
 try:
     from template_registry import load_catalog
     from generate_studio_docs import generated_documents

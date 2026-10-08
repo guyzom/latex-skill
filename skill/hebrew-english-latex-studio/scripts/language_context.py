@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 r"""Bounded source-language context for the five-profile document contract.
 
 This is lexical analysis, not TeX execution. Direct literal profile hook

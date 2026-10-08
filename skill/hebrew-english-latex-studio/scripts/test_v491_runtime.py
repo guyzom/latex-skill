@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Real-engine citation controls: actual keys, physical digits and link targets."""
 from __future__ import annotations
 import os
