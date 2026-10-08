@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """font_coverage.py — what does a font actually contain?
 
 A font compiling without error does NOT mean it has the glyphs you need. Two

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Record a bounded, machine-readable snapshot of the actual build dependencies.
 
 This is not a lockfile, sandbox, installation receipt, signature, or promise of

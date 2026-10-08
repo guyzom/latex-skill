@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """v5.4.1 harness controls: a routine FULL run declares itself, never implicitly.
 
 v5.4.0 adds a catalog visual RELEASE gate to FULL, inside the catalog block

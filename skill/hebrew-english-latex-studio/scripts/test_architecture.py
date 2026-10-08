@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Static architecture contract for the standalone skill package.
 
 The test protects ownership boundaries, not aesthetics.  It intentionally runs

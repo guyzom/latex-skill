@@ -21,8 +21,13 @@ The standalone archive contains dependency specifications and integration code,
 not a redistributed PyMuPDF/MuPDF implementation or binary. If a distribution
 adds those components, preserve their own notices and assess their source and
 redistribution obligations; this notice does not supply their Corresponding
-Source. [`LICENSING.md`](LICENSING.md) describes the local scoped grant and its
-unresolved shared-code boundaries.
+Source. [`LICENSING.md`](LICENSING.md) describes the explicit local tooling grant
+and closed project-source boundary.
+
+The project's [Generated Output Permission](LICENSES/Generated-Output-Permission.txt)
+applies only to original material the project licensor can license. It does not
+grant rights in PyMuPDF, MuPDF or other third-party material, and does not change
+their license or notice obligations.
 
 ## Other dependencies and fonts
 

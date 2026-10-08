@@ -22,12 +22,16 @@ python3 /path/to/skill/scripts/template_registry.py resolve --kind paper \
 של PDF. הממשקים ההיסטוריים ופרויקטים שכבר נערכו נשמרים; המחולל אינו
 משכתב אותם. למפתח: [תחזוקת הקטלוג](catalog-development.md).
 
-Before redistributing the tooling, read the [scoped AGPLv3 grant and unresolved
-generator/catalog boundaries](../LICENSING.md) and [dependency notices](../NOTICE.md).
-The grant covers the exact QA/support file list, without assigning a new license
+Before redistributing the tooling, read the [scoped AGPLv3 grant and closed local
+source boundary](../LICENSING.md), [dependency notices](../NOTICE.md), and
+[Generated Output Permission](../LICENSES/Generated-Output-Permission.txt).
+The grant covers the exact tooling/support file list, without assigning a new license
 to TeX templates, fonts, or other unlisted material. Original user document
 content and output PDFs do not automatically become AGPL through tool use;
-copied source retains its actual license.
+copied source retains its actual license. Original fragments emitted by the seven
+named programs in normal output have the stated additional permission; copied
+inputs and third-party material retain their terms. New projects preserve the
+permission as `GENERATED-OUTPUT-PERMISSION.txt` in their creation-time hashes.
 
 נדרשים LuaLaTeX מלא, Poppler וסביבת Python התואמת ל־`requirements-qa.txt`.
 קובצי הגופנים הם תלות חיצונית. התקנה מקוונת מפורשת:

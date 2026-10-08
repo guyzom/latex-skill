@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """lint_doc_examples.py (v4.7.1) — run the skill's own linters on the LaTeX
 exemplar blocks inside its documentation.
 

@@ -14,6 +14,7 @@ import zipfile
 
 sys.dont_write_bytecode = True
 from check_license_scope import LICENSE_HASHES
+from build_contract import OUTPUT_PERMISSION_PATH
 
 ROOT = Path(__file__).resolve().parent.parent
 PACK = ROOT / "scripts" / "package_skill.py"
@@ -86,14 +87,16 @@ with tempfile.TemporaryDirectory() as td:
         # unmodified upstream texts, and every file receiving that grant.
         import json
         scope = json.loads(zf.read("LICENSE-SCOPE.json"))
-        for rel in ["LICENSING.md", "NOTICE.md", "LICENSE-SCOPE.json", *LICENSE_HASHES,
+        for rel in ["LICENSING.md", "NOTICE.md", "LICENSE-SCOPE.json", OUTPUT_PERMISSION_PATH, *LICENSE_HASHES,
                     *scope["covered_files"]]:
             assert zf.read(rel) == (ROOT / rel).read_bytes(), f"archive lost licensing/source bytes: {rel}"
         assert "assets/preamble.tex" not in scope["covered_files"]
-        assert "scripts/new_document.py" not in scope["covered_files"]
+        assert "scripts/new_document.py" in scope["covered_files"]
+        assert "references/glossary/terms.json" not in scope["covered_files"]
+        assert scope["additional_permissions"][0]["path"] == OUTPUT_PERMISSION_PATH
 
     # Missing notices or scope must stop the actual packager, not just tests.
-    for relative in ["LICENSING.md", "NOTICE.md", "LICENSE-SCOPE.json", *LICENSE_HASHES]:
+    for relative in ["LICENSING.md", "NOTICE.md", "LICENSE-SCOPE.json", OUTPUT_PERMISSION_PATH, *LICENSE_HASHES]:
         path = b / relative
         original = path.read_bytes()
         path.unlink()

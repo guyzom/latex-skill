@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Remove the build artifacts the test harness writes into the package tree.
 
 WHY THIS EXISTS (DEFECTS BLD-58). test_all.sh compiles the twelve bundled

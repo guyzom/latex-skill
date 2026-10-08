@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Regression-test the package documentation linters without shell capture.
 
 The FAST harness used to exercise these seven contracts through Bash command

@@ -95,19 +95,23 @@ compliance, visual quality on every page, or behavior in every PDF viewer.
 
 ## Licensing
 
-The original PDF QA/review code and explicitly listed build, shared-helper,
-regression, and packaging support are licensed under GNU AGPLv3 only. See the
-package's [scope and unresolved boundaries](skill/hebrew-english-latex-studio/LICENSING.md),
+The original PDF QA/review, generator, catalog and maintenance programs and
+explicitly listed build, regression and packaging support have an AGPLv3-only
+grant covering 138 individual paths. See the package's
+[scope and local source boundary](skill/hebrew-english-latex-studio/LICENSING.md),
 [exact file manifest](skill/hebrew-english-latex-studio/LICENSE-SCOPE.json), and
 [dependency notices](skill/hebrew-english-latex-studio/NOTICE.md). The standalone
-archive includes those files and the unmodified license texts.
+archive includes those files, the unmodified license texts, and the
+[Generated Output Permission](skill/hebrew-english-latex-studio/LICENSES/Generated-Output-Permission.txt).
 
 This grant excludes TeX templates, assets, fonts, and unlisted source. Using the
 tools does not automatically license original user content or output PDFs under
-AGPL; copied source retains its actual license. The catalog QA and some
-regressions share generator/catalog code outside this grant, so the scoped file
-list does not certify compliance for the complete skill. No blanket license or
-complete provenance claim is made for the repository.
+AGPL; copied source retains its actual license. The additional permission allows
+original fragments emitted by the seven named programs to be used in normal
+generated output under terms of the recipient's choice. Generated projects retain
+its exact text. It does not grant rights in copied inputs or third-party material.
+The project import/support boundary is checked in both directions; no blanket
+license, legal certification or complete provenance claim is made for the repository.
 
 Run `python3 "$STUDIO_ROOT/scripts/test_license_scope.py"` and
 `python3 "$STUDIO_ROOT/scripts/test_packaging.py"` to check scope consistency,

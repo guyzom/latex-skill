@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """selftest.py — regression lock for the skill's checkers (v4.7.1).
 
 Runs check_bidi_figures.py, check_charset.py and check_content_density.py

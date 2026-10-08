@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
+# Additional output permission: ../LICENSES/Generated-Output-Permission.txt.
 # sync_preamble.sh — push the shared preamble LAYERS out to every collection copy.
 #
 # WHY THIS EXISTS. The collections do not \input the skill's preamble; each carries

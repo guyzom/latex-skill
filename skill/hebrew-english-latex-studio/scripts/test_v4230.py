@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Lexical-order controls: literal data must neither trigger nor hide math findings."""
 from __future__ import annotations
 import contextlib

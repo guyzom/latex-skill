@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
+# Original project code; scope and terms: ../LICENSING.md.
 """Direct source controls for heading expressions and numbering depth."""
 from __future__ import annotations
 from pathlib import Path
