@@ -1,5 +1,28 @@
 # Hebrew English LaTeX Studio — release metadata
 
+## v5.4.9
+
+Terminology paragraphs now scope the definition language independently of the
+term, align Hebrew definitions to the physical right and English definitions
+to the physical left, and wrap naturally around one spaced em dash. The
+four term/definition language pairs are documented and exercised. Authored
+sentence punctuation and existing table/caption behavior are retained.
+
+Optional study components freeze exercise identity and title when declared,
+then reuse them in end-of-book solutions and explicit paired navigation.
+Optional index components use language-local groups and authored sort keys;
+the supported Arabic imakeidx writer keeps numerical locators valid at
+shipout. An explicit managed makeindex stage rejects rejected, empty or
+omitted index output even when the processor exits zero. Other processors
+and numbering routes still require separately validated integration.
+
+Generator selection, current examples, catalog ownership and regression
+controls accompany the new optional features. Actual-PDF checks include
+local direction and line edges, long terms, source identity, paired targets
+and index locators. The supported processor, numbering, authored-sort and
+visual-review boundaries are documented with each component. The approved
+scoped licensing remains unchanged.
+
 ## v5.4.8
 
 Table examples now choose semantic column order, cell language and physical

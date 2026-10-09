@@ -61,16 +61,16 @@ class AcceptanceContracts(unittest.TestCase):
         self.assertTrue(report['errors'])
         self.assertFalse(report['visual_claim'])
 
-    def test_all49_declarations_pin432_requests_and366_aliases_without_runtime_claim(self):
+    def test_all53_declarations_pin438_requests_and372_aliases_without_runtime_claim(self):
         report = self.bridge()
         self.assertEqual(report['errors'], [])
         self.assertEqual(report['status'], 'declared')
-        self.assertEqual(report['declared_acceptance_ids'], 49)
+        self.assertEqual(report['declared_acceptance_ids'], 53)
         self.assertEqual(report['passed_acceptance_ids'], 0)
         self.assertFalse(report['all_acceptance_ids_pass'])
         self.assertFalse(report['visual_claim'])
-        self.assertEqual(len(self.plan), 432)
-        self.assertEqual(len(self.canonical), 366)
+        self.assertEqual(len(self.plan), 438)
+        self.assertEqual(len(self.canonical), 372)
         self.assertEqual(sum(row['category'] == 'composition' for row in self.plan), 396)
         self.assertEqual(sum(row.get('request', {}).get('theme') is None
                              for row in self.plan if row['category'] == 'composition'), 66)
@@ -81,12 +81,33 @@ class AcceptanceContracts(unittest.TestCase):
                 self.assertRegex(binding['input_inventory_sha256'], '^[0-9a-f]{64}$')
                 self.assertRegex(binding['build_fingerprint_sha256'], '^[0-9a-f]{64}$')
 
-    def test_actual_reader_preview_preserves102_cases_without_full_runtime_claim(self):
+    def test_optional_acceptance_preserves_all49_original_ids_and_rejects_index_contract_drift(self):
+        original = replace(self.catalog, components=(), examples=self.catalog.examples[:12])
+        old_ids = {row['id'] for row in catalog_coverage.acceptance_contract(original)['records']}
+        new_ids = {row['id'] for row in catalog_coverage.acceptance_contract(self.catalog)['records']}
+        self.assertEqual(len(old_ids), 49)
+        self.assertTrue(old_ids <= new_ids)
+        self.assertEqual(new_ids - old_ids, {'component:study:runtime', 'component:index:runtime',
+                                             'example:study:runtime', 'example:index:runtime'})
+        for category in ('component', 'example'):
+            plan = copy.deepcopy(self.plan)
+            row = next(row for row in plan if row['category'] == category
+                       and row.get('family', row.get('example_id')) == 'index')
+            row['build_settings']['INDEX_PROCESSOR'] = 'none'
+            self.assertTrue(any('component build contract differs' in error
+                                for error in self.bridge(plan=plan)['errors']))
+        plan = copy.deepcopy(self.plan)
+        row = next(row for row in plan if row.get('family') == 'index')
+        row['input_inventory']['index.ist']['sha256'] = '0' * 64
+        self.assertTrue(any('acceptance source input differs: assets/index.ist' in error
+                            for error in self.bridge(plan=plan)['errors']))
+
+    def test_actual_reader_preview_preserves108_cases_without_full_runtime_claim(self):
         preview = self.reader_preview
         self.assertEqual(preview['theme_filter'], 'reader')
         self.assertEqual(preview['requested_compositions'], 66)
-        self.assertEqual(preview['declared_cases'], 102)
-        self.assertEqual(preview['unique_source_build_inputs_estimate'], 102)
+        self.assertEqual(preview['declared_cases'], 108)
+        self.assertEqual(preview['unique_source_build_inputs_estimate'], 108)
         self.assertTrue(preview['source_unchanged'])
         self.assertFalse(preview['engine_invoked'])
         self.assertFalse(preview['renderer_invoked'])
@@ -94,8 +115,8 @@ class AcceptanceContracts(unittest.TestCase):
         self.assertEqual(report['errors'], [])
         self.assertEqual(report['coverage_scope'], 'explicit-theme-subset')
         self.assertEqual(report['theme_filter'], 'reader')
-        self.assertEqual(report['declared_acceptance_ids'], 49)
-        self.assertEqual(report['required_acceptance_ids'], 48)
+        self.assertEqual(report['declared_acceptance_ids'], 53)
+        self.assertEqual(report['required_acceptance_ids'], 52)
         self.assertEqual(report['not_requested_acceptance_ids'], 1)
         self.assertEqual([row['id'] for row in report['records'] if not row['required']],
                          ['theme:reference:runtime'])
@@ -103,10 +124,10 @@ class AcceptanceContracts(unittest.TestCase):
         self.assertFalse(report['scoped_acceptance_ids_pass'])
         self.assertFalse(report['all_acceptance_ids_pass'])
 
-    def test_synthetic_reader_results_pass_local_scope_but_never_all49(self):
+    def test_synthetic_reader_results_pass_local_scope_but_never_all53(self):
         report = self.bridge(plan=self.reader_plan, results=self.reader_results, theme_filter='reader')
         self.assertEqual(report['errors'], [])
-        self.assertEqual(report['passed_acceptance_ids'], 48)
+        self.assertEqual(report['passed_acceptance_ids'], 52)
         self.assertTrue(report['scoped_acceptance_ids_pass'])
         self.assertFalse(report['all_acceptance_ids_pass'])
         self.assertFalse(report['visual_claim'])
@@ -191,17 +212,17 @@ class AcceptanceContracts(unittest.TestCase):
                 actual_exit = matrix.run_matrix(folder, theme='reader')
             self.assertEqual(actual_exit, 0)
             runtime = json.loads((folder / 'matrix-result.json').read_text())
-            self.assertEqual(runtime['declared_cases'], 102)
-            self.assertEqual(runtime['unique_builds'], 102)
+            self.assertEqual(runtime['declared_cases'], 108)
+            self.assertEqual(runtime['unique_builds'], 108)
             self.assertTrue(runtime['all_builds_and_renders_pass'])
             self.assertTrue(runtime['acceptance_coverage']['scoped_acceptance_ids_pass'])
             self.assertFalse(runtime['acceptance_coverage']['all_acceptance_ids_pass'])
 
-    def test_synthetic_results_gate_all49_without_claiming_visual_review(self):
+    def test_synthetic_results_gate_all53_without_claiming_visual_review(self):
         report = self.bridge(results=self.results)
         self.assertEqual(report['errors'], [])
         self.assertEqual(report['status'], 'pass')
-        self.assertEqual(report['passed_acceptance_ids'], 49)
+        self.assertEqual(report['passed_acceptance_ids'], 53)
         self.assertTrue(report['all_acceptance_ids_pass'])
         self.assertFalse(report['visual_claim'])
         self.assertEqual(report['catalog_sha256'], self.catalog.sha256)
@@ -255,7 +276,7 @@ class AcceptanceContracts(unittest.TestCase):
                 command['actual_exit'] = 1
                 report = self.bridge(results=results)
                 self.assert_blocked(report)
-                self.assertLess(report['passed_acceptance_ids'], 49)
+                self.assertLess(report['passed_acceptance_ids'], 53)
         results = copy.deepcopy(self.results)
         del results[0]['renders']['poppler']
         self.assert_blocked(self.bridge(results=results))
@@ -431,7 +452,7 @@ class MatrixContracts(unittest.TestCase):
     def test_every_hook_has_explicit_positive_negative_and_native_visual_case(self):
         rows = catalog_coverage.hook_coverage()
         self.assertEqual({row['name'] for row in rows}, {hook.name for hook in HOOK_SPECS})
-        self.assertEqual(len(rows), 30)
+        self.assertEqual(len(rows), 32)
         for row in rows:
             self.assertTrue(row['positive_controls'])
             self.assertTrue(row['negative_controls'])

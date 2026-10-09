@@ -90,6 +90,7 @@ if "verify_release_contract(root)" not in packager or "test_release_contract.py"
 # all 210/123 v5.2.0 groups and the exact 671-case corpus remain present.
 # v5.3.5 (repository line): T1q (static + runtime) for the folio face; seven
 # LATIN-BEFORE-PAREN island-opener cases take the corpus to 678.
+# Native numeric hyperpage-range controls add eighteen cases, taking it to696.
 # v5.4.0 adds seven static catalog groups, one topic-rail engine group and one
 # sealed catalog visual gate; v5.4.1 carries T1q forward onto them and adds the
 # static T1r for routine runs, which run one check fewer.
@@ -292,7 +293,7 @@ for path in script_paths:
 # Architecture schema validity is a release invariant, not only an optional
 # architecture-test concern. A package with an invalid role/capability graph
 # must never be considered releasable.
-if ARCHITECTURE_SCHEMA_VERSION != 4:
+if ARCHITECTURE_SCHEMA_VERSION != 5:
     errors.append(f"architecture schema version {ARCHITECTURE_SCHEMA_VERSION} requires release-consumer review")
 for architecture_error in validate_contract():
     errors.append(f"architecture schema invalid at release: {architecture_error}")

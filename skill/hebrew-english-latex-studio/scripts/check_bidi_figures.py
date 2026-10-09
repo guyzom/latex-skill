@@ -1743,6 +1743,37 @@ def _english_inline_ranges(lines: list[str]) -> dict[int, list[tuple[int, int]]]
     return result
 
 
+def _mask_native_hyperpage_ranges(source: str) -> str:
+    r"""Mask only numeric native \hyperpage range arguments for dash checks.
+
+    Hyperref parses ``23--24`` as two page links with a range separator; its
+    argument is a processor API, not literal prose. The balanced lexical view
+    excludes comments, completed literals and escaped command names. Preserve
+    every position/newline and keep malformed, nested or nonnumeric arguments
+    visible. Other checker views must continue using the original source.
+    """
+    clean = clean_source(source)
+    chars = list(source)
+    i = 0
+    while i < len(clean):
+        command = COMMAND.match(clean, i)
+        if command is None:
+            i += 1
+            continue
+        i = command.end()
+        if command[1] != "hyperpage":
+            continue
+        argument = group(clean, i)
+        if argument is None:
+            continue
+        start, end = argument
+        if re.fullmatch(r"[ \t\n]*[0-9]+--[0-9]+[ \t\n]*", clean[start:end - 1]):
+            chars[start:end - 1] = ['\n' if char == '\n' else ' '
+                                    for char in source[start:end - 1]]
+            i = end
+    return ''.join(chars)
+
+
 def scan_file(path: str, extra_ltr_aliases=frozenset(),
               extra_list_aliases=frozenset(), active_capabilities=frozenset(),
               active_language=None, *, language_context=None):
@@ -1784,6 +1815,7 @@ def scan_file(path: str, extra_ltr_aliases=frozenset(),
     # v4.18: evaluate heading numbering at the call, not a fixed depth=2.
     issues.extend(label_findings('\n'.join(lines)))
     english_inline_ranges = _english_inline_ranges(lines)
+    native_hyperpage_dash_lines = _mask_native_hyperpage_ranges('\n'.join(lines)).split('\n')
     language = language_context or LanguageContext('\n'.join(lines), active_language)
     inline_calls_by_line = {}
     raw_source = '\n'.join(lines)
@@ -2400,6 +2432,13 @@ def scan_file(path: str, extra_ltr_aliases=frozenset(),
         #   interior is text mode; \code/\texttt/\url/\path/\href spans (literal).
         code_nc = re.sub(r'\\(?:code|texttt|url|path|href)\{(?:[^{}]|\{[^{}]*\})*\}',
                          lambda mm: ' ' * len(mm.group()), code)
+        # Only the double-hyphen family consumes this position-preserving
+        # native range view; all other checks keep code/code_nc unchanged.
+        _native_dash_line = native_hyperpage_dash_lines[n - 1]
+        _dash_nc = ''.join(' ' if original != native else char
+                           for char, original, native in zip(code_nc, line, _native_dash_line))
+        _dash_code = ''.join(' ' if original != native else char
+                             for char, original, native in zip(code, line, _native_dash_line))
         _tspans = []
         for _tm in re.finditer(r'\\(?:text|mbox)\{', code_nc):
             _b = _tm.end() - 1
@@ -2407,20 +2446,20 @@ def scan_file(path: str, extra_ltr_aliases=frozenset(),
         def _textmode(pos):
             return (not mask[pos]) or any(a <= pos < b for a, b in _tspans)
         _dash_done = False
-        for m in HEB_DHYPHEN_PAT.finditer(code_nc):
+        for m in HEB_DHYPHEN_PAT.finditer(_dash_nc):
             if _textmode(m.start()) and _hebrew_font(m.start()):
                 issues.append((n, 'HEBREW-DOUBLE-HYPHEN',
                                code[max(0, m.start() - 6):m.start() + 12].strip()))
                 _dash_done = True
         if not _dash_done:
-            for m in LAT_DHYPHEN_PAT.finditer(code_nc):
+            for m in LAT_DHYPHEN_PAT.finditer(_dash_nc):
                 if _textmode(m.start() + 1) and _hebrew_font(m.start() + 1):
                     issues.append((n, 'HEBREW-DOUBLE-HYPHEN',
                                    code[max(0, m.start() - 6):m.start() + 14].strip()))
                     break
         # v3.25: the ref-range idiom \eqref{a}--\eqref{b} — at source level the
         # run sits between } and \, invisible to both adjacency patterns above.
-        for m in REF_DHYPHEN_PAT.finditer(code_nc):
+        for m in REF_DHYPHEN_PAT.finditer(_dash_nc):
             if _textmode(m.end() - 1) and _hebrew_font(m.end() - 1):
                 issues.append((n, 'HEBREW-DOUBLE-HYPHEN',
                                code[max(0, m.start()):m.end() + 10].strip()))
@@ -2798,7 +2837,7 @@ def scan_file(path: str, extra_ltr_aliases=frozenset(),
         # skip math (minus) and tikz (path-op safety), and don't double-report
         # a line the dash family already flagged.
         if not _dash_done and not in_tikz:
-            for m in ISLAND_DHYPHEN_PAT.finditer(code):
+            for m in ISLAND_DHYPHEN_PAT.finditer(_dash_code):
                 if not mask[m.end() - 1] and _hebrew_font(m.end() - 1):
                     issues.append((n, 'HEBREW-DOUBLE-HYPHEN',
                                    code[max(0, m.start()):m.end() + 10].strip()))
@@ -2810,7 +2849,7 @@ def scan_file(path: str, extra_ltr_aliases=frozenset(),
         # spans blanked; skip tikz for path-op safety. The dash sits in TEXT mode
         # in both forms (between two $..$, or inside \text), so it is a real defect.
         if not _dash_done and not in_tikz:
-            for m in MATH_DHYPHEN_PAT.finditer(code_nc):
+            for m in MATH_DHYPHEN_PAT.finditer(_dash_nc):
                 if not _hebrew_font(m.start()):
                     continue
                 issues.append((n, 'HEBREW-DOUBLE-HYPHEN',
@@ -2818,7 +2857,7 @@ def scan_file(path: str, extra_ltr_aliases=frozenset(),
                 _dash_done = True
                 break
         if not _dash_done and not in_tikz:
-            for m in BRACE_DHYPHEN_PAT.finditer(code_nc):   # \text{--}: interior is text mode
+            for m in BRACE_DHYPHEN_PAT.finditer(_dash_nc):   # \text{--}: interior is text mode
                 if not _hebrew_font(m.start()):
                     continue
                 issues.append((n, 'HEBREW-DOUBLE-HYPHEN',

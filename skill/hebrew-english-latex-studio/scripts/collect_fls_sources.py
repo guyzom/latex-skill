@@ -54,6 +54,10 @@ def main(argv: list[str]) -> int:
         "--forbid-input", action="append", default=[], type=Path,
         help="input path that must never be consumed (repeatable)",
     )
+    parser.add_argument(
+        "--generated-tex-input", action="append", default=[], type=Path,
+        help="this build's exact managed .ind input to scan as TeX (repeatable)",
+    )
     args = parser.parse_args(argv[1:])
     if not args.fls.is_file():
         print(f"missing recorder file: {args.fls}", file=sys.stderr)
@@ -62,6 +66,12 @@ def main(argv: list[str]) -> int:
     root = args.project_root.resolve()
     allowed_roots = [path.resolve() for path in args.allow_root]
     forbidden_inputs = {path.resolve() for path in args.forbid_input}
+    generated_inputs = {path.resolve() for path in args.generated_tex_input}
+    if any(path.suffix != ".ind" or not any(_is_relative_to(path, allowed_root)
+                                           for allowed_root in allowed_roots)
+           for path in generated_inputs):
+        print("generated TeX input must be an exact .ind inside an allowed build root", file=sys.stderr)
+        return 2
     seen: set[Path] = set()
     unsafe: set[Path] = set()
     fls_lines = args.fls.read_text(encoding="utf-8", errors="replace").splitlines()
@@ -86,6 +96,11 @@ def main(argv: list[str]) -> int:
             path = path.resolve()
         if path in forbidden_inputs:
             unsafe.add(path)
+            continue
+        if path in generated_inputs:
+            if path.is_file() and path not in seen and args.mode != "project-all":
+                seen.add(path)
+                print(path)
             continue
         try:
             path.relative_to(root)

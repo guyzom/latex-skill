@@ -1,0 +1,233 @@
+% study_components.tex — OPTIONAL keyed exercises and end-of-document solutions.
+% Owns identity and paired links, not boxes, themes, geometry or chapter resets.
+% Load after preamble.tex. See references/exercises-and-solutions.md.
+% <hllpdf:architecture-guard>
+\ifdefined\hllpdfcoreloaded\else
+  \errmessage{hllpdf: study_components.tex requires preamble.tex first}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdfstudycomponentsloaded
+  \errmessage{hllpdf: study_components.tex loaded more than once}
+  \expandafter\endinput
+\fi
+\def\hllpdfstudycomponentsloaded{1}
+% </hllpdf:architecture-guard>
+\providecommand{\studyheadingstyle}[1]{\textbf{#1}}
+\makeatletter
+\@ifundefined{c@chapter}{%
+  \newcounter{studyexercise}
+  \renewcommand{\thestudyexercise}{\arabic{studyexercise}}%
+}{%
+  \newcounter{studyexercise}[chapter]
+  \renewcommand{\thestudyexercise}{%
+    \ifnum\value{chapter}>0 \thechapter.\fi\arabic{studyexercise}}%
+}
+\providecommand{\hllstudyexerciseautorefname}{\iflanguage{english}{Exercise}{תרגיל}}
+\providecommand{\hllstudysolutionautorefname}{\iflanguage{english}{Solution}{פתרון}}
+\ExplSyntaxOn
+\prop_new:N \g__hllstudy_id_prop
+\prop_new:N \g__hllstudy_title_prop
+\prop_new:N \g__hllstudy_language_prop
+\prop_new:N \g__hllstudy_promised_prop
+\prop_new:N \g__hllstudy_solution_prop
+\prop_new:N \g__hllstudy_id_key_prop
+\bool_new:N \g__hllstudy_started_bool
+\bool_new:N \l__hllstudy_active_bool
+\bool_new:N \l__hllstudy_promised_bool
+\tl_new:N \l__hllstudy_key_tl
+\tl_new:N \l__hllstudy_id_tl
+\tl_new:N \l__hllstudy_title_tl
+\tl_new:N \l__hllstudy_language_tl
+\tl_new:N \l__hllstudy_role_tl
+\msg_new:nnn { hllstudy } { invalid-key }
+  { hllstudy:~use~a~literal~ASCII~key~beginning~with~a~letter;~then~letters/digits/colon/dot/dash/underscore. }
+\msg_new:nnn { hllstudy } { invalid-id }
+  { hllstudy:~ID~'#1'~must~be~a~nonempty~literal~Latin~letter/digit~sequence~with~dots~or~dashes. }
+\msg_new:nnn { hllstudy } { duplicate-key }
+  { hllstudy:~exercise~key~'#1'~is~already~declared. }
+\msg_new:nnn { hllstudy } { duplicate-id }
+  { hllstudy:~exercise~ID~'#1'~is~already~used;~choose~an~unambiguous~authored~ID. }
+\msg_new:nnn { hllstudy } { unknown }
+  { hllstudy:~exercise~'#1'~has~not~been~declared. }
+\msg_new:nnn { hllstudy } { duplicate-solution }
+  { hllstudy:~solution~for~'#1'~has~already~been~printed. }
+\msg_new:nnn { hllstudy } { no-solution }
+  { hllstudy:~exercise~'#1'~declares~solution=false;~do~not~print~or~link~a~solution~for~it. }
+\msg_new:nnn { hllstudy } { missing-solution }
+  { hllstudy:~promised~solution~for~'#1'~is~missing~at~the~end~of~the~document. }
+\msg_new:nnn { hllstudy } { empty-title }
+  { hllstudy:~exercise~'#1'~needs~a~nonempty~original~title. }
+\msg_new:nnn { hllstudy } { language }
+  { hllstudy:~exercise~title~language~must~be~hebrew~or~english. }
+\msg_new:nnn { hllstudy } { context }
+  { hllstudy:~use~study~components~in~document~text,~not~in~math~or~the~preamble. }
+\msg_new:nnn { hllstudy } { nested }
+  { hllstudy:~studyexercise/studysolution~must~not~be~nested. }
+\keys_define:nn { hllstudy }
+  {
+    id .tl_set:N = \l__hllstudy_id_tl,
+    solution .bool_set:N = \l__hllstudy_promised_bool,
+    solution .default:n = true,
+  }
+\cs_generate_variant:Nn \regex_match:nnF { nV }
+\cs_generate_variant:Nn \prop_if_in:NnT { NV }
+\cs_generate_variant:Nn \prop_gput:Nnn { NVn }
+\cs_new_protected:Npn \__hllstudy_key:n #1
+  {
+    \regex_match:nnF { \A [A-Za-z] [A-Za-z0-9:._\-]* \Z } {#1}
+      { \msg_fatal:nn { hllstudy } { invalid-key } }
+  }
+\cs_new_protected:Npn \__hllstudy_context:
+  {
+    \bool_if:NF \g__hllstudy_started_bool
+      { \msg_fatal:nn { hllstudy } { context } }
+    \mode_if_math:T { \msg_fatal:nn { hllstudy } { context } }
+  }
+\cs_new_protected:Npn \__hllstudy_known:n #1
+  {
+    \__hllstudy_context:
+    \__hllstudy_key:n {#1}
+    \prop_if_in:NnF \g__hllstudy_id_prop {#1}
+      { \msg_fatal:nnn { hllstudy } { unknown } {#1} }
+  }
+\cs_new_protected:Npn \__hllstudy_read:n #1
+  {
+    \prop_get:NnN \g__hllstudy_id_prop {#1} \l__hllstudy_id_tl
+    \prop_get:NnN \g__hllstudy_title_prop {#1} \l__hllstudy_title_tl
+    \prop_get:NnN \g__hllstudy_language_prop {#1} \l__hllstudy_language_tl
+  }
+\cs_new_protected:Npn \__hllstudy_title:
+  { \exp_args:NV \foreignlanguage \l__hllstudy_language_tl {\l__hllstudy_title_tl} }
+\cs_new_protected:Npn \__hllstudy_label:nn #1#2
+  {
+    % Copy frozen identity into native label state; never read the current
+    % chapter/exercise counter at a later solution. Distinct keyed target roles
+    % keep native ref/nameref/pageref/autoref and custom links meaningful.
+    \cs_set:Npx \@currentlabel { \exp_not:V \l__hllstudy_id_tl }
+    \cs_set:Npx \@currentlabelname { \exp_not:V \l__hllstudy_title_tl }
+    \cs_set:Npn \@currentHref { hllstudy#1.#2 }
+    \label{study:#1:#2}
+  }
+\cs_new_protected:Npn \__hllstudy_heading:nn #1#2
+  {
+    \__hllstudy_read:n {#2}
+    \par\addvspace{\medskipamount}\noindent
+    \__hllstudy_label:nn {#1}{#2}
+    \studyheadingstyle
+      {
+        % Raise only the zero-size target, using the authored heading's local
+        % baseline. A bare inline hypertarget lands at the glyph baseline and
+        % can scroll the first heading line above the viewer's visible edge.
+        \raisebox{\baselineskip}[0pt][0pt]{\hypertarget{hllstudy#1.#2}{}}
+        \str_if_eq:nnTF {#1}{exercise}
+          {\iflanguage{english}{Exercise}{תרגיל}}
+          {\iflanguage{english}{Solution~to~exercise}{פתרון~לתרגיל}}
+        \c_space_tl
+        % Direction BEFORE box creation is required by older RTL engines.
+        \en{\mbox{\l__hllstudy_id_tl :}}\c_space_tl
+        \__hllstudy_title:
+      }
+    \par\nobreak\smallskip
+  }
+\cs_new_protected:Npn \__hllstudy_link:nn #1#2
+  {
+    \group_begin:
+      \__hllstudy_known:n {#2}
+      \__hllstudy_read:n {#2}
+      \tl_set:Nn \l__hllstudy_role_tl {exercise}
+      \str_if_eq:nnT {#1}{solution}
+        {
+          \prop_get:NnN \g__hllstudy_promised_prop {#2} \l_tmpa_tl
+          \tl_if_eq:NnF \l_tmpa_tl {true}
+            { \msg_fatal:nnn { hllstudy } { no-solution } {#2} }
+          \tl_set:Nn \l__hllstudy_role_tl {solution}
+        }
+      \hyperref[study:\l__hllstudy_role_tl :#2]
+        {
+          \str_case:nn {#1}
+            {
+              {exercise}{\iflanguage{english}{Exercise}{תרגיל}}
+              {back}{\iflanguage{english}{Back~to~exercise}{חזרה~לתרגיל}}
+              {solution}{\iflanguage{english}{Solution~to~exercise}{לפתרון~תרגיל}}
+            }
+          \c_space_tl\en{\mbox{\l__hllstudy_id_tl}}~—~\__hllstudy_title:
+          ,~\iflanguage{english}{page}{עמוד}~
+          \en{\pageref*{study:\l__hllstudy_role_tl :#2}}
+        }
+    \group_end:
+  }
+\NewDocumentCommand \studyexerciseref { m }
+  { \__hllstudy_link:nn {exercise}{#1} }
+\NewDocumentCommand \studysolutionref { m }
+  { \__hllstudy_link:nn {solution}{#1} }
+\NewDocumentEnvironment{studyexercise}{O{} m m}
+  {
+    \__hllstudy_context:\__hllstudy_key:n {#2}
+    \bool_if:NT \l__hllstudy_active_bool
+      { \msg_fatal:nn { hllstudy } { nested } }
+    \bool_set_true:N \l__hllstudy_active_bool
+    \tl_set:Nn \l__hllstudy_key_tl {#2}
+    \prop_if_in:NnT \g__hllstudy_id_prop {#2}
+      { \msg_fatal:nnn { hllstudy } { duplicate-key } {#2} }
+    \tl_if_blank:nT {#3}
+      { \msg_fatal:nnn { hllstudy } { empty-title } {#2} }
+    \tl_clear:N \l__hllstudy_id_tl
+    \bool_set_true:N \l__hllstudy_promised_bool
+    \keys_set:nn { hllstudy } {#1}
+    \stepcounter{studyexercise}
+    \tl_if_empty:NT \l__hllstudy_id_tl
+      { \tl_set:Nx \l__hllstudy_id_tl {\thestudyexercise} }
+    \regex_match:nVF { \A [A-Za-z0-9]+ ( [.\-] [A-Za-z0-9]+ )* \Z }
+      \l__hllstudy_id_tl
+      { \msg_fatal:nnx { hllstudy } { invalid-id } {\l__hllstudy_id_tl} }
+    \prop_if_in:NVT \g__hllstudy_id_key_prop \l__hllstudy_id_tl
+      { \msg_fatal:nnx { hllstudy } { duplicate-id } {\l__hllstudy_id_tl} }
+    \tl_set:Nx \l__hllstudy_language_tl {\languagename}
+    \str_case:VnF \l__hllstudy_language_tl {{hebrew}{} {english}{}}
+      { \msg_fatal:nn { hllstudy } { language } }
+    % Protected expansion freezes authored counter/macro values while retaining
+    % robust language/font/math commands in the original title.
+    \protected@edef\l__hllstudy_title_tl{#3}
+    \prop_gput:NnV \g__hllstudy_id_prop {#2} \l__hllstudy_id_tl
+    \prop_gput:NnV \g__hllstudy_title_prop {#2} \l__hllstudy_title_tl
+    \prop_gput:NnV \g__hllstudy_language_prop {#2} \l__hllstudy_language_tl
+    \prop_gput:NVn \g__hllstudy_id_key_prop \l__hllstudy_id_tl {#2}
+    \bool_if:NTF \l__hllstudy_promised_bool
+      { \prop_gput:Nnn \g__hllstudy_promised_prop {#2}{true} }
+      { \prop_gput:Nnn \g__hllstudy_promised_prop {#2}{false} }
+    \__hllstudy_heading:nn {exercise}{#2}
+  }
+  {
+    \bool_if:NT \l__hllstudy_promised_bool
+      {\par\nobreak\smallskip\noindent
+       \exp_args:NnV \__hllstudy_link:nn {solution} \l__hllstudy_key_tl\par}
+    \par\addvspace{\medskipamount}
+  }
+\NewDocumentEnvironment{studysolution}{m}
+  {
+    \__hllstudy_known:n {#1}
+    \bool_if:NT \l__hllstudy_active_bool
+      { \msg_fatal:nn { hllstudy } { nested } }
+    \bool_set_true:N \l__hllstudy_active_bool
+    \tl_set:Nn \l__hllstudy_key_tl {#1}
+    \prop_get:NnN \g__hllstudy_promised_prop {#1} \l_tmpa_tl
+    \tl_if_eq:NnF \l_tmpa_tl {true}
+      { \msg_fatal:nnn { hllstudy } { no-solution } {#1} }
+    \prop_if_in:NnT \g__hllstudy_solution_prop {#1}
+      { \msg_fatal:nnn { hllstudy } { duplicate-solution } {#1} }
+    \prop_gput:Nnn \g__hllstudy_solution_prop {#1}{printed}
+    \__hllstudy_heading:nn {solution}{#1}
+  }
+  {\par\nobreak\smallskip\noindent
+   \exp_args:NnV \__hllstudy_link:nn {back} \l__hllstudy_key_tl\par
+   \addvspace{\medskipamount}}
+\AtBeginDocument { \bool_gset_true:N \g__hllstudy_started_bool }
+\AtEndDocument
+  {
+    \prop_map_inline:Nn \g__hllstudy_promised_prop
+      {\str_if_eq:nnT {#2}{true}
+        {\prop_if_in:NnF \g__hllstudy_solution_prop {#1}
+          {\msg_fatal:nnn { hllstudy } { missing-solution } {#1}}}}
+  }
+\ExplSyntaxOff
+\makeatother

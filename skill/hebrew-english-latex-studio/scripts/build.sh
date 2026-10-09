@@ -86,6 +86,8 @@ PDF_FOLIO_LAYOUT="${PDF_FOLIO_LAYOUT:-center}"
 PDF_FOLIO_BAND="${PDF_FOLIO_BAND:-footer}"
 PDF_CAPTION_COLOR="${PDF_CAPTION_COLOR:-000000}"
 PDF_CAPTION_LABEL_WEIGHT="${PDF_CAPTION_LABEL_WEIGHT-normal}"
+INDEX_PROCESSOR="${INDEX_PROCESSOR:-none}"
+INDEX_STYLE="${INDEX_STYLE:-}"
 if ! python3 "$SCRIPT_DIR/validate_build_config.py" \
     --content-profile "$DENSITY_PROFILE" \
     --expected-paper "$EXPECTED_PAPER" \
@@ -96,6 +98,8 @@ if ! python3 "$SCRIPT_DIR/validate_build_config.py" \
     --folio-band "$PDF_FOLIO_BAND" \
     --caption-color "$PDF_CAPTION_COLOR" \
     --caption-label-weight "$PDF_CAPTION_LABEL_WEIGHT" \
+    --index-processor "$INDEX_PROCESSOR" \
+    --index-style "$INDEX_STYLE" \
     --source-date-epoch "$SOURCE_DATE_EPOCH"; then
   exit 2
 fi
@@ -165,6 +169,26 @@ fi
 if ! PROJECT_ROOT="$(cd "$PROJECT_ROOT" && pwd)"; then
   echo "❌ cannot resolve HEBREW_LATEX_PROJECT_ROOT: $PROJECT_ROOT"
   exit 2
+fi
+if [ "$INDEX_PROCESSOR" = makeindex ]; then
+  command -v makeindex >/dev/null 2>&1 || {
+    echo "❌ makeindex is required by INDEX_PROCESSOR=makeindex."
+    exit 2
+  }
+  if [ -n "$INDEX_STYLE" ]; then
+    if ! python3 - "$PROJECT_ROOT" "$INDEX_STYLE" <<'PY'
+from pathlib import Path
+import sys
+root = Path(sys.argv[1]).resolve()
+try:
+    path = (root / sys.argv[2]).resolve(strict=True)
+    assert path.is_relative_to(root) and path.is_file()
+except (OSError, AssertionError):
+    print("INDEX_STYLE must exist inside the declared project root", file=sys.stderr)
+    sys.exit(2)
+PY
+    then exit 2; fi
+  fi
 fi
 
 # Font discovery is intentionally AFTER cheap syntax/path preflight. Invalid
@@ -445,6 +469,12 @@ FORBID_INPUT_ARGS=(
   --forbid-input "$(dirname "$TEX_ABS")/$STEM.failed.log"
   --forbid-input "$(dirname "$TEX_ABS")/$STEM.failed.aux"
 )
+GENERATED_INPUT_ARGS=()
+if [ "$INDEX_PROCESSOR" = makeindex ]; then
+  GENERATED_INPUT_ARGS+=(--generated-tex-input "$BASE.ind")
+  # A previous adjacent index must not masquerade as this private build's output.
+  FORBID_INPUT_ARGS+=(--forbid-input "$(dirname "$TEX_ABS")/$STEM.ind")
+fi
 for texmf_var in TEXMFROOT TEXMFSYSVAR TEXMFSYSCONFIG TEXMFVAR TEXMFCONFIG TEXMFHOME TEXMFLOCAL; do
   texmf_path="$(kpsewhich -var-value="$texmf_var" 2>/dev/null || true)"
   if [ -n "$texmf_path" ] && [ -d "$texmf_path" ]; then
@@ -480,13 +510,18 @@ check_recorded_sources() {
     return 1
   fi
   python3 "$SCRIPT_DIR/collect_fls_sources.py" --project-root "$PROJECT_ROOT" \
-    "${ALLOW_ROOT_ARGS[@]}" "${FORBID_INPUT_ARGS[@]}" "$FLS" >"$ACTUAL_SOURCE_LIST" || return 1
+    "${ALLOW_ROOT_ARGS[@]}" "${FORBID_INPUT_ARGS[@]}" \
+    ${GENERATED_INPUT_ARGS[@]+"${GENERATED_INPUT_ARGS[@]}"} "$FLS" >"$ACTUAL_SOURCE_LIST" || return 1
   python3 "$SCRIPT_DIR/collect_fls_sources.py" --project-root "$PROJECT_ROOT" \
-    "${ALLOW_ROOT_ARGS[@]}" "${FORBID_INPUT_ARGS[@]}" --mode tex "$FLS" >"$ACTUAL_TEX_SOURCE_LIST" \
+    "${ALLOW_ROOT_ARGS[@]}" "${FORBID_INPUT_ARGS[@]}" \
+    ${GENERATED_INPUT_ARGS[@]+"${GENERATED_INPUT_ARGS[@]}"} --mode tex "$FLS" >"$ACTUAL_TEX_SOURCE_LIST" \
     || return 1
   python3 "$SCRIPT_DIR/collect_fls_sources.py" --project-root "$PROJECT_ROOT" \
     "${ALLOW_ROOT_ARGS[@]}" "${FORBID_INPUT_ARGS[@]}" --mode project-all "$FLS" >"$ACTUAL_PROJECT_INPUT_LIST" \
     || return 1
+  if [ "$INDEX_PROCESSOR" = makeindex ] && [ -n "$INDEX_STYLE" ]; then
+    printf '%s\n' "$PROJECT_ROOT/$INDEX_STYLE" >>"$ACTUAL_PROJECT_INPUT_LIST"
+  fi
   PROJECT_INPUT_HASH="$(project_input_hash)" || return 1
   [ -n "$PROJECT_INPUT_HASH" ] || { echo "✗ recorder project-input manifest is empty on $pass_label."; return 1; }
   ACTUAL_SOURCE_FILES=()
@@ -550,6 +585,19 @@ run_latex() {
   return "$compiler_status"
 }
 
+run_index_stage() {
+  [ "$INDEX_PROCESSOR" = makeindex ] || return 0
+  if ! python3 "$SCRIPT_DIR/build_contract.py" --index-base "$BASE" \
+      --project-root "$PROJECT_ROOT" --index-style "$INDEX_STYLE"; then
+    # Retain the processor's exact diagnostic in the normal failed-build log.
+    if [ -f "$BASE.ilg" ]; then
+      printf '\nManaged makeindex diagnostic:\n' >>"$LOG"
+      cat "$BASE.ilg" >>"$LOG"
+    fi
+    return 1
+  fi
+}
+
 # v4.26.0 — BLD-69: NAME THE ERROR THE MOMENT A PASS FAILS. Every pass is
 # followed by the recorded-source gate, whose last step is the runtime font
 # check, and the preamble writes that inventory only when LuaTeX finishes the
@@ -596,6 +644,7 @@ if ! check_recorded_sources "pass 1"; then
   recorded_gate_failed "pass 1" "$rc1"
   exit 1
 fi
+run_index_stage || exit 1
 rc2=$rc1
 prev_state_hash=$(build_state_hash)
 CONVERGED=0
@@ -606,6 +655,7 @@ for pass in 2 3 4 5; do
     recorded_gate_failed "pass $pass" "$rc2"
     exit 1
   fi
+  run_index_stage || exit 1
   cur_state_hash=$(build_state_hash)
   if [ -n "$prev_state_hash" ] && [ "$cur_state_hash" = "$prev_state_hash" ]; then
     CONVERGED=1
@@ -614,6 +664,21 @@ for pass in 2 3 4 5; do
   prev_state_hash=$cur_state_hash
 done
 if [ "$CONVERGED" = "1" ]; then
+  if [ "$INDEX_PROCESSOR" = makeindex ]; then
+    if ! python3 - "$FLS" "$BASE.ind" <<'PY'
+from pathlib import Path
+import sys
+fls, expected = Path(sys.argv[1]), Path(sys.argv[2]).resolve()
+lines = fls.read_text(encoding="utf-8").splitlines()
+pwd = next((Path(line[4:]) for line in lines if line.startswith("PWD ")), fls.parent)
+inputs = {((pwd / line[6:]) if not Path(line[6:]).is_absolute() else Path(line[6:])).resolve()
+          for line in lines if line.startswith("INPUT ")}
+if expected not in inputs:
+    print("✗ managed index: current index was not included; use \\printindex", file=sys.stderr)
+    sys.exit(1)
+PY
+    then exit 1; fi
+  fi
   cur_pdf_hash=$(python3 "$SCRIPT_DIR/hash_file.py" "$PDF" 2>/dev/null)
   echo "✓ converged: passes $((pass-1)) and $pass have identical PDF+aux state ($cur_pdf_hash)"
 else
@@ -986,6 +1051,7 @@ if [ "$REPRO" = "1" ]; then
     recorded_gate_failed "the reproducibility pass" "$repro_rc"
     exit 1
   fi
+  run_index_stage || exit 1
   h2=$(build_state_hash)
   if [ "$repro_rc" -ne 0 ] || [ -z "$h1" ] || [ -z "$h2" ]; then
     echo "✗ reproducibility pass failed (lualatex exit $repro_rc)."
@@ -1029,6 +1095,13 @@ if ! python3 "$SCRIPT_DIR/atomic_replace.py" "$PDF" "$TARGET_PDF"; then
   exit 2
 fi
 PUBLISHED=1
+if [ "$INDEX_PROCESSOR" = makeindex ] && [ -n "${HLLPDF_INDEX_EVIDENCE_DIR:-}" ]; then
+  if ! python3 "$SCRIPT_DIR/build_contract.py" --index-base "$BASE" \
+      --project-root "$PROJECT_ROOT" --index-style "$INDEX_STYLE" \
+      --index-evidence-dir "$HLLPDF_INDEX_EVIDENCE_DIR"; then
+    echo "⚠ verified PDF published, but requested index evidence was not retained."
+  fi
+fi
 # A clean run must not leave a stale .failed.* trio behind claiming otherwise.
 rm -f "$(dirname "$TEX_ABS")/$STEM.failed.log" \
       "$(dirname "$TEX_ABS")/$STEM.failed.pdf" \

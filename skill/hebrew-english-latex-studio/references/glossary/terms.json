@@ -361,7 +361,7 @@
       "owner": "skill-documentation",
       "aliases": [],
       "introduced_in": "5.4.0",
-      "updated_in": "5.4.0"
+      "updated_in": "5.4.9"
     },
     {
       "id": "rtl",
@@ -636,7 +636,7 @@
       "owner": "skill-documentation",
       "aliases": [],
       "introduced_in": "5.4.0",
-      "updated_in": "5.4.0"
+      "updated_in": "5.4.9"
     },
     {
       "id": "label",
@@ -681,7 +681,7 @@
       "owner": "skill-documentation",
       "aliases": [],
       "introduced_in": "5.4.0",
-      "updated_in": "5.4.0"
+      "updated_in": "5.4.9"
     },
     {
       "id": "selective-equation-numbering",
@@ -1911,9 +1911,103 @@
         "assets/document_components.tex",
         "assets/preamble.tex"
       ]
+    },
+    {
+      "id": "optional-component",
+      "hebrew": "רכיב אופציונלי",
+      "english": "Optional component",
+      "definition": "בחירה מפורשת של הרחבה סמנטית במחולל; אינה משנה את ברירות המחדל של מתכונים שלא בחרו בה.",
+      "example": "`--component study` טוען זהות תרגילים ופתרונות; `--component index` מוסיף אינדקס עם שלב makeindex מפורש.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "semantic-extension",
+        "recipe"
+      ],
+      "source_refs": [
+        "scripts/template_registry.py",
+        "scripts/new_document.py",
+        "registry/studio-catalog.json"
+      ],
+      "section": "composition",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.9",
+      "updated_in": "5.4.9"
+    },
+    {
+      "id": "exercise-identity",
+      "hebrew": "זהות תרגיל",
+      "english": "Exercise identity",
+      "definition": "מפתח סמנטי, מספר וכותרת מקור שנשמרים בעת הכרזת התרגיל ומשמשים גם בפתרון מסודר מחדש. זהות הפתרון אינה נגזרת מהפרק שבו הוא מודפס.",
+      "example": "`studyexercise` ו־`studysolution` עם אותו מפתח מספקים כותרת מקור וקישורים מציינים יעד; מזהה ידני נשמר במפורש.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "counter",
+        "label",
+        "cross-reference"
+      ],
+      "source_refs": [
+        "assets/study_components.tex",
+        "references/exercises-and-solutions.md"
+      ],
+      "section": "latex-navigation",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.9",
+      "updated_in": "5.4.9"
+    },
+    {
+      "id": "subject-index",
+      "hebrew": "אינדקס נושאים",
+      "english": "Subject index",
+      "definition": "רשימת מונחים מסודרת לפי מפתחות מיון מפורשים, עם הפניות לעמודי ההסבר עצמם. כיווניות הערך, יישורו וסדר מספרי העמודים נבדקים בנפרד.",
+      "example": "`\\lakitindex{hebrew}{...}{...}` מגדיר ערך עברי; makeindex המנוהל בודק מספר רשומות ורינדור מאמת את ההפניה לדף המוסבר.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "local-language",
+        "cross-reference",
+        "build"
+      ],
+      "source_refs": [
+        "assets/index_components.tex",
+        "references/indexes.md",
+        "scripts/build_contract.py"
+      ],
+      "section": "latex-navigation",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.9",
+      "updated_in": "5.4.9"
+    },
+    {
+      "id": "glossary-definition",
+      "hebrew": "שפת הגדרת מונח",
+      "english": "Glossary definition language",
+      "definition": "שפת פסקת ההגדרה קובעת את כיוון הקריאה והקצה הפיזי שלה, בנפרד משפת המונח. ברירת המחדל היא שפת הפרוזה המקומית, ולא השפה הראשית של המסמך.",
+      "example": "`\\glossaryentry[hebrew]{\\en{blob}}{הגדרה בעברית.}` יוצר פסקה עברית מיושרת לימין עם מפריד מקף טבעי; מונח ארוך רשאי להישבר.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "local-language",
+        "direction-island",
+        "rtl",
+        "ltr"
+      ],
+      "source_refs": [
+        "assets/document_components.tex",
+        "references/tables-and-captions.md"
+      ],
+      "section": "language-direction",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.9",
+      "updated_in": "5.4.9"
     }
   ],
-  "skill_version": "5.4.8",
+  "skill_version": "5.4.9",
   "paths": {
     "records": "references/glossary/terms.json",
     "markdown": "references/glossary-he-en.md"

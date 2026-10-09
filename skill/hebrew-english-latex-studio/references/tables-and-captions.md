@@ -304,18 +304,44 @@ style is only supported as an explicitly declared compatibility override.
 \input{document_components.tex}
 ```
 
-After the document begins, in an English context:
+After the document begins, choose the definition's paragraph language. The
+optional language argument selects `english` or `hebrew` for this entry only;
+it does not infer a language from the term. Isolate minority-language terms:
 
 ```latex
-\glossaryentry{Compiler}{Translates source code into another representation.}
-\glossaryentry{\h{מהדר}}{The Hebrew term for a compiler.}
+\glossaryentry[english]{Compiler}{Translates source code into another representation.}
+\glossaryentry[english]{\h{מהדר}}{The Hebrew term for a compiler.}
+\glossaryentry[hebrew]{מהדר}{מתרגם קוד מקור לייצוג אחר.}
+\glossaryentry[hebrew]{\en{Compiler}}{המונח האנגלי למהדר.}
 ```
 
-Use `\en{Compiler}` in a Hebrew glossary. The helper joins the term and definition
-with a spaced em dash; it inserts no dot after the term. Author sentence
-punctuation in the definition. Native `description` lists remain available and
-are not globally restyled. Distinguish sentence punctuation, decimal points,
-numbering and URL dots from relation separators; never replace periods globally.
+Omitting the optional argument preserves the current local prose language:
+
+```latex
+\begin{hebrewprose}
+\glossaryentry{\en{Cache (L1)}}{מטמון ששומר נתונים לגישה חוזרת.}
+\end{hebrewprose}
+```
+
+Each entry is an ordinary paragraph aligned at its reading edge: English starts
+at the physical left, Hebrew at the physical right. Its opposite edge remains
+ragged so justification does not stretch the connection between a short term
+and its definition. Long terms and definitions can wrap without fixed columns,
+font shrinking or a forced width. The scoped language and alignment end with
+the entry; following prose keeps its own style. Use a definition-language
+paragraph, rather than wrapping a complete definition in an inline `\en`/`\h`.
+
+The helper joins the term and definition with a spaced em dash and keeps that
+seam connected; it inserts no dot after the term. Author sentence punctuation
+in the definition. A synonym dash inside a term does not replace the separator
+before its definition. Write signed quantities as mathematics, for example
+`$-12.50\,\mathrm{ms}$`, rather than expecting a breakable inline language island
+to keep a sign, number and unit together. Check long links at the actual local
+paragraph margins after rendering.
+
+Native `description` lists remain available and are not globally restyled.
+Distinguish sentence punctuation, decimal points, numbering and URL dots from
+relation separators; never replace periods globally.
 
 ## Review scope and older material
 

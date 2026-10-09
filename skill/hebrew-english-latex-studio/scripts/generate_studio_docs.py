@@ -87,7 +87,8 @@ def render_catalog(catalog: Any, skill_version: str) -> str:
         "python3 scripts/template_registry.py validate --json",
         "python3 scripts/template_registry.py resolve --kind paper --language english --json",
         "python3 scripts/template_registry.py resolve --kind formula-sheet --language hebrew \\",
-        "  --layout reference-readable --json", "```", "",
+        "  --layout reference-readable --json",
+        "python3 scripts/template_registry.py resolve --kind report --component study --component index --json", "```", "",
         "An explicit theme has precedence over a layout default, a template default, then the catalog default. "
         "Every choice remains subject to the layout, language and component constraints. "
         "`bilingual` requires `--main-language hebrew` or `english`; both languages are available in every profile.", "",
@@ -150,6 +151,22 @@ def render_catalog(catalog: Any, skill_version: str) -> str:
         if record["build_defaults"]:
             chunks.append("Build verification defaults: " + ", ".join(build_defaults_table(record["build_defaults"])) + ".")
         chunks.extend(record_notes(record))
+    chunks.extend(["## Optional semantic components", "",
+                   "Select an optional component explicitly with `new_document.py --component ID`; repeat the option to combine components. "
+                   "No optional component is copied or loaded by an unselected recipe. Selected components add small original editable specimens, "
+                   "not complete study books or indexes. Both languages and all five profiles retain the document's own shell.", "",
+                   "| `--component` | Purpose | Owned source | Supporting files |", "|---|---|---|---|"])
+    for record in data["components"]:
+        supporting = ", ".join(source_link(path) for path in record["supporting_files"]) or "None"
+        chunks.append(f"| {code(record['id'])} | {title(record)} | {source_link(record['asset_path'])} | {supporting} |")
+    for record in data["components"]:
+        chunks.extend(["", f"### Component {record['id']}", "", f"**{title(record)}**.",
+                       "Allowed kinds: " + ", ".join(code(value) for value in record["allowed_kinds"]) + ".",
+                       "Allowed layouts: " + ", ".join(code(value) for value in record["allowed_layouts"]) + ".",
+                       "Language profiles: " + ", ".join(code(value) for value in record["language_profiles"]) + "."])
+        if record["build_defaults"]:
+            chunks.append("Unset-only managed build defaults: " + ", ".join(build_defaults_table(record["build_defaults"])) + ".")
+        chunks.extend(record_notes(record))
     chunks.extend(["## Maintained examples", "", "Examples demonstrate components and compatibility paths; they are not additional document kinds.", "",
                    "| Example ID | Source | Declared profile | Architecture components |", "|---|---|---|---|"])
     for record in data["examples"]:
@@ -193,7 +210,7 @@ def render_catalog(catalog: Any, skill_version: str) -> str:
 def generated_documents(root: Path) -> dict[str, bytes]:
     root = Path(root)
     catalog = load_catalog(root, allow_missing_generated_docs=True)
-    for collection in ("templates", "layouts", "themes", "examples"):
+    for collection in ("templates", "layouts", "themes", "examples", "components"):
         for record in catalog.as_dict()[collection]:
             for path in record["docs"]:
                 source_reference(root, path, f"catalog {record['id']}", allow_missing_generated=True)

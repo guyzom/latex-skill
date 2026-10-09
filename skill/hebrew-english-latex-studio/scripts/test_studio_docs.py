@@ -37,7 +37,7 @@ class GlossaryContracts(unittest.TestCase):
         data = self.catalog.as_dict()
         ids = {term["id"] for term in self.records["terms"]}
         self.assertTrue(set(data["required_glossary_terms"]) <= ids)
-        for collection in ("templates", "layouts", "themes", "examples"):
+        for collection in ("templates", "layouts", "themes", "examples", "components"):
             for record in data[collection]:
                 with self.subTest(collection=collection, item=record["id"]):
                     self.assertTrue(set(record["glossary_refs"]) <= ids)
@@ -144,7 +144,7 @@ class GlossaryContracts(unittest.TestCase):
     def test_catalog_uses_actual_records_and_preserves_literals(self) -> None:
         first = render_catalog(self.catalog, self.records["skill_version"])
         self.assertEqual(first, render_catalog(self.catalog, self.records["skill_version"]))
-        for collection, prefix in (("templates", "Template"), ("layouts", "Layout"), ("themes", "Theme"), ("examples", "Example")):
+        for collection, prefix in (("templates", "Template"), ("layouts", "Layout"), ("themes", "Theme"), ("examples", "Example"), ("components", "Component")):
             for record in self.catalog.as_dict()[collection]:
                 self.assertIn(f"### {prefix} {record['id']}\n", first)
         data = self.catalog.as_dict()

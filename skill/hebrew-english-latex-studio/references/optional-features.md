@@ -15,6 +15,14 @@ Language scope (v5): Hebrew/RTL examples and rules in this guide apply to Hebrew
 - [הגרסה הנקייה](#הגרסה-הנקייה)
 - [כותרת רצה ופס נושאים](#כותרת-רצה-ופס-נושאים)
 
+למילון גמיש השתמש ב־`document_components.tex` וב־`glossaryentry` עם שפת
+ההגדרה המקומית; ראו [טבלאות, כיתובים ומונחים](tables-and-captions.md).
+זוג תרגיל–פתרון מרוחק משתמש ברכיב האופציונלי `study_components.tex`,
+ובאינדקס נושאים אפשר לבחור `index_components.tex` עם שלב makeindex מפורש.
+המחולל מקבל `--component study` ו־`--component index`; הרכיבים אינם
+נטענים בכל מסמך. ראו [תרגילים ופתרונות](exercises-and-solutions.md)
+ו[אינדקסים](indexes.md) לסמנטיקה, מגבלות והבדיקות הנדרשות.
+
 ## מספור עברי ברשימות
 
 לפריטים שצריכים `\ref` וגם `\autoref`, הפעל `\hebenumlabels` בתוך קבוצה

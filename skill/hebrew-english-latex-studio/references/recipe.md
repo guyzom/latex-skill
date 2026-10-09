@@ -39,6 +39,12 @@ babel, mathtools ו־hyperref; לכן שינוי גרסה מחייב smoke test 
 חבילות AMS, TikZ/pgfplots/quantikz ותלותו
 `ctablestack`, listings, mdframed, hyperref, Python 3.10+ עם PyMuPDF ו־fontTools,
 וכלי Poppler.
+לרכיב האינדקס האופציונלי נדרשים גם imakeidx בגרסה המתועדת ו־makeindex.
+המסלול המנוהל מופעל רק עם `INDEX_PROCESSOR=makeindex`; סגנון הרכיב נבחר
+באמצעות `INDEX_STYLE=index.ist`. שלב זה רץ בין מעברי LuaLaTeX ובודק שכל
+הרשומות התקבלו, שאין אזהרות טווח ושפלט האינדקס הנוכחי נכלל במסמך.
+כשל קלט, אינדקס ריק או יציאה תקינה עם רשומות שנדחו אינם בנייה תקינה.
+מסלולי אינדקס ומספור אחרים דורשים שילוב נפרד; ראו [אינדקסים](indexes.md).
 גרסאות ה־Python QA שעליהן נבדק השחרור מוצמדות ב־`requirements-qa.txt`.
 
 אפשר להתקין חבילות גם בעצים המקומיים התקניים של TeX. הבנייה מכבדת את

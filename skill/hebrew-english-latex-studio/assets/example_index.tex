@@ -1,0 +1,48 @@
+% Optional managed index gallery: explicit display locale and authored ordering.
+% Build: INDEX_PROCESSOR=makeindex INDEX_STYLE=index.ist bash scripts/build.sh example_index.tex
+\def\lakitlanguageprofile{hebrew-with-english}
+\def\lakitindexcolumns{1} % Choose 2 only when entry count and line lengths warrant it.
+\input{preamble.tex}
+\input{reader_theme.tex}
+\input{index_components.tex}
+\lakithead{אינדקס רב־לשוני}
+\hypersetup{pdftitle={Multilingual index example},pdfauthor={}}
+\begin{document}
+\tableofcontents
+\chapter{מונחים והפניות}
+\noindent אינדקס טוב מפנה לעמוד שבו המונח מוסבר או מתורגל. מפתח המיון נפרד מן הטקסט המוצג:
+בדוגמה זו שש ספרות מציינות סדר מפורש בתוך כל קבוצת שפה. אין כאן מיון אוטומטי של עברית.
+המונחים נשארים בגופן הגוף; הקבוצות והכיתוב מיושרים לפי שפת הפסקה.
+
+\section{מונחים קצרים}
+\noindent בקרה היא בחירה של פעולה מתוך תצפית על מצב המערכת.
+\lakitindex{hebrew}{020000}{בקרה}
+\lakitindex{english}{020000}{Control}
+גרסה היא מצב מתועד של תוכן בנקודת זמן.
+\lakitindex{hebrew}{030000}{גרסה}
+\lakitindex{english}{040000}{Version}
+אינדקס מקשר בין מונח לבין עמודי ההסבר שלו.
+\lakitindex{hebrew}{010000}{אינדקס}
+\lakitindex{english}{030000}{Index}
+
+\section{מונחים ארוכים וטקסט מעורב}
+\noindent פעולת \en{API} היא ממשק מפורש בין חלקי המערכת.
+\lakitindex{english}{010000}{API with a Hebrew explanation \h{ממשק מפורש} and a readable long description}
+\lakitindex{hebrew}{040000}{ממשק \en{API} עם תיאור עברי ארוך הנשבר באופן טבעי בתוך רוחב הטור}
+מפתח הוא שם המשמש לאיתור ערך; מספרים וסימונים מתמטיים נשארים בכיוון הקריאה שלהם.
+\lakitindex{hebrew}{050000}{מפתח, ערך \en{001} וטווח \en{12–24}}
+
+\clearpage
+\section{הסבר הנמשך על פני עמודים}
+\label{sec:index-range-start}
+\noindent הפניה יכולה לציין רצף של עמודים שבהם נמשך ההסבר. פתיחה וסגירה משתמשות באותו מונח ובאותו מפתח.
+\lakitindexrangebegin{english}{030000}{Index}
+\lakitindexrangebegin{hebrew}{010000}{אינדקס}
+\clearpage
+\noindent המשך ההסבר מציג את המונח בהקשר נוסף, ולכן הוא שייך לאותו טווח.
+\lakitindexrangeend{english}{030000}{Index}
+\lakitindexrangeend{hebrew}{010000}{אינדקס}
+ראו גם את תחילת ההסבר בסעיף~\ref{sec:index-range-start}.
+\clearpage
+\printindex
+\end{document}

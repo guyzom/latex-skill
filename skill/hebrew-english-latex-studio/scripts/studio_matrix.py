@@ -324,11 +324,18 @@ def prepare_cases(root: Path, evidence: Path, *, theme=None) -> list[dict]:
         explicit_main = re.search(r'\\def\\lakitmainlanguage\{(hebrew|english)\}', authored)
         example_main = resolve_language_profile(example.language_profile,
                                                explicit_main.group(1) if explicit_main else None)
+        example_settings = {}
+        for component in catalog.components:
+            if component.asset_path in example.architecture_assets:
+                for key, value in component.build_defaults:
+                    # Example TeX lives in assets/, while build style paths are
+                    # relative to the actual managed project root.
+                    example_settings[key] = 'assets/' + value if key == 'INDEX_STYLE' and value else value
         rows.append({'id': ident, 'category': 'example', 'example_id': example.id,
                      'architecture_assets': list(example.architecture_assets),
                      'project': 'cases/' + ident + '/project',
                      'tex_name': 'assets/' + tex.name, 'pdf_name': 'assets/' + tex.with_suffix('.pdf').name,
-                     'build_settings': {}, 'main_language': example_main})
+                     'build_settings': example_settings, 'main_language': example_main})
     for family in fixture_families():
         for language in SUPPORTED_MAIN_LANGUAGES:
             ident = 'component-' + family + '-' + language

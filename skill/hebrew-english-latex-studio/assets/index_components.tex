@@ -1,0 +1,102 @@
+% Optional language-local index. Load after preamble.tex; copy index.ist too.
+% imakeidx and etoolbox remain external packages under their upstream terms.
+% <hllpdf:architecture-guard>
+\ifdefined\hllpdfcoreloaded\else
+  \errmessage{hllpdf: index_components.tex requires preamble.tex first}
+  \expandafter\endinput
+\fi
+\ifdefined\hllpdfindexcomponentsloaded
+  \errmessage{hllpdf: index_components.tex loaded more than once}
+  \expandafter\endinput
+\fi
+\def\hllpdfindexcomponentsloaded{1}
+% </hllpdf:architecture-guard>
+% Select one or two columns from the content BEFORE loading this component.
+\providecommand{\lakitindexcolumns}{1}
+\ifnum\lakitindexcolumns=1\relax\else
+  \ifnum\lakitindexcolumns=2\relax\else
+    \PackageError{hllpdf-index}{Index columns must be 1 or 2}{Set lakitindexcolumns before loading the component.}
+  \fi
+\fi
+\usepackage{imakeidx}
+\usepackage{etoolbox}
+\makeatletter
+% This shim is deliberately bounded to the reviewed default split-file writer.
+\edef\hllpdf@indexversion{\csname ver@imakeidx.sty\endcsname}
+\def\hllpdf@indexsupported{2016/10/15 v1.3e Package for typesetting indices in a synchronous mode}
+\ifx\hllpdf@indexversion\hllpdf@indexsupported\else
+  \PackageError{hllpdf-index}{Unsupported imakeidx version}{The locator shim supports imakeidx 2016/10/15 v1.3e only.}
+\fi
+\ifimki@splitindex
+  \PackageError{hllpdf-index}{splitindex mode is unsupported}{Use the default single jobname index.}
+\fi
+% Do not change directional folios. A separate expandable locator is deferred
+% through protected@write and expands only when its page/float ships out.
+\newcommand{\hllpdf@indexrawpage}{\arabic{page}}
+\newcommand{\hllpdf@indexcheckformat}{%
+  \edef\hllpdf@indexexpectedpage{\noexpand\foreignlanguage{english}{\noexpand\arabic{page}}}%
+  \def\hllpdf@indexresetpage{\foreignlanguage{english}{\csname @arabic\endcsname\c@page}}%
+  \ifx\thepage\hllpdf@indexexpectedpage\else
+    \ifx\thepage\hllpdf@indexresetpage\else
+      \PackageError{hllpdf-index}{Index requires the core Arabic folio contract}{Retain the core Arabic formatter; custom page numbering is unsupported.}
+    \fi
+  \fi}
+\newcommand{\hllpdf@indexwritecontext}{%
+  \hllpdf@indexcheckformat
+  \let\hllpdf@indexoriginalwrite\protected@write
+  \long\def\protected@write##1##2##3{%
+    \hllpdf@indexoriginalwrite{##1}{\let\hllpdf@indexrawpage\relax ##2}{##3}}}
+\pretocmd{\imki@wrindexentrysplit}{\hllpdf@indexwritecontext}{}%
+  {\PackageError{hllpdf-index}{Index writer contract changed}{The supported writer hook could not be installed.}}
+\patchcmd{\@wrindex}{\thepage}{\hllpdf@indexrawpage}{}%
+  {\PackageError{hllpdf-index}{Index page contract changed}{The supported page hook could not be installed.}}
+% Reject unproved number formats rather than silently serialize Arabic aliases.
+\let\hllpdf@indexpagenumbering\pagenumbering
+\renewcommand{\pagenumbering}[1]{%
+  \ifstrequal{#1}{arabic}{}{%
+    \PackageError{hllpdf-index}{Index requires Arabic page numbering}{Roman, alphabetic and custom numbering are not supported by this optional component.}}
+  \hllpdf@indexpagenumbering{#1}}
+\AtBeginDocument{\hllpdf@indexcheckformat}
+\makeatother
+\makeindex[noautomatic,intoc,columns=\lakitindexcolumns]
+% All index text defaults to the normal body face, size and black color.
+% Babel's logical raggedright aligns to the locale's physical starting edge.
+% This backend mirrors hangindent against the page base, so opposite-locale
+% paragraphs need the opposite sign to indent their own physical leading edge.
+\newcommand{\LakitIndexEntry}[2]{%
+  \par\iflanguage{#1}{}{\PackageError{hllpdf-index}{Generated index locale mismatch}{Retain the paired index.ist language environment.}}%
+  \normalfont\normalsize\color{black}%
+  \raggedright\noindent\iflanguage{\lakitmainlanguage}{\hangindent=1.25em}{\hangindent=-1.25em}\hangafter=1 #2}
+\newcommand{\LakitIndexLocators}[1]{\nobreak\hspace{.65em}\babelsublr{#1}}
+\newcommand{\LakitIndexEnd}{\par}
+\newcommand{\LakitIndexGroup}[1]{%
+  \par\addvspace{.8\baselineskip}\Needspace{3\baselineskip}%
+  \ifstrequal{#1}{E}{%
+    \begin{otherlanguage}{english}\raggedright\normalfont\normalsize\bfseries\noindent English\par\end{otherlanguage}}{%
+    \ifstrequal{#1}{H}{%
+      \begin{otherlanguage}{hebrew}\raggedright\normalfont\normalsize\bfseries\noindent עברית\par\end{otherlanguage}}{%
+      \PackageError{hllpdf-index}{Unknown index group '#1'}{Only English E and Hebrew H group keys are supported.}}}}
+\ExplSyntaxOn
+\prop_new:N \g_hllpdf_index_displays_prop
+\newcommand{\hllpdfindexadd}[4]
+  {
+    \regex_match:nnF {\A [0-9]{6} \Z} {#2}
+      {\PackageError{hllpdf-index}{Index~sort~key~must~be~six~ASCII~digits}{Use~explicit~equal-width~ranks;~display~text~does~not~determine~collation.}}
+    \exp_args:Nnx \regex_match:nnT {[@!|"]} {\tl_to_str:n {#3}}
+      {\PackageError{hllpdf-index}{Reserved~makeindex~character~in~display}{Avoid~literal~at-sign,~exclamation,~pipe~or~quote;~use~a~tested~TeX~display~command.}}
+    \tl_set:Nx \l_tmpb_tl {\tl_to_str:n {#3}}
+    \prop_get:NnNTF \g_hllpdf_index_displays_prop {#1/#2} \l_tmpa_tl
+      {\tl_if_eq:NNF \l_tmpa_tl \l_tmpb_tl
+        {\PackageError{hllpdf-index}{Index~rank~reused~for~different~display}{Use~a~unique~rank~per~term;~range~endpoints~must~repeat~the~same~display.}}}
+      {\prop_gput:NnV \g_hllpdf_index_displays_prop {#1/#2} \l_tmpb_tl}
+    \str_case:nnF {#1}
+      {
+        {english}{\exp_args:Nx \index {\tl_to_str:n {E#2@\begin{otherlanguage}{english}\LakitIndexEntry{english}{#3}|#4hyperpage}}}
+        {hebrew}{\exp_args:Nx \index {\tl_to_str:n {H#2@\begin{otherlanguage}{hebrew}\LakitIndexEntry{hebrew}{#3}|#4hyperpage}}}
+      }
+      {\PackageError{hllpdf-index}{Index~language~must~be~english~or~hebrew}{Declare~each~entry's~paragraph~locale~explicitly.}}
+  }
+\NewDocumentCommand{\lakitindex}{mmm}{\hllpdfindexadd {#1}{#2}{#3}{}}
+\NewDocumentCommand{\lakitindexrangebegin}{mmm}{\hllpdfindexadd {#1}{#2}{#3}{(}}
+\NewDocumentCommand{\lakitindexrangeend}{mmm}{\hllpdfindexadd {#1}{#2}{#3}{)}}
+\ExplSyntaxOff

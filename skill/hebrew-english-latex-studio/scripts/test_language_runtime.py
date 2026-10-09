@@ -81,6 +81,245 @@ def body(main):
             r'\clearpage\noindent\doclang{\en{HeaderCheck}}\end{document}')
 
 
+def glossary_runtime_fixture(profile, main, *, authored_term_punctuation=False):
+    """Ordinary A5 paragraphs: explicit definition locale and inherited local locale."""
+    source = profile_header(profile, main).replace('11pt,a4paper', '11pt,a5paper')
+    source += (r'\begin{document}'+'\n'+
+               r'\begin{englishprose}\noindent\en{GLLEFT}\par\end{englishprose}'+'\n'+
+               r'\begin{hebrewprose}\noindent\en{GLRIGHT}\par\end{hebrewprose}'+'\n'+
+               r'\begin{hebrewprose}\noindent\en{GLFORM}\par'+'\n'+
+               r'\noindent$x^2+\frac{a}{1+\lambda}$\par'+'\n'+
+               r'\noindent\en{GLFORMEND}\par\end{hebrewprose}'+'\n')
+    pairs = ('EE','HE','EH','HH') if profile not in ('english','hebrew') else (('EE',) if main=='english' else ('HH',))
+    terms = {
+        ('E','short'): r'\en{Cache (L1)}',
+        ('H','short'): r'\h{מטמון \en{(L1)}}',
+        ('E','long'): r'\en{Automatic local cache retention and allocation policy (L1)} with $x^2$ and \h{מטמון}',
+        ('H','long'): r'\h{מדיניות מקומית לשמירת נתונים \en{(L1)} עם $x^2$}',
+    }
+    definitions = {
+        ('english','short'): 'Keeps recent values available. Sentence punctuation stays intact.',
+        ('hebrew','short'): 'שומר נתונים שנעשה בהם שימוש לאחרונה. פיסוק במשפט נשמר.',
+        ('english','long'): (r'The local rule records $x^2+\frac{a}{1+\lambda}$ and keeps the signed quantity '
+            r'$-12.50\,\mathrm{ms}$ together. A Hebrew term \h{מטמון} and \en{ABI (v2)} retain their reading order. '
+            'The explanation continues through ordinary wrapped prose and ends with a short sentence. '
+            'The explanation continues through ordinary wrapped prose and ends with a short sentence.'),
+        ('hebrew','long'): (r'המדיניות שומרת נתונים ומאפשרת לבדוק את הביטוי $x^2+\frac{a}{1+\lambda}$ ואת הערך '
+            r'$-12.50\,\mathrm{ms}$ בלי להפוך סימנים. המונח \en{ABI (v2)} נשאר באי של אנגלית; פיסוק במשפט נשמר. '
+            'ההגדרה יכולה להמשיך לשורות נוספות ולסיים במילה קצרה. '
+            'ההגדרה יכולה להמשיך לשורות נוספות ולסיים במילה קצרה.'),
+    }
+    records = []
+
+    def entry(tag, pair, variant, locale, inherit=False):
+        nonlocal source
+        source += r'\Needspace{5\baselineskip}'+'\n'
+        if inherit:
+            source += fr'\begin{{{locale}prose}}'+'\n'
+        else:
+            source += fr'\begin{{{locale}prose}}\noindent\en{{{tag}}}\par\end{{{locale}prose}}'+'\n'
+        if inherit:
+            source += fr'\noindent\en{{{tag}}}\par'+'\n'
+        option = '' if inherit else '['+locale+']'
+        ref = 'REF-'+tag
+        term = terms[pair[0],variant]
+        if pair[0]=='E' and variant=='long' and locale=='hebrew':
+            term = r'\en{Automatic local cache retention and allocation policy (L1)} עם $x^2$ ועם \h{מטמון}'
+        punctuation = authored_term_punctuation and variant=='short'
+        if punctuation:
+            term = (r'\en{Cache v1.2—Storage (L1)}' if pair[0]=='E' else
+                    r'\h{מטמון—\en{Cache v1.2}}')
+        definition = definitions[locale,variant]+r' \href{https://example.org/glossary/'+tag+r'}{\en{'+ref+'}}.'
+        source += r'\glossaryentry'+option+'{'+term+'}{'+definition+'}\n'
+        caller = locale if inherit else main
+        source += fr'\typeout{{GLOSSARYRETURN|{tag}|\languagename}}'+'\n'
+        source += fr'\noindent\en{{END-{tag}}}\par'+'\n'
+        if inherit:
+            source += fr'\end{{{locale}prose}}'+'\n'
+            source += fr'\typeout{{GLOSSARYBASE|{tag}|\languagename}}'+'\n'
+        records.append({'tag':tag,'pair':pair,'variant':variant,'locale':locale,'caller':caller,
+                        'inherited':inherit,'term_dash_count':int(punctuation),'term_period_count':int(punctuation),'first_word':'Keeps' if variant=='short' and locale=='english' else
+                        'שומר' if variant=='short' else 'The' if locale=='english' else 'המדיניות'})
+
+    for index,locale in enumerate(('english','hebrew')):
+        if index:
+            source += r'\clearpage'+'\n'
+        for pair in pairs:
+            if (pair[1]=='E') != (locale=='english'):
+                continue
+            for variant in ('short','long'):
+                entry(pair+'-'+variant,pair,variant,locale)
+        entry('IN-'+locale, 'EE' if locale=='english' else 'HH', 'short', locale, inherit=True)
+    source += r'\end{document}'+'\n'
+    return source, records
+
+
+def glossary_pdf_metrics(pdf, records):
+    """Measure mapped PDF glyphs. No source-only or extracted-text order pass."""
+    def occurrence(word):
+        hits = [(i,fitz.Rect(w[:4])) for i,p in enumerate(pdf) for w in p.get_text('words') if w[4]==word]
+        if len(hits)!=1:
+            raise AssertionError(('GLOSSARY-MARKER',word,hits))
+        return hits[0]
+
+    def characters(page_number, top, bottom):
+        result = []
+        page = pdf[page_number]
+        for block in page.get_text('rawdict')['blocks']:
+            for line in block.get('lines',[]):
+                for span in line['spans']:
+                    for char in span['chars']:
+                        if top < char['origin'][1] < bottom:
+                            result.append({**char,'page':page_number,'font':span['font'],'size':span['size']})
+        return result
+
+    def box(chars):
+        actual = [c for c in chars if c['c'].strip()]
+        return fitz.Rect(min(c['bbox'][0] for c in actual),min(c['bbox'][1] for c in actual),
+                         max(c['bbox'][2] for c in actual),max(c['bbox'][3] for c in actual))
+
+    def phrase(chars, word, *, first=False):
+        text = ''.join(c['c'] for c in chars)
+        hits = list(re.finditer(r'(?<!\w)'+re.escape(word)+r'(?!\w)',text))
+        if not hits or (not first and len(hits)!=1):
+            raise AssertionError(('GLOSSARY-WORD',word,len(hits)))
+        return chars[hits[0].start():hits[0].end()]
+
+    def marker_baseline(page_number,word):
+        # Glyph origins, rather than the next marker's ascender bbox, bound the
+        # entry. A fraction denominator may legitimately extend into that bbox.
+        found_page,word_box = occurrence(word)
+        if found_page!=page_number:raise AssertionError(('GLOSSARY-MARKER',word,'wrong page'))
+        origins = sorted(c['origin'][1] for c in characters(page_number,0,pdf[page_number].rect.height)
+                         if c['c'].strip() and word_box.contains(fitz.Point(
+                             (c['bbox'][0]+c['bbox'][2])/2,(c['bbox'][1]+c['bbox'][3])/2)))
+        if not origins:raise AssertionError(('GLOSSARY-MARKER',word,'no mapped glyphs'))
+        return origins[len(origins)//2]
+
+    def require(condition, code, detail):
+        if not condition:
+            raise AssertionError((code,detail))
+
+    def math_geometry(chars, tag):
+        math = [c for c in chars if c['font'].startswith('CM') and c['c'].strip()]
+        formulae = []
+        for x in [c for c in math if c['c']=='x']:
+            page,sx,sy = x['page'],*x['origin']
+            candidates = [c for c in math if c['page']==page]
+            powers = [c for c in candidates if c['c']=='2' and 0<c['origin'][0]-sx<9 and 1<sy-c['origin'][1]<6]
+            if len(powers)!=1:continue
+            power = powers[0]
+            pluses = [c for c in candidates if c['c']=='+' and 0<c['origin'][0]-power['origin'][0]<16 and abs(c['origin'][1]-sy)<.2]
+            if len(pluses)!=1:continue
+            plus = pluses[0]
+            numerators = [c for c in candidates if c['c']=='a' and 5<c['origin'][0]-plus['origin'][0]<28 and 1<sy-c['origin'][1]<7]
+            ones = [c for c in candidates if c['c']=='1' and 5<c['origin'][0]-plus['origin'][0]<28 and 1<c['origin'][1]-sy<7]
+            if len(numerators)!=1 or len(ones)!=1:continue
+            numerator,one = numerators[0],ones[0]
+            denplus = [c for c in candidates if c['c']=='+' and 1<c['origin'][0]-one['origin'][0]<9 and abs(c['origin'][1]-one['origin'][1])<.2]
+            lambdas = [c for c in candidates if c['c']=='λ' and 5<c['origin'][0]-one['origin'][0]<18 and abs(c['origin'][1]-one['origin'][1])<.2]
+            if len(denplus)!=1 or len(lambdas)!=1:continue
+            dp,lam = denplus[0],lambdas[0]
+            require(sx<power['origin'][0]<plus['origin'][0]<one['origin'][0] and
+                    numerator['origin'][1]<one['origin'][1] and one['origin'][0]<dp['origin'][0]<lam['origin'][0],
+                    'GLOSSARY-MATH-LTR',(tag,x,power,plus,numerator,one,dp,lam))
+            formulae.append([{'char':c['c'],'origin':c['origin'],'page':c['page']+1} for c in (x,power,plus,numerator,one,dp,lam)])
+        require(len(formulae)==1,'GLOSSARY-MATH-COUNT',(tag,formulae))
+        minus = [c for c in math if c['c'] in ('−','-')]
+        require(len(minus)==1,'GLOSSARY-SIGNED-QUANTITY',(tag,minus))
+        sign = minus[0]
+        value = sorted([c for c in math if c['page']==sign['page'] and abs(c['origin'][1]-sign['origin'][1])<.2 and
+                        0<=c['origin'][0]-sign['origin'][0]<60],key=lambda c:c['origin'][0])
+        require(''.join(c['c'] for c in value).replace('−','-')=='-12.50ms','GLOSSARY-SIGNED-QUANTITY',(tag,value))
+        return {'formula_glyphs':formulae[0],'signed_quantity_glyphs':[{'char':c['c'],'origin':c['origin']} for c in value]}
+
+    _,left_marker = occurrence('GLLEFT')
+    _,right_marker = occurrence('GLRIGHT')
+    left,right = left_marker.x0,right_marker.x1
+    cal_page,cal_start = occurrence('GLFORM')
+    end_cal_page,cal_end = occurrence('GLFORMEND')
+    require(cal_page==end_cal_page,'GLOSSARY-MATH-CONTROL','split native control')
+    cal_chars = characters(cal_page,marker_baseline(cal_page,'GLFORM')+.1,
+                               marker_baseline(end_cal_page,'GLFORMEND')-.1)
+    fraction_edge = box(cal_chars).x1
+    require(any(c['c']=='λ' for c in cal_chars),'GLOSSARY-MATH-CONTROL','no fraction denominator')
+    top = min(left_marker.y0,right_marker.y0)-5
+    results = []
+    for record in records:
+        tag = record['tag']
+        start_page,start = occurrence(tag)
+        end_page,end = occurrence('END-'+tag)
+        chars = []
+        for pno in range(start_page,end_page+1):
+            chars += characters(pno,marker_baseline(start_page,tag)+.1 if pno==start_page else top,
+                                marker_baseline(end_page,'END-'+tag)-.1 if pno==end_page else pdf[pno].rect.height-40)
+        # Locate the relation separator immediately before the first definition
+        # word. An authored synonym label may contain its own emdash or decimal.
+        first_all = phrase(chars,record['first_word'],first=True)
+        first_index = next(i for i,c in enumerate(chars) if c is first_all[0])
+        separators = [i for i,c in enumerate(chars) if c['c']=='—' and i<first_index]
+        require(bool(separators),'GLOSSARY-SEPARATOR',(tag,separators))
+        at = separators[-1]
+        term,dash,definition = chars[:at],chars[at],chars[at+1:]
+        first = phrase(definition,record['first_word'],first=True)
+        db,fb = fitz.Rect(dash['bbox']),box(first)
+        tail = [c for c in term if c['page']==dash['page'] and abs(c['origin'][1]-dash['origin'][1])<6]
+        require(bool(tail),'GLOSSARY-SEPARATOR-CONNECTION',(tag,'term is on another line'))
+        tb = box(tail)
+        english = record['locale']=='english'
+        gaps = (db.x0-tb.x1,fb.x0-db.x1) if english else (tb.x0-db.x1,db.x0-fb.x1)
+        require(all(c['page']==dash['page'] and abs(c['origin'][1]-dash['origin'][1])<.2 for c in first if c['c'].strip()) and
+                all(-.1<=gap<=dash['size'] for gap in gaps), 'GLOSSARY-SEPARATOR-CONNECTION',(tag,gaps,tail,first))
+        require(sum(c['c']=='.' for c in term)==record['term_period_count'],
+                'GLOSSARY-TERM-PUNCTUATION',tag)
+        require(sum(c['c']=='—' for c in term)==record['term_dash_count'],
+                'GLOSSARY-TERM-PUNCTUATION',tag)
+        require(all(c['bbox'][0]>=left-1 and c['bbox'][2]<=right+1 for c in chars if c['c'].strip()),
+                'GLOSSARY-SAFE-BOUNDS',(tag,left,right,box(chars)))
+        groups = {}
+        for c in chars:
+            if c['c'].strip() and c['size']>=.9*dash['size']:
+                groups.setdefault((c['page'],round(c['origin'][1],1)),[]).append(c)
+        # Include real raised mathematical scripts at a reading edge. Filtering
+        # them out can falsely move a RTL line's edge inward by the script width.
+        for c in chars:
+            if c['c'].strip() and c['size']<.9*dash['size'] and c['font'].startswith('CM'):
+                near = [k for k in groups if k[0]==c['page'] and abs(k[1]-c['origin'][1])<6]
+                if near:groups[min(near,key=lambda k:abs(k[1]-c['origin'][1]))].append(c)
+        edges = []
+        for (pno,y),group in sorted(groups.items()):
+            b = box(group)
+            # A leading fraction has native null-delimiter padding beyond its
+            # drawn rule/λ. Compare its actual ink with the identical standalone
+            # native formula; prose and raised powers retain the body edge.
+            tip = max(group,key=lambda c:c['bbox'][2])
+            fraction_tip = (not english and tip['c']=='λ' and
+                            tip['font'].startswith('CMMI') and tip['size']<.9*dash['size'])
+            reference = fraction_edge if fraction_tip else right
+            delta = b.x0-left if english else b.x1-reference
+            require(abs(delta)<=1,'GLOSSARY-PARAGRAPH-ALIGNMENT',(tag,pno,y,b,delta))
+            edges.append({'page':pno+1,'baseline':y,'edge_delta':delta,'edge_reference':'native fraction ink' if fraction_tip else 'body','bbox':list(b)})
+        if record['variant']=='long':
+            require(len(groups)>3,'GLOSSARY-LONG-WRAPPING',(tag,groups))
+        caller_edge = end.x0-left if record['caller']=='english' else end.x1-right
+        require(abs(caller_edge)<=1,'GLOSSARY-CALLER-RESTORED',(tag,end,record['caller'],caller_edge))
+        uri = 'https://example.org/glossary/'+tag
+        links = [(i,l) for i,p in enumerate(pdf) for l in p.get_links() if l.get('uri')==uri]
+        ref = phrase(definition,'REF-'+tag)
+        require(bool(links),'GLOSSARY-LINK',tag)
+        for char in ref:
+            if not char['c'].strip():continue
+            b = fitz.Rect(char['bbox'])
+            point = fitz.Point((b.x0+b.x1)/2,(b.y0+b.y1)/2)
+            require(any(i==char['page'] and l['from'].contains(point) for i,l in links),'GLOSSARY-LINK-RECT',(tag,char,links))
+        require(all(pdf[i].rect.contains(l['from']) for i,l in links),'GLOSSARY-LINK-RECT',(tag,links))
+        result = {**record,'start_page':start_page+1,'end_page':end_page+1,'separator_gaps':gaps,
+                  'lines':edges,'links':[{'page':i+1,'rect':list(l['from']),'uri':uri} for i,l in links]}
+        if record['variant']=='long':result['math']=math_geometry(definition,tag)
+        results.append(result)
+    return results
+
+
 def table_alignment_fixture(profile, main, *, defect=None, apis=('open','frame','flow')):
     """Local table semantics and cell alignment are independent of the base locale."""
     source = profile_header(profile,main)+r'\begin{document}'+'\n'
@@ -170,6 +409,86 @@ def paragraph_glyph_lines(page, region, *, min_size=0):
                             {'char':char['c'],'box':box,'origin':char['origin'],
                              'size':span['size'],'font':span['font']})
     return [row for _,row in sorted(lines.items())]
+
+
+def study_identity_fixture(profile, main, document_class='report'):
+    header=profile_header(profile,main)
+    header=header.replace(r'\def\lakitdocumentclass{article}',fr'\def\lakitdocumentclass{{{document_class}}}')
+    header=header.replace(r'\input{preamble.tex}',r'\input{preamble.tex}'+'\n'+r'\input{study_components.tex}')
+    title=lambda en,he: en if main=='english' else he
+    other='hebrew' if main=='english' else 'english'
+    heading='chapter' if document_class=='report' else 'section'
+    source=header+r'\newcommand{\StudyOriginCounter}{\csname the'+heading+r'\endcsname}'+'\n'+r'\begin{document}'+'\n'
+    source+=fr'\{heading}{{'+title('Original context','הקשר המקור')+'}\n'
+    first=title(r'\en{TASKFIRST} Original context \StudyOriginCounter: a long title with \h{מונח} and $x_{12}+5$ whose original identity survives later chapters',r'\en{TASKFIRST} כותרת מקור ארוכה מהקשר \en{\StudyOriginCounter}: עם המונח \en{LLVM (CPU)} והמודל $x_{12}+5$ שנשארים קשורים לזהות המקור גם בהמשך המסמך')
+    source+=fr'\begin{{studyexercise}}{{first}}{{{first}}}'+'\n'+title('Compute $1+1$.','חשבו $1+1$.')+r'\end{studyexercise}'+'\n'
+    source+=fr'\begin{{studyexercise}}[solution=false]{{open}}{{\en{{TASKOPEN}} '+title('Open reflection','שאלה פתוחה')+'}\n'+title('This task promises no printed answer.','השאלה אינה מבטיחה גוף פתרון.')+r'\end{studyexercise}'+'\n'+r'\clearpage'+'\n'
+    source+=fr'\begin{{{other}prose}}\{heading}{{'+('Second context' if other=='english' else 'הקשר שני')+'}\n'
+    second=(r'\en{TASKSECOND} Second context with \h{מקור} and $y=2$' if other=='english' else r'\en{TASKSECOND} הקשר שני עם \en{Git (CLI)} ועם $y=2$')
+    source+=fr'\begin{{studyexercise}}{{second}}{{{second}}}'+'\n'+('Explain the repeated local ordinal.' if other=='english' else 'הסבירו מדוע המספר המקומי החוזר אינו אותה זהות.')+r'\end{studyexercise}'+'\n'+fr'\end{{{other}prose}}'+'\n'
+    source+=fr'\begin{{studyexercise}}[id={{07-1}}]{{authored}}{{\en{{TASKAUTHORED}} '+title('An authored identifier with $z=3$','מזהה מפורש עם $z=3$')+'}\n'+title('Keep the padded ID from its source.','שמרו את המזהה שהתקבל מן המקור.')+r'\end{studyexercise}'+'\n'
+    source+=r'\clearpage'+'\n'+fr'\{heading}*{{'+title('Reordered solutions','פתרונות בסדר אחר')+'}\n'
+    for key in ('authored','first','second'):
+        source+=fr'\begin{{studysolution}}{{{key}}}'+'\n'+title('The answer follows the original exercise.','התשובה שייכת לתרגיל המקורי.')+r'\end{studysolution}'+'\n'
+    source+=r'\noindent\en{NATIVEFIRST \ref{study:exercise:first}; NATIVEPAGE \pageref{study:exercise:first}.}\par'+'\n'+r'\end{document}'+'\n'
+    expected={'first':'1.1' if document_class=='report' else '1','second':'2.1' if document_class=='report' else '3','authored':'07-1','open':'1.2' if document_class=='report' else '2'}
+    return source,expected
+
+
+def study_identity_metrics(directory,expected):
+    """Observe rendered headings and exact semantic routes, not merely valid links."""
+    records=[]; numbers=[]
+    with fitz.open(directory/'main.pdf') as doc:
+        anchors={}
+        for role,keys in [('exercise',expected),('solution',('authored','first','second'))]:
+            for key in keys:
+                resolved=doc.resolve_link('#hllstudy'+role+'.'+key)
+                if resolved[0]<0: raise AssertionError((role,key,resolved))
+                anchors[role,key]=resolved
+                page=doc[resolved[0]]
+                rect=fitz.Rect(0,resolved[2]-3,page.rect.width,resolved[2]+43)
+                # Default headings are bold; route paragraphs are regular.
+                # Observe the actual styled heading spans, rather than picking
+                # a page number from the preceding wrapped regular-text link.
+                spans=[s for b in page.get_text('dict')['blocks'] for line in b.get('lines',[]) for s in line['spans']
+                       if 'bold' in s['font'].lower() and resolved[2]-3 <= s['bbox'][1] <= resolved[2]+43]
+                text=' '.join(s['text'] for s in spans)
+                # The first printed ID belongs to the native role heading.
+                ids=re.findall(r'(?<![A-Za-z0-9])(?:\d+\.\d+|\d{2}-\d+|\d+)(?![A-Za-z0-9])',text)
+                origin=re.search(r'(?:Original\s+context|מהקשר)\s*(\d+)',text) if key=='first' else None
+                title_frozen=key!='first' or bool(origin and origin.group(1)=='1')
+                numbers.append({'role':role,'key':key,'expected':expected[key],
+                                'printed':ids[0] if ids else None,'text':text,
+                                'origin_title_counter':origin.group(1) if origin else None,
+                                'title_frozen_pass':title_frozen,
+                                'pass':bool(ids) and ids[0]==expected[key]})
+        for key,tag in [('first','TASKFIRST'),('second','TASKSECOND'),('authored','TASKAUTHORED')]:
+            for origin,target in [('exercise','solution'),('solution','exercise')]:
+                pi,x,y=anchors[origin,key];page=doc[pi]
+                next_y=min([a[2] for (r,k),a in anchors.items() if (r,k)!=(origin,key) and a[0]==pi and a[2]>y]+[page.rect.height])
+                # Generated route text repeats its original title. Select the
+                # linked title in this semantic object's region, excluding
+                # hyperlinks on numeric native references elsewhere.
+                markers=[r for r in page.search_for(tag) if y-3<=r.y0<next_y-2]
+                selected=[]
+                for link in page.get_links():
+                    if any(fitz.Rect(link['from']).intersects(r) for r in markers): selected.append(link)
+                if not selected: raise AssertionError(('missing route',origin,key,markers))
+                names={z.get('nameddest') for z in selected}
+                expected_name='hllstudy'+target+'.'+key
+                resolved=[doc.resolve_link('#'+str(n)) for n in names]
+                expected_target=anchors[target,key]
+                passed=names=={expected_name} and all(a[0]==expected_target[0] and abs(a[1]-expected_target[1])<0.05 and abs(a[2]-expected_target[2])<0.05 for a in resolved)
+                records.append({'origin':origin,'key':key,'origin_page':pi+1,'target_names':sorted(names),'expected_name':expected_name,'expected_target_page':expected_target[0]+1,'expected_target_point':list(expected_target[1:]),'resolved_targets':[list(a) for a in resolved],'pass':passed})
+        open_target='hllstudysolution.open'
+        assert doc.resolve_link('#'+open_target)[0]<0
+        native='\n'.join(p.get_text() for p in doc)
+        assert 'NATIVEFIRST '+expected['first'] in native
+        assert not re.search(r'\?\?',native)
+        paper=all(abs(p.rect.width-595.276)<0.6 and abs(p.rect.height-841.89)<0.6 for p in doc)
+        result={'pages':len(doc),'routes':records,'headings':numbers,'a4':paper}
+    (directory/'study-semantic-metrics.json').write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n')
+    return result
 
 
 class LanguageRuntime(unittest.TestCase):
@@ -476,6 +795,95 @@ See \autoref{ch:en} and \autoref{app:en}.
                         self.assertLess(old[0],2)
                         self.assertLess(old[2],0)
 
+
+    def test_glossary_definition_locale_all_pairs_geometry_and_links(self):
+        # Six explicit profiles. Native profiles exercise their native pair;
+        # mixed/bilingual profiles exercise all four term/definition pairs.
+        # Each profile also inherits both local prose locales without options.
+        profiles = [('english','english'),('hebrew','hebrew'),
+                    ('english-with-hebrew','english'),('hebrew-with-english','hebrew'),
+                    ('bilingual','english'),('bilingual','hebrew')]
+        for profile,main in profiles:
+            with self.subTest(profile=profile,main=main):
+                source,records = glossary_runtime_fixture(profile,main)
+                result,directory = self.compile(source,'glossary-'+profile+'-'+main)
+                self.assertEqual(result.returncode,0,result.stdout[-6000:])
+                self.assertNotIn('Overfull',result.stdout)
+                self.assertNotIn('Missing character:',result.stdout)
+                for record in records:
+                    self.assertIn('GLOSSARYRETURN|'+record['tag']+'|'+record['caller'],result.stdout)
+                    if record['inherited']:
+                        self.assertIn('GLOSSARYBASE|'+record['tag']+'|'+main,result.stdout)
+                with fitz.open(directory/'main.pdf') as pdf:
+                    metrics = glossary_pdf_metrics(pdf,records)
+                (directory/'glossary-geometry.json').write_text(json.dumps(metrics,ensure_ascii=False,indent=2)+'\n')
+
+    def test_glossary_invalid_definition_locale_fails_in_engine(self):
+        source = (profile_header('bilingual','hebrew')+r'\begin{document}'+'\n'+
+                  r'\glossaryentry[spanish]{\en{Cache}}{Invalid locale control.}'+
+                  r'\end{document}')
+        result,_ = self.compile(source,'glossary-invalid-locale')
+        self.assertNotEqual(result.returncode,0)
+        self.assertIn('glossary',result.stdout.lower())
+        self.assertIn('spanish',result.stdout)
+
+    def test_glossary_disconnected_separator_gap_is_detected_by_pdf_geometry(self):
+        # Same mapped text and real formatter, with a deliberately bad 3em
+        # spacer injected before the definition. A text-only test still passes.
+        asset = (ROOT/'assets'/'document_components.tex').read_text()
+        old = r'\hspace{.35em}#3\par'
+        self.assertEqual(asset.count(old),1)
+        mutant = asset.replace(old,r'\hspace{3.35em}#3\par',1)
+        source,records = glossary_runtime_fixture('english','english')
+        result,directory = self.compile(source,'glossary-disconnected-gap',
+                                      local_sources={'document_components.tex':mutant})
+        self.assertEqual(result.returncode,0,result.stdout[-6000:])
+        with fitz.open(directory/'main.pdf') as pdf:
+            self.assertIn('Keeps',''.join(page.get_text() for page in pdf))
+            with self.assertRaisesRegex(AssertionError,'GLOSSARY-SEPARATOR-CONNECTION'):
+                glossary_pdf_metrics(pdf,records)
+
+    def test_glossary_authored_synonym_dash_and_decimal_are_preserved(self):
+        # Internal Hebrew/English synonym dashes and label decimals are authored
+        # punctuation. Only the relation separator must connect to the definition.
+        source,records = glossary_runtime_fixture('bilingual','english',authored_term_punctuation=True)
+        result,directory = self.compile(source,'glossary-authored-term-punctuation')
+        self.assertEqual(result.returncode,0,result.stdout[-6000:])
+        self.assertNotIn('Overfull',result.stdout)
+        with fitz.open(directory/'main.pdf') as pdf:
+            metrics = glossary_pdf_metrics(pdf,records)
+            self.assertEqual(sum(r['term_dash_count'] for r in metrics),6)
+            self.assertIn('v1.2',''.join(page.get_text() for page in pdf))
+        (directory/'glossary-geometry.json').write_text(json.dumps(metrics,ensure_ascii=False,indent=2)+'\n')
+
+    def test_glossary_valid_locale_mutant_is_rejected_by_pdf_geometry(self):
+        # Valid API call, successful engine build, deliberately wrong helper
+        # locale selection. Mapped glyph geometry must reject its English edge.
+        asset = (ROOT/'assets'/'document_components.tex').read_text()
+        old = r'\selectlanguage{hebrew}'
+        self.assertEqual(asset.count(old),1)
+        mutant = asset.replace(old,r'\selectlanguage{english}',1)
+        source,records = glossary_runtime_fixture('bilingual','english')
+        prefix = r'\glossaryentry[hebrew]{\en{Cache (L1)}}{שומר'
+        self.assertEqual(source.count(prefix),1)
+        source = source.replace(prefix,
+            r'\glossaryentry[hebrew]{\en{Cache (L1)}}{\en{FirstDefinition:} שומר',1)
+        for record in records:
+            if record['tag']=='EH-short':record['first_word']='FirstDefinition'
+        # Its valid twin must pass the same physical checks before the mutation.
+        valid,control = self.compile(source,'glossary-valid-locale-control')
+        self.assertEqual(valid.returncode,0,valid.stdout[-6000:])
+        self.assertNotIn('Overfull',valid.stdout)
+        with fitz.open(control/'main.pdf') as pdf:
+            metrics = glossary_pdf_metrics(pdf,records)
+        (control/'glossary-geometry.json').write_text(json.dumps(metrics,ensure_ascii=False,indent=2)+'\n')
+        result,directory = self.compile(source,'glossary-valid-locale-mutant',
+                                      local_sources={'document_components.tex':mutant})
+        self.assertEqual(result.returncode,0,result.stdout[-6000:])
+        with fitz.open(directory/'main.pdf') as pdf:
+            with self.assertRaisesRegex(AssertionError,
+                    'GLOSSARY-(SEPARATOR-CONNECTION|PARAGRAPH-ALIGNMENT)'):
+                glossary_pdf_metrics(pdf,records)
 
     def test_uniform_captions_natural_tables_and_glossary_all_profiles(self):
         # Real TeX -> PDF controls, including native captionof/subcaption and
@@ -1327,6 +1735,102 @@ See \autoref{ch:en} and \autoref{app:en}.
             mutate=lambda t:t.replace(r'\lstset{xleftmargin=26pt,xrightmargin=0pt}', ''))
         self.assertEqual(result.returncode,0,result.stdout[-5000:])
         self.assertLess(clearance(directory),0)
+
+
+    def test_study_original_identity_and_routes(self):
+        component=(ROOT/'assets/study_components.tex').read_text()
+        cases=[('english','english','report'),('hebrew','hebrew','report'),
+               ('english-with-hebrew','english','article'),
+               ('hebrew-with-english','hebrew','article'),
+               ('bilingual','english','report'),('bilingual','hebrew','report')]
+        for profile,main,document_class in cases:
+            source,expected=study_identity_fixture(profile,main,document_class)
+            case='study-'+profile+'-'+main
+            result,directory=self.compile(source,case,passes=3,
+                local_sources={'study_components.tex':component})
+            self.assertEqual(result.returncode,0,result.stdout[-6000:])
+            self.assertNotRegex((directory/'main.log').read_text(),r'Overfull|Missing character|undefined references')
+            measured=study_identity_metrics(directory,expected)
+            self.assertTrue(measured['a4'])
+            self.assertTrue(all(x['pass'] for x in measured['routes']),measured)
+            self.assertTrue(all(x['pass'] for x in measured['headings']),measured)
+            self.assertTrue(all(x['title_frozen_pass'] for x in measured['headings']),measured)
+            self.assertEqual(len(measured['routes']),6)
+            # The first original title captures context1 before changing to2.
+            aux=(directory/'main.aux').read_text()
+            self.assertRegex(aux,r'newlabel\{study:exercise:first\}\{\{'+re.escape(expected['first']))
+            self.assertIn('hllstudyexercise.first',aux)
+            self.assertIn('hllstudysolution.first',aux)
+            for script in ('check_pdf_navigation.py','check_pdf_render.py'):
+                args=[sys.executable,str(ROOT/'scripts'/script),str(directory/'main.pdf')]
+                if script=='check_pdf_render.py': args.append(str(directory/'main.tex'))
+                gate=subprocess.run(args,text=True,capture_output=True)
+                (directory/(script+'.txt')).write_text(gate.stdout+gate.stderr)
+                self.assertEqual(gate.returncode,0,gate.stdout+gate.stderr)
+        # Independent mutants keep the other measured invariant intact.
+        source,expected=study_identity_fixture('hebrew','hebrew','report')
+        old=r'\__hllstudy_read:n {#2}'+'\n'+r'    \par\addvspace'
+        new=r'\__hllstudy_read:n {#2}'+'\n'+r'    \str_if_eq:nnT {#1}{solution}{\tl_set:Nx \l__hllstudy_id_tl {\thestudyexercise}}'+'\n'+r'    \par\addvspace'
+        self.assertIn(old,component)
+        result,directory=self.compile(source,'study-bad-ambient-counter',passes=3,
+            local_sources={'study_components.tex':component.replace(old,new,1)})
+        self.assertEqual(result.returncode,0,result.stdout[-6000:])
+        measured=study_identity_metrics(directory,expected)
+        self.assertTrue(all(x['pass'] for x in measured['routes']))
+        self.assertTrue(any(not x['pass'] for x in measured['headings'] if x['role']=='solution'))
+        self.assertTrue(all(x['pass'] for x in measured['headings'] if x['role']=='exercise'))
+        self.assertTrue(all(x['title_frozen_pass'] for x in measured['headings']))
+        old=r'\hyperref[study:\l__hllstudy_role_tl :#2]'
+        new=r'\tl_set:Nn \l_tmpb_tl {#2}\str_if_eq:nnT {#1}{solution}{\str_if_eq:nnT {#2}{first}{\tl_set:Nn \l_tmpb_tl {authored}}}'+'\n'+r'      \hyperref[study:\l__hllstudy_role_tl :\l_tmpb_tl]'
+        self.assertIn(old,component)
+        result,directory=self.compile(source,'study-bad-same-page-route',passes=3,
+            local_sources={'study_components.tex':component.replace(old,new,1)})
+        self.assertEqual(result.returncode,0,result.stdout[-6000:])
+        measured=study_identity_metrics(directory,expected)
+        self.assertTrue(all(x['pass'] for x in measured['headings']))
+        self.assertTrue(all(x['title_frozen_pass'] for x in measured['headings']))
+        wrong=[(x['origin'],x['key']) for x in measured['routes'] if not x['pass']]
+        self.assertEqual(wrong,[('exercise','first')])
+        first=next(x for x in measured['routes'] if x['origin']=='exercise' and x['key']=='first')
+        self.assertEqual(first['resolved_targets'][0][0]+1,first['expected_target_page'])
+        self.assertNotEqual(first['resolved_targets'][0][2],first['expected_target_point'][1])
+        # Retaining an unexpanded title independently re-evaluates its origin
+        # counter in context2, while IDs and exact paired routes stay correct.
+        old=r'\protected@edef\l__hllstudy_title_tl{#3}'
+        new=r'\tl_set:Nn \l__hllstudy_title_tl {#3}'
+        self.assertIn(old,component)
+        result,directory=self.compile(source,'study-bad-dynamic-title',passes=3,
+            local_sources={'study_components.tex':component.replace(old,new,1)})
+        self.assertEqual(result.returncode,0,result.stdout[-6000:])
+        measured=study_identity_metrics(directory,expected)
+        self.assertTrue(all(x['pass'] for x in measured['routes']))
+        self.assertTrue(all(x['pass'] for x in measured['headings']))
+        changed=[(x['role'],x['key'],x['origin_title_counter']) for x in measured['headings'] if not x['title_frozen_pass']]
+        self.assertEqual(changed,[('solution','first','2')])
+
+    def test_study_invalid_declarations_fail_closed(self):
+        component=(ROOT/'assets/study_components.tex').read_text()
+        header=profile_header('english','english').replace(r'\input{preamble.tex}',r'\input{preamble.tex}'+'\n'+r'\input{study_components.tex}')
+        task=r'\begin{studyexercise}[solution=false]{first}{Title}Body.\end{studyexercise}'
+        promised=r'\begin{studyexercise}{first}{Title}Body.\end{studyexercise}'
+        answer=r'\begin{studysolution}{first}Answer.\end{studysolution}'
+        cases=[('duplicate-key',task+task,'already declared'),
+          ('duplicate-id',r'\begin{studyexercise}[id={07-1},solution=false]{first}{Title}Body.\end{studyexercise}'+r'\begin{studyexercise}[id={07-1},solution=false]{second}{Title}Body.\end{studyexercise}','already used'),
+          ('duplicate-solution',promised+answer+answer,'already been printed'),
+          ('unknown-solution',r'\begin{studysolution}{ghost}Answer.\end{studysolution}','has not been declared'),
+          ('missing-solution',promised,'missing at the end'),
+          ('unwanted-solution',task+answer,'solution=false'),
+          ('unknown-reference',r'\studyexerciseref{ghost}','has not been declared'),
+          ('invalid-key',r'\begin{studyexercise}[solution=false]{bad key}{Title}Body.\end{studyexercise}','literal ASCII key'),
+          ('invalid-id',r'\begin{studyexercise}[id={7/1},solution=false]{first}{Title}Body.\end{studyexercise}','nonempty literal'),
+          ('empty-title',r'\begin{studyexercise}[solution=false]{first}{}Body.\end{studyexercise}','nonempty original title'),
+          ('nested',r'\begin{studyexercise}[solution=false]{first}{Title}\begin{studyexercise}[solution=false]{second}{Title}Body.\end{studyexercise}\end{studyexercise}','must not be nested')]
+        for name,body,diagnostic in cases:
+            result,directory=self.compile(header+r'\begin{document}'+body+r'\end{document}',
+                'study-invalid-'+name,local_sources={'study_components.tex':component})
+            self.assertNotEqual(result.returncode,0,name)
+            clean=re.sub(r'\(hllstudy\)',' ',result.stdout)
+            self.assertIn(diagnostic,re.sub(r'\s+',' ',clean),name)
 
     def test_clean_exam_labels_localize_in_english(self):
         source=(profile_header('english','english').replace(r'\input{reader_theme.tex}',r'\input{clean_theme.tex}')+

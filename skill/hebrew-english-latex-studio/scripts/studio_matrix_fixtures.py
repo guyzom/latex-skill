@@ -141,7 +141,42 @@ def rail_body(lang):
 def fixture_families():
     return ('core', 'reader', 'academic', 'clean', 'custom', 'exam-clean',
             'legacy-clean', 'topicrail', 'source-links', 'deferred-notes',
-            'flow-tables', 'reference-all')
+            'flow-tables', 'reference-all', 'study', 'index')
+
+
+def study_body(lang):
+    title = 'Original exercise identity' if lang == 'english' else 'זהות התרגיל המקורית'
+    question = 'Differentiate $f(x)=x^2$.' if lang == 'english' else 'גזרו את $f(x)=x^2$.'
+    solution = "The power rule gives $f'(x)=2x$." if lang == 'english' else "לפי כלל החזקה $f'(x)=2x$."
+    other = 'hebrew' if lang == 'english' else 'english'
+    minority_title = 'כותרת מקור בשפה השנייה' if other == 'hebrew' else 'A second-language original title'
+    return (r'\section{' + title + '}\n'
+            + r'\begin{studyexercise}[id={07-1}]{authored}{' + title + r' \en{STUDYORIGINAL}}' + '\n'
+            + question + '\n' + r'\end{studyexercise}' + '\n'
+            + r'\begin{' + other + 'prose}\n'
+            + r'\begin{studyexercise}{secondary}{' + minority_title + '}\n'
+            + r'\en{STUDYSECOND}' + '\n' + r'\end{studyexercise}' + '\n'
+            + r'\end{' + other + 'prose}\n'
+            + r'\begin{studyexercise}[solution=false]{reflection}{' + title + '}\n'
+            + r'\en{STUDYOPEN}' + '\n' + r'\end{studyexercise}' + '\n'
+            + r'\studyexerciseref{authored}; \studysolutionref{authored}.' + '\n'
+            + r'\clearpage\section{' + title + '}\n'
+            + r'\begin{studysolution}{secondary}' + '\n' + r'\en{STUDYSOLUTIONSECOND}' + '\n' + r'\end{studysolution}' + '\n'
+            + r'\begin{studysolution}{authored}' + '\n' + solution + '\n' + r'\end{studysolution}' + '\n'
+            + r'\studyexerciseref{secondary}; \studysolutionref{secondary}.' + '\n')
+
+
+def index_body(lang):
+    title = 'Explicit index ordering' if lang == 'english' else 'סדר מפורש במפתח'
+    return (r'\section{' + title + '}\n'
+            + r'\begin{englishprose}INDEXNATIVE \lakitindex{english}{000001}{INDEXNATIVE}'
+            + r'\lakitindexrangebegin{english}{000002}{INDEXRANGE}\end{englishprose}' + '\n'
+            + r'\begin{hebrewprose}מונח בדיקה \lakitindex{hebrew}{000001}{מונח בדיקה}\end{hebrewprose}' + '\n'
+            + r'\clearpage\section{' + title + '}\n'
+            + r'\begin{englishprose}INDEXSECOND \lakitindex{english}{000001}{INDEXNATIVE}'
+            + r'\lakitindexrangeend{english}{000002}{INDEXRANGE}\end{englishprose}' + '\n'
+            + r'\begin{hebrewprose}מונח נוסף \lakitindex{hebrew}{000002}{מונח נוסף}\end{hebrewprose}' + '\n'
+            + r'\printindex' + '\n')
 
 
 def deferred_body(lang):
@@ -285,11 +320,15 @@ def write_fixture(root: Path, project: Path, family: str, language: str) -> dict
     elif family == 'reference-all':
         assets += ['reference_components.tex', 'reference_columns.tex',
                    'reference_shell.tex', 'reference_theme.tex']
+    elif family in ('study', 'index'):
+        assets += [family + '_components.tex', 'reader_theme.tex']
     by_name = {spec.basename: spec for spec in ASSET_SPECS}
     for name in assets:
         if name not in by_name:
             raise ValueError('fixture asset lacks an architectural owner')
         shutil.copyfile(root / by_name[name].path, project / name)
+    if family == 'index':
+        shutil.copyfile(root / 'assets/index.ist', project / 'index.ist')
     if family == 'custom':
         from new_document import CUSTOM_THEME
         (project / 'theme.tex').write_text(CUSTOM_THEME, encoding='utf-8')
@@ -317,6 +356,8 @@ def write_fixture(root: Path, project: Path, family: str, language: str) -> dict
                 + r'\def\ReferenceSubtitle{\doclang{' + ('Synthetic component controls' if language == 'english' else 'בדיקות רכיבים סינתטיות') + '}}\n'
                 + r'\def\ReferenceAuthor{\doclang{' + ('Synthetic QA' if language == 'english' else 'בדיקה סינתטית') + '}}\n'
                 + r'\def\ReferenceDate{\en{2026}}' + '\n')
+    if family == 'index':
+        pre += r'\def\lakitindexcolumns{1}' + '\n'
     # Caption hooks are declared using their public signatures, then the
     # chosen theme may deliberately override these shared presentation hooks.
     pre += r'\input{preamble.tex}' + '\n'
@@ -338,6 +379,11 @@ def write_fixture(root: Path, project: Path, family: str, language: str) -> dict
         pre += declarations
     elif family == 'flow-tables':
         body = flow_body(language)
+    elif family == 'study':
+        pre += r'\renewcommand{\studyheadingstyle}[1]{\textbf{#1}}' + '\n'
+        body = study_body(language)
+    elif family == 'index':
+        body = index_body(language)
     elif family == 'reference-all':
         # Exercise mutable hooks at their supported presentation boundary,
         # keeping note bars and complete formula/QA frames deliberate.
@@ -354,7 +400,12 @@ def write_fixture(root: Path, project: Path, family: str, language: str) -> dict
         label = 'Synthetic source annotation' if language == 'english' else 'תווית מקור סינתטית'
         other = 'hebrew' if language == 'english' else 'english'
         minority_label = 'תווית מקור בעברית' if other == 'hebrew' else 'A local English source'
-        body += (rf'\glossaryentry{{{label}}}{{{minority_label}}}' + '\n'
+        # Definition locale selects the paragraph; minority terms remain inline
+        # islands. Exercise all four language pairs without fixed term columns.
+        body += (r'\glossaryentry[english]{Compiler}{Translates source code into another representation.}' + '\n'
+                 + r'\glossaryentry[hebrew]{מהדר}{מתרגם קוד מקור לייצוג אחר.}' + '\n'
+                 + r'\glossaryentry[hebrew]{\en{Compiler}}{המונח האנגלי למהדר.}' + '\n'
+                 + r'\glossaryentry[english]{\h{מהדר}}{The Hebrew term for a compiler.}' + '\n'
                  + rf'\sourcelink{{https://example.org/control?first=1&second=2\#part}}{{{label}}}{{{label}}}' + '\n'
                  + rf'\begin{{{other}prose}}\sourcelink{{https://example.org/local}}{{{minority_label}}}{{{minority_label}}}\end{{{other}prose}}' + '\n')
         body += (r'\begin{framedtable}[Compact controls]{2}{r>{\raggedright\arraybackslash}p{\framedtablewidth-3cm}}'
@@ -382,6 +433,8 @@ def write_fixture(root: Path, project: Path, family: str, language: str) -> dict
     settings = {'CONTENT_PROFILE': 'generic', 'EXPECTED_PAPER': 'a4'}
     if family in ('academic', 'reference-all'):
         settings.update(PDF_CAPTION_COLOR='000000', PDF_CAPTION_LABEL_WEIGHT='normal')
+    if family == 'index':
+        settings.update(INDEX_PROCESSOR='makeindex', INDEX_STYLE='index.ist')
     expected = {'required_tokens': [], 'uri_links': [], 'minimum_pages': 1}
     if family == 'source-links':
         expected['uri_links'] = ['https://example.org/control?first=1&second=2#part', 'https://example.org/local']
@@ -395,6 +448,13 @@ def write_fixture(root: Path, project: Path, family: str, language: str) -> dict
                                        'WARNINGBLOCK', 'QAQUESTION', 'QASOLUTION', 'USEFIELD',
                                        'CONDITIONSFIELD', 'SERIESQUESTION', 'SERIESPARTONE',
                                        'SERIESPARTTWO', 'REFERENCEEND', 'REFERENCEHEADER']
+    elif family == 'study':
+        expected.update(required_tokens=['STUDYORIGINAL', 'STUDYSECOND', 'STUDYOPEN', 'STUDYSOLUTIONSECOND'], minimum_pages=2,
+                        named_destinations=['hllstudyexercise.authored', 'hllstudyexercise.secondary',
+                                            'hllstudysolution.authored', 'hllstudysolution.secondary'])
+    elif family == 'index':
+        expected.update(required_tokens=['INDEXNATIVE', 'INDEXSECOND', 'INDEXRANGE'], minimum_pages=3,
+                        named_destinations=['page.1', 'page.2'])
     metadata = {'family': family, 'language': language, 'main_language': language,
             'architecture_assets': [by_name[name].path for name in assets],
             'public_usage': usage, 'indirect_public_usage': indirect,

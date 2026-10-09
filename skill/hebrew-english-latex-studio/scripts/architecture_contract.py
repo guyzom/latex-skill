@@ -45,7 +45,7 @@ class GuardRule:
     diagnostic: str
 
 
-ARCHITECTURE_SCHEMA_VERSION = 4
+ARCHITECTURE_SCHEMA_VERSION = 5
 
 
 @dataclass(frozen=True)
@@ -115,6 +115,8 @@ BUILD_ONLY_KEYS = (
     "MAX_CROSS_PAGE_DESTINATIONS",
     "SOURCE_DATE_EPOCH",
     "PDF_CAPTION_LABEL_WEIGHT",
+    "INDEX_PROCESSOR",
+    "INDEX_STYLE",
 )
 
 # Capability names describe behavior that other tools may need to reason about.
@@ -169,6 +171,13 @@ REFERENCE_COMPONENT_SYMBOLS = (
     "referencesolution", "referencepurpose", "referenceconditions",
     "referencefigcap", "referencetabcap",
     "referencefigure", "referencetable",
+)
+STUDY_COMPONENT_SYMBOLS = (
+    "studyexercise", "studysolution", "studyexerciseref", "studysolutionref",
+    "studyheadingstyle",
+)
+INDEX_COMPONENT_SYMBOLS = (
+    "lakitindex", "lakitindexrangebegin", "lakitindexrangeend", "lakitindexcolumns",
 )
 
 
@@ -273,6 +282,11 @@ HOOK_SPECS: tuple[HookSpec, ...] = (
     HookSpec(hook.name, hook.default_provider, "", "reference-presentation", "tex-style", "",
              "owner-runtime-default", default_kind="symbolic", preset_allowed=False)
     for hook in REFERENCE_STYLE_HOOK_SPECS
+)+ (
+    HookSpec("lakitindexcolumns", "assets/index_components.tex", "assets/index_components.tex",
+             "index-layout", "enum", "columns", "1", allowed_values=("1", "2"), preset_allowed=False),
+    HookSpec("studyheadingstyle", "assets/study_components.tex", "", "study-presentation", "tex-style", "",
+             "owner-runtime-default", default_kind="symbolic", preset_allowed=False),
 )
 
 # Every shipped TeX architecture asset has one owner and an explicit dependency
@@ -433,6 +447,28 @@ ASSET_SPECS: tuple[AssetSpec, ...] = (
         maintenance_sync=True,
         density_exempt=True,
         loaded_sentinel="hllpdfflowtablesloaded",
+    ),
+    AssetSpec(
+        "assets/study_components.tex",
+        "semantic-extension",
+        requires_roles=("mechanism-core",),
+        provides=("semantic.study-api",),
+        public_symbols=STUDY_COMPONENT_SYMBOLS,
+        runtime_requires=("assets/preamble.tex",),
+        maintenance_sync=True,
+        density_exempt=True,
+        loaded_sentinel="hllpdfstudycomponentsloaded",
+    ),
+    AssetSpec(
+        "assets/index_components.tex",
+        "semantic-extension",
+        requires_roles=("mechanism-core",),
+        provides=("semantic.index-api",),
+        public_symbols=INDEX_COMPONENT_SYMBOLS,
+        runtime_requires=("assets/preamble.tex",),
+        maintenance_sync=True,
+        density_exempt=True,
+        loaded_sentinel="hllpdfindexcomponentsloaded",
     ),
     AssetSpec(
         "assets/clean_variant.tex",
