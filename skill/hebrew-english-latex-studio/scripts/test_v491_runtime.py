@@ -399,4 +399,103 @@ class BibliographyParagraphRuntime(unittest.TestCase):
 
 
 
+def assert_reference_table_order(doc, language):
+    """Measure complete physical header/data order, keeping numeric pairs intact."""
+    names = doc.resolve_names()
+    target = names['tbl.2.1']
+    page = doc[target['page']]
+    rules = [path['rect'] for path in page.get_drawings()
+             if path['color'] == (0, 0, 0) and path['rect'].height < .1
+             and path['rect'].width > 20]
+    if len(rules) != 3:
+        raise AssertionError(('expected three natural table rules', rules))
+    bounds = fitz.Rect(min(r.x0 for r in rules) - .5, min(r.y0 for r in rules),
+                       max(r.x1 for r in rules) + .5, max(r.y1 for r in rules))
+    rows = {}
+    for block in page.get_text('rawdict')['blocks']:
+        for line in block.get('lines', []):
+            for span in line['spans']:
+                for char in span['chars']:
+                    x, y = char['origin']
+                    if bounds.x0 <= x <= bounds.x1 and bounds.y0 < y < bounds.y1:
+                        rows.setdefault(round(y, 1), []).append((x, char['c']))
+    physical = [''.join(c for x, c in sorted(row)).replace(' ', '')
+                for y, row in sorted(rows.items())]
+    expected = (['f(x)x', '52', '73', '94'] if language == 'hebrew'
+                else ['xf(x)', '25', '37', '49'])
+    if physical != expected:
+        raise AssertionError(('semantic input/key order', language, physical, expected))
+    # A wrong-order table must not be rejected merely because its link broke.
+    if target['page'] != 0 or not any(link.get('nameddest') == 'tbl.2.1'
+                                     for link in page.get_links()):
+        raise AssertionError('reference table navigation was not preserved')
+
+
+class ReferenceTableOrderRuntime(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        retained = os.environ.get('HLLPDF_REFERENCE_TABLE_EVIDENCE_DIR')
+        cls.tmp = None if retained else tempfile.TemporaryDirectory(prefix='hllpdf-reference-table-')
+        cls.root = Path(retained) if retained else Path(cls.tmp.name)
+        if retained:
+            cls.root.mkdir(parents=True, exist_ok=False)
+        for name in ('preamble.tex', 'document_components.tex', 'reader_theme.tex'):
+            shutil.copyfile(ROOT / 'assets' / name, cls.root / name)
+        fonts = str(font_dir())
+        cls.env = dict(os.environ, OSFONTDIR=fonts, TTFONTS=fonts+'//:',
+                       HEBREW_LATEX_FONT_DIR=fonts, SOURCE_DATE_EPOCH='1700000000',
+                       PYTHONDONTWRITEBYTECODE='1')
+        cls.env.pop('HEBREW_LATEX_PROJECT_ROOT', None)
+
+    @classmethod
+    def tearDownClass(cls):
+        if cls.tmp:
+            cls.tmp.cleanup()
+
+    def compile_fixture(self, name, source):
+        (self.root / (name+'.tex')).write_text(source, encoding='utf-8')
+        for step in range(3):
+            result = subprocess.run(['lualatex', '--no-shell-escape', '-halt-on-error',
+                                     '-interaction=nonstopmode', name+'.tex'],
+                                    cwd=self.root, env=self.env, capture_output=True,
+                                    text=True, timeout=120)
+            (self.root / (name+f'-pass{step+1}.log')).write_text(result.stdout+result.stderr)
+            self.assertEqual(result.returncode, 0, result.stdout[-5000:])
+            self.assertNotIn('Overfull ', result.stdout)
+        return self.root / (name+'.pdf')
+
+    def test_retained_reference_input_keys_follow_native_reading_edges(self):
+        hebrew = (ROOT / 'assets/example_references.tex').read_text()
+        self.assertEqual(hebrew.count(r'\begin{center}'), 1)
+        table = hebrew.split(r'\begin{center}', 1)[1].split(r'\end{center}', 1)[0]
+        # The English companion has the same semantic data and an independent
+        # English paragraph/caption shell, with the input first at the left.
+        english_table = table.replace(r'\en{$f(x)$}&\en{$x$}', r'\en{$x$}&\en{$f(x)$}')
+        for value, key in [('5', '2'), ('7', '3'), ('9', '4')]:
+            english_table = english_table.replace(fr'\en{{{value}}}&\en{{{key}}}',
+                                                   fr'\en{{{key}}}&\en{{{value}}}')
+        english_table = english_table.replace('ערכי הדגמה של הפונקציה', 'Function values')
+        english = (r'\def\lakitlanguageprofile{english}'+'\n'+HEADER
+                   +r'\begin{document}\section{Rule}\section{Objects}'
+                   +r'See \autoref{tab:values}.\begin{center}'+english_table
+                   +r'\end{center}\end{document}')
+        # Keep the explicit order context in both mutants. Reversing semantic
+        # columns is wrong independently of historical RTL tabular behavior.
+        bad_hebrew = hebrew.replace(table, english_table.replace('Function values', 'ערכי הדגמה של הפונקציה'), 1)
+        bad_english = english.replace(english_table, table.replace('ערכי הדגמה של הפונקציה', 'Function values'), 1)
+        for language, source, broken in [('hebrew', hebrew, bad_hebrew),
+                                        ('english', english, bad_english)]:
+            with self.subTest(language=language):
+                with fitz.open(self.compile_fixture(language, source)) as doc:
+                    assert_reference_table_order(doc, language)
+                with fitz.open(self.compile_fixture(language+'-wrong-order', broken)) as doc:
+                    # The mutant still has a valid label and clickable target;
+                    # its actual key/header/data positions alone must fail.
+                    self.assertEqual(doc.resolve_names()['tbl.2.1']['page'], 0)
+                    self.assertTrue(any(link.get('nameddest') == 'tbl.2.1'
+                                        for link in doc[0].get_links()))
+                    with self.assertRaisesRegex(AssertionError, 'semantic input/key order'):
+                        assert_reference_table_order(doc, language)
+
+
 if __name__ == '__main__': unittest.main(verbosity=2)

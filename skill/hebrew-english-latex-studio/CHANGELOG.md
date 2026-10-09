@@ -2,6 +2,12 @@
 
 ## v5.4.9
 
+The retained bilingual-reference example declares table order locally: the
+Hebrew function input/key sits at the physical right without changing the
+surrounding caption language or reference destination. Actual rendered row and
+header geometry is checked against both Hebrew and English reading order;
+independent wrong-order twins must fail while keeping their navigation intact.
+
 Terminology paragraphs now scope the definition language independently of the
 term, align Hebrew definitions to the physical right and English definitions
 to the physical left, and wrap naturally around one spaced em dash. The

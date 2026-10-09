@@ -84,7 +84,13 @@ apply to this **English-ordered local table**:
 Ordinary `tabular` and `longtable` can differ across enclosing languages and
 backends; do not infer their physical order or alignment from prose language
 alone. Do not reverse every column to repair a text-alignment defect. The
-`flowtable` H/E/N types have a separate enclosing-direction contract: they
+retained `example_references.tex` keeps its function input `x` at the Hebrew
+leading edge by declaring its short mathematical table in an explicit English
+column-order block, with `x` last. That block ends before the Hebrew caption.
+The English companion puts the input first. Check header and data-row positions
+together; a correct localized caption does not prove correct table order.
+
+The `flowtable` H/E/N types have a separate enclosing-direction contract: they
 already adapt Hebrew prose to the physical right, English prose to the physical
 left and numeric/token cells to the physical right. Do not invert their
 definitions or replace their direction-dependent alignment with the short-table

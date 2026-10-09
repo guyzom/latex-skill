@@ -37,12 +37,15 @@ starts at the left margin. The data appear in \autoref{tab:values}, on
 כשחוזרים לעברית, חוזרים גם כיוון הקריאה ושמות ההפניות. התוצאות מופיעות
 ב־\autoref{tab:values}, ב־\autopageref{tab:values}.
 \begin{center}
+% Explicit LTR column order: the Hebrew input/key x is declared last, at right.
+\begin{otherlanguage}{english}
 \begin{tabular}{@{}cc@{}}\toprule
 \en{$f(x)$}&\en{$x$}\\\midrule
 \en{5}&\en{2}\\
 \en{7}&\en{3}\\
 \en{9}&\en{4}\\\bottomrule
 \end{tabular}
+\end{otherlanguage}
 \tabcap{\label{tab:values}ערכי הדגמה של הפונקציה}
 \end{center}
 \begin{notebox}[frametitle={מה נבדק כאן}]
