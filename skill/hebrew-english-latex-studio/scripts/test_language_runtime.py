@@ -860,9 +860,20 @@ See \autoref{ch:en} and \autoref{app:en}.
         # Valid API call, successful engine build, deliberately wrong helper
         # locale selection. Mapped glyph geometry must reject its English edge.
         asset = (ROOT/'assets'/'document_components.tex').read_text()
+        # Other components may legitimately select Hebrew too. Mutate only
+        # the glossary helper, so a bibliography addition cannot redirect this
+        # negative control to an unrelated component.
+        header = r'\newcommand{\glossaryentry}[3][]{%'
+        self.assertEqual(asset.count(header),1)
+        start = asset.index(header)
+        end = asset.index('\n  \\endgroup}',start)+len('\n  \\endgroup}')
+        glossary = asset[start:end]
         old = r'\selectlanguage{hebrew}'
-        self.assertEqual(asset.count(old),1)
-        mutant = asset.replace(old,r'\selectlanguage{english}',1)
+        self.assertEqual(glossary.count(old),1)
+        mutated_glossary = glossary.replace(old,r'\selectlanguage{english}',1)
+        mutant = asset[:start]+mutated_glossary+asset[end:]
+        self.assertEqual(mutant[:start],asset[:start])
+        self.assertTrue(mutant.endswith(asset[end:]))
         source,records = glossary_runtime_fixture('bilingual','english')
         prefix = r'\glossaryentry[hebrew]{\en{Cache (L1)}}{שומר'
         self.assertEqual(source.count(prefix),1)
