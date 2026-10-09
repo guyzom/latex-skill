@@ -27,6 +27,7 @@ import unittest
 
 sys.dont_write_bytecode = True
 import fitz
+import check_bidi_figures as bidi
 import check_pdf_render as render
 import heading_source
 import render_review
@@ -201,7 +202,10 @@ def local_caption_fixture(main, body_size, *, old_size=False):
     source += r'\figcap[Figure short]{\label{fig:local}'+caption+r'\en{CAPFIG} '+('a second line of descriptive text.' if main=='english' else 'שורה נוספת של טקסט תיאורי.')+r'}\end{referencefigure}\par\columnbreak'+'\n'
     source += r'\begin{framedtable}[Fit short]{2}{rr}{'+caption+r'\en{CAPFIT} '+('a sufficiently long explanation that wraps within the column.' if main=='english' else 'הסבר נוסף שנשבר באופן טבעי בתוך הטור.')+r'}{tbl:local-fit}\toprule FITROWS & Value\\\midrule 001 & -12.50\\\bottomrule\end{framedtable}\par\columnbreak'+'\n'
     source += r'\begin{semanticframedtable}[Semantic short]{2}{rr}{'+caption+r'\en{CAPSEM} '+('a sufficiently long explanation that wraps within the column.' if main=='english' else 'הסבר נוסף שנשבר באופן טבעי בתוך הטור.')+r'}{tbl:local-semantic}\toprule SEMROWS & Value\\\midrule 001 & -12.50\\\bottomrule\end{semanticframedtable}'+'\n'
-    source += r'\end{referencecolumns}\par '+('See ' if main=='english' else 'ראו ')+r'\ref{tbl:local-open}, \ref{fig:local}, \ref{tbl:local-fit}, \ref{tbl:local-semantic}.\clearpage\listoftables\listoffigures\end{document}'+'\n'
+    references = r'\ref{tbl:local-open}, \ref{fig:local}, \ref{tbl:local-fit}, \ref{tbl:local-semantic}'
+    if main=='hebrew':
+        references = r'\en{'+references+'}'
+    source += r'\end{referencecolumns}\par '+('See ' if main=='english' else 'ראו ')+references+r'.\clearpage\listoftables\listoffigures\end{document}'+'\n'
     return source
 
 
@@ -1637,6 +1641,14 @@ class ReferenceRuntime(unittest.TestCase):
                     self.assertEqual(result.returncode,0,result.stdout[-3000:])
                     self.assertNotIn('Overfull ',result.stdout)
                     self.assertNotIn('Missing character:',result.stdout)
+                    self.assertEqual(bidi.scan_file(str(directory/'main.tex')), [])
+                    if main=='hebrew':
+                        sequence = r'\ref{tbl:local-open}, \ref{fig:local}, \ref{tbl:local-fit}, \ref{tbl:local-semantic}'
+                        unsafe = directory/'unsafe-reference-sequence.tex'
+                        unsafe.write_text(local_caption_fixture(main,size).replace(
+                            r'\en{'+sequence+'}', sequence), encoding='utf-8')
+                        self.assertIn('REF-RANGE-REORDER',
+                                      {code for _,code,_ in bidi.scan_file(str(unsafe))})
                     aux = (directory/'main.aux').read_text()
                     with fitz.open(directory/'main.pdf') as pdf:
                         assert_local_caption_size(pdf,size,main)
@@ -1650,6 +1662,13 @@ class ReferenceRuntime(unittest.TestCase):
                             for line in block.get('lines',[]) for span in line['spans']
                             if abs(span['size']-size)<.1)
                         self.assertGreaterEqual(tail.y0,column_ink_bottom)
+                        body_links = [link for link in pdf[0].get_links()
+                            if link.get('nameddest') in ('tbl.1','fig.1','tbl.2','tbl.3')
+                            and fitz.Rect(link['from']).y0>=tail.y0]
+                        self.assertEqual([link['nameddest'] for link in sorted(
+                            body_links,key=lambda link:fitz.Rect(link['from']).x0)],
+                            ['tbl.1','fig.1','tbl.2','tbl.3'],
+                            'the complete numeric reference sequence must read LTR in both locales')
                         for label,token in (('tbl:local-open','OPENROWS'),
                                             ('fig:local','FIGLOCAL'),
                                             ('tbl:local-fit','FITROWS'),
@@ -1668,6 +1687,7 @@ class ReferenceRuntime(unittest.TestCase):
                         for suffix,short in (('lot','Open short'),('lot','Fit short'),
                                              ('lot','Semantic short'),('lof','Figure short')):
                             self.assertEqual((directory/f'main.{suffix}').read_text().count(short),1)
+                    self.assert_caption_frame_ownership_controls(directory)
         # The old \small preset is a real compiled negative witness: navigation
         # remains valid, but the identical PDF typography policy rejects it.
         directory,result = self.compile('local-captions-old-size',
@@ -1687,6 +1707,67 @@ class ReferenceRuntime(unittest.TestCase):
         with fitz.open(directory/'main.pdf') as pdf:
             with self.assertRaisesRegex(AssertionError,'caption baseline differs from local body'):
                 assert_local_caption_size(pdf,9,'english')
+
+    def assert_caption_frame_ownership_controls(self,directory):
+        """An adjacent frame is unrelated; an anchor inside its own frame fails."""
+        positive = directory/'main.pdf'
+        negative = directory/'own-frame-anchor-below-top.pdf'
+        with fitz.open(positive) as pdf:
+            page = pdf[0]
+            captions = {(kind,number):box for kind,number,box in
+                        render.caption_sites(page,0,'normal')}
+            open_caption,own_caption = captions[('tbl','1')],captions[('tbl','2')]
+            own_center = fitz.Point((own_caption.x0+own_caption.x1)/2,
+                                    (own_caption.y0+own_caption.y1)/2)
+            hosts = [frame for frame in render.frames(page) if frame.contains(own_center)]
+            self.assertEqual(len(hosts),1)
+            frame = hosts[0]
+            self.assertLessEqual(frame.y0,(open_caption.y0+open_caption.y1)/2)
+            self.assertGreaterEqual(frame.y1,(open_caption.y0+open_caption.y1)/2)
+            self.assertLessEqual(min(frame.x1,open_caption.x1)
+                                 -max(frame.x0,open_caption.x0),0,
+                                 'the positive control must reproduce unrelated same-height columns')
+            _,_,open_y = render.caption_dests(pdf)['tbl.1']
+            self.assertGreater(open_y-frame.y0,render.FRAME_TOL,
+                               'the old vertical-only frame pairing must falsely reject this positive')
+            self.assertGreater(open_caption.y0-open_y,render.CAPTION_FLOOR)
+            hard,soft = [],[]
+            self.assertEqual(render.dest_landing(pdf,hard,soft,0,'normal'),4)
+            self.assertEqual((hard,soft),([],[]))
+            target,dx,original_y = render.caption_dests(pdf)['tbl.2']
+            self.assertEqual(target,0)
+            self.assertLessEqual(original_y,frame.y0+render.FRAME_TOL)
+            bad_y = frame.y0+5
+            self.assertGreater(own_caption.y0-bad_y,render.CAPTION_FLOOR)
+            # Mutate the actual fresh LuaLaTeX named destination, retaining all
+            # page ink and links. R6b remains healthy, so only real ownership
+            # can reject the five-point jump into the object's own frame.
+            references = [int(match.group(1)) for xref in range(1,pdf.xref_length())
+                for match in re.finditer(r'\(tbl\.2\)\s+(\d+)\s+0\s+R',pdf.xref_object(xref))]
+            self.assertEqual(len(references),1)
+            pdf.xref_set_key(references[0],'D',
+                f'[ {page.xref} 0 R /XYZ {dx:.6f} {page.cropbox.y1-bad_y:.6f} null ]')
+            pdf.save(negative)
+        with fitz.open(negative) as broken,fitz.open(positive) as clean:
+            self.assertEqual([page.get_pixmap(dpi=96).samples for page in broken],
+                             [page.get_pixmap(dpi=96).samples for page in clean],
+                             'the negative changes navigation, not page pixels')
+            self.assertAlmostEqual(render.caption_dests(broken)['tbl.2'][2],bad_y,places=3)
+            hard,soft = [],[]
+            self.assertEqual(render.dest_landing(broken,hard,soft,0,'normal'),4)
+            self.assertEqual(len(hard),1,hard)
+            self.assertEqual(hard[0][1],'DEST-INSIDE-TABLEBOX')
+            self.assertIn("'tbl.2'",hard[0][2])
+            self.assertEqual(soft,[])
+        (directory/'caption-frame-ownership-controls.json').write_text(json.dumps({
+            'open_caption':list(open_caption),'own_caption':list(own_caption),
+            'own_frame':list(frame),'original_anchor_y':original_y,'negative_anchor_y':bad_y,
+            'positive_pdf_sha256':hashlib.sha256(positive.read_bytes()).hexdigest(),
+            'negative_pdf_sha256':hashlib.sha256(negative.read_bytes()).hexdigest(),
+            'positive_outcome':'accepted-unrelated-same-height-column-frame',
+            'negative_outcome':'rejected-own-frame-anchor-five-points-below-top',
+            'negative_code':'DEST-INSIDE-TABLEBOX','page_pixels_unchanged':True},
+            ensure_ascii=False,indent=2)+'\n')
 
     def test_actual_pdf_render_gate_accepts_reference_layout_with_declared_caption_contract(self):
         for (profile, main), directory in self.directories.items():

@@ -14,6 +14,11 @@ figure/table lists preserve the list shell's number and page placement while
 retaining each entry's language and navigation.
 Density advisories recognize both optional table environments and describe
 natural-width tables without encouraging gray panels as a default.
+The navigation render gate matches caption labels to frames in both physical
+axes, so a table in a neighboring reference column cannot own an open table's
+anchor. Positive Hebrew reference fixtures keep comma-separated object references
+in one Latin island; actual link positions and displaced-anchor controls verify
+reading order and preserve detection of a jump inside its own frame.
 
 Actual-engine regressions exercise wrapping, physical glyph/column geometry,
 explicit style overrides, continuation rows and clickable destinations; historical
