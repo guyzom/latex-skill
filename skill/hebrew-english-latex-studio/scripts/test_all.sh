@@ -626,7 +626,7 @@ if python3 scripts/test_toc_layout.py >"$HARNESS_TMP/toc_geometry.log" 2>&1; the
 else bad "TOC geometry unit controls failed"; tail -25 "$HARNESS_TMP/toc_geometry.log"; fi
 if [ "${FAST:-0}" != "1" ]; then
   if python3 scripts/test_toc_layout.py --runtime >"$HARNESS_TMP/toc_runtime.log" 2>&1; then
-    ok "10 real-engine TOC/list controls cover 8 combinations, a mixed-language list and a broken mutant"
+    ok "13 real-engine TOC/list controls cover 8 combinations, mixed contents, native mixed caption lists and historical mutants"
   else bad "measured TOC runtime controls failed"; tail -40 "$HARNESS_TMP/toc_runtime.log"; fi
 fi
 

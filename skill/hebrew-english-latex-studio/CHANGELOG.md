@@ -1,5 +1,22 @@
 # Hebrew English LaTeX Studio — release metadata
 
+## v5.4.7
+
+Parenthetical subcaption labels remain intact before digit-leading Hebrew text.
+Optional subcaption defaults are applied when the package loads, preserving
+explicit package options and preamble styling. Default captions retain a smaller
+local body size and baseline instead of enlarging compact reference typography.
+Continuing-table notices no longer widen natural data columns. Mixed-language
+figure/table lists preserve the list shell's number and page placement while
+retaining each entry's language and navigation.
+Density advisories recognize both optional table environments and describe
+natural-width tables without encouraging gray panels as a default.
+
+Actual-engine regressions exercise wrapping, physical glyph/column geometry,
+explicit style overrides, continuation rows and clickable destinations; historical
+mutations must fail the corresponding checks. The existing scoped tooling license
+and template/third-party exclusions remain unchanged.
+
 ## v5.4.6
 
 Captions now use one regular black paragraph style and a colon separator in

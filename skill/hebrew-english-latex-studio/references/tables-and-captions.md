@@ -47,7 +47,9 @@ longtable can have different direction behavior across contexts/backends; do
 not infer column order from the prose language alone. A short table's natural
 rule width need not equal the paragraph or caption width. A frame is optional.
 `flowtable` deducts all outer/intercolumn padding from `\flowtablewidth`; its
-natural-width specifications are centered. Do not put it inside a frame/float.
+natural-width specifications are centered. Continuation notices have their own
+safe paragraph width rather than widening short data columns. Like a caption,
+a notice can be wider than the natural rules. Do not put it inside a frame/float.
 
 ## Wide unframed prose table
 
@@ -160,6 +162,10 @@ explicit `continuous` policy. The complete caption uses `\lakitcaptionstyle`;
 `\lakitcaptionlabelstyle` is retained as an identity compatibility hook.
 Caption hyperlinks keep their actions while inheriting the paragraph color;
 the local default also sets hyperlink colors to black.
+The class's `\small` preset is capped at the surrounding body size: a caption in
+9 pt or 6.3 pt reference text retains that local size and baseline instead of
+growing to the class's larger preset. This is a local typography policy, not an
+overflow remedy. A deliberate whole-paragraph override remains possible.
 Choose a deliberate whole-paragraph override for a requested template rather
 than styling its label independently. Preserve math fonts and appropriate
 Hebrew/Latin faces within the same family/size policy.
@@ -170,8 +176,24 @@ caption argument. Frameless tables target the measured table top; the historical
 frame cushion applies only within `tablebox`. Check that a reference lands at its
 own table rather than above the preceding heading. Native `\caption` / `\captionof` use the caption package's
 own counters and anchors; optional subcaption inherits the paragraph font.
+For a new document, choose custom or native captions consistently for each
+object kind. They are distinct counter APIs; mixing them does not create one
+shared sequence. Preserve an existing project's declared numbering policy.
 Do not manually synchronize counters or duplicate labels/list entries.
 `flowtable` shares the custom table counter but retains its native top anchor.
+
+Load optional `subcaption` after the core. Its default `(a): Description` label
+is isolated as a complete Latin parenthetical sequence, so a digit-leading
+Hebrew description cannot collect a label parenthesis. Explicit package options
+and later `\captionsetup[sub]{...}` override defaults; the core does not reset
+them at document start. For a requested template, apply the font to the complete
+paragraph. Check both single-line and wrapping subcaptions, including mathematics.
+
+Figure/table lists follow the language of the list's paragraph shell. An English
+entry in a Hebrew list must keep its object number on the right and its page
+number on the left; a Hebrew entry in an English list retains the LTR shell.
+The entry's text still uses its authored language. Inspect both physical placement
+and clickable targets rather than inferring reading order from extracted text.
 
 Long captions wrap normally. Avoid manual line breaks, label-only colors,
 incidental `\textbf`/`\sffamily` or a second size in the description. Explicit

@@ -421,8 +421,9 @@ Use `\referencefigcap[short list entry]{caption}` and
 `\referencetabcap[short list entry]{caption}` immediately after the object
 inside its container. Put `\label{...}` first inside the full caption. These
 thin core delegates retain the actual counters, destinations, reference text
-and optional list entries, while inheriting the local body size rather than
-the core caption's fixed `\small` size. Keep a table caption immediately after
+and optional list entries, while inheriting the local body size. The core default
+also caps its small preset at a smaller local body size, so optional framed tables
+inside columns do not enlarge their captions. Keep a table caption immediately after
 `\end{tabular}` while the same centering context is still active, so the core
 can locate the table itself. For example:
 

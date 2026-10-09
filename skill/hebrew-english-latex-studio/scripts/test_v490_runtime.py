@@ -103,6 +103,50 @@ def numeric_column(doc):
     return out
 
 
+def compact_flow_fixture(main, *, long_notice=False):
+    """Natural values and a spanning continuation sentence have separate widths."""
+    source = (fr'\def\lakitlanguageprofile{{{main}}}'+'\n'
+        +r'\def\lakitdocumentclass{article}\def\lakitclassoptions{11pt,a4paper}'+'\n'
+        +r'\def\lakitgeometryoptions{paperwidth=148mm,paperheight=210mm,margin=18mm,headheight=14pt}'+'\n'
+        +r'\input{preamble.tex}\input{flow_tables.tex}'+'\n')
+    if long_notice:
+        # An intentionally long localized footer must wrap without changing
+        # physical cell widths or clipping its text beyond the local margins.
+        source += (r'\makeatletter\let\originalflowcontinuation\hllpdf@flowcontinuation'
+            +r'\renewcommand{\hllpdf@flowcontinuation}[2]{\originalflowcontinuation{#1}{#2 '
+            +(r'\en{NOTICEWORD More records follow; retain the column headings and their source order.}'
+              if main=='english' else r'\h{רשומות נוספות מופיעות בהמשך; יש לשמור על כותרות העמודות ועל סדר הנתונים.} \en{NOTICEWORD}')
+            +r'}}\makeatother'+'\n')
+    # 1006 is one of the widest actual IDs in the proportional Hebrew face;
+    # the English tabular figures have the same width for every four-digit ID.
+    rows = r'\toprule\en{ID}&\en{Value}\\\midrule\en{1006}&\en{-12.50}\\\bottomrule'
+    source += (r'\begin{document}\section{\en{Compact natural table control}}'
+               +r'\begin{center}\begin{tabular}{rr}'+rows+r'\end{tabular}\end{center}\clearpage'
+               +r'\begin{flowtable}{2}{rr}{\en{FLOWCAPTION Compact continuing records.}}{tab:compact}{\en{ID}&\en{Value}}'+'\n')
+    source += '\n'.join(fr'\en{{{1000+i}}}&\en{{-12.50}}\\' for i in range(1,75))
+    return source+'\n'+r'\end{flowtable}'+('See ' if main=='english' else 'ראו ')+r'\ref{tab:compact}.\clearpage\listoftables\end{document}'+'\n'
+
+
+def natural_rule_widths(doc):
+    """Measure black horizontal table rule ink from the produced PDF."""
+    widths = []
+    for page in doc:
+        widths.append([abs(item[2].x-item[1].x)
+            for path in page.get_drawings() if path['color']==(0,0,0)
+            for item in path['items'] if item[0]=='l'
+            and abs(item[2].y-item[1].y)<.05 and abs(item[2].x-item[1].x)>20])
+    return widths
+
+
+def assert_natural_flow_widths(doc):
+    widths = natural_rule_widths(doc)
+    if not widths[0] or not any(widths[1:]):
+        raise AssertionError(('missing physical table rules',widths))
+    natural = widths[0][0]
+    if any(abs(width-natural)>.15 for page_widths in widths for width in page_widths):
+        raise AssertionError(('continuation notice widened natural columns',natural,widths))
+
+
 class Runtime490Tests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -165,6 +209,74 @@ class Runtime490Tests(unittest.TestCase):
             self.assertGreaterEqual(y_top, 0)
             self.assertEqual(names['table.A.1']['page'], next(i for i,p in enumerate(doc) if '2001' in p.get_text()))
             self.assertTrue(any(link.get('nameddest') == 'table.1.2' for p in doc for link in p.get_links()))
+
+    def test_compact_continuation_notices_do_not_widen_cells_or_collide_with_rules(self):
+        for main,long_notice in (('english',False),('hebrew',False),('english',True),('hebrew',True)):
+            name = 'natural-flow-'+main+('-wrapped' if long_notice else '')
+            result = self.compile(compact_flow_fixture(main,long_notice=long_notice),name,passes=3)
+            with self.subTest(main=main,long_notice=long_notice):
+                self.assertEqual(result.returncode,0,result.stdout[-5000:])
+                self.assertNotIn('Overfull ',result.stdout)
+                with fitz.open(self.root/(name+'.pdf')) as doc:
+                    assert_natural_flow_widths(doc)
+                    text = '\n'.join(page.get_text() for page in doc[1:])
+                    for i in range(1,75):
+                        self.assertEqual(text.count(str(1000+i)),1)
+                    physical_ids = []
+                    physical_values = []
+                    for page in doc[1:]:
+                        rows = []
+                        for block in page.get_text('rawdict')['blocks']:
+                            for line in block.get('lines',[]):
+                                for span in line['spans']:
+                                    glyphs = sorted(span['chars'],key=lambda c:c['origin'][0])
+                                    value = ''.join(c['c'] for c in glyphs).strip()
+                                    if re.fullmatch(r'10\d{2}',value):
+                                        rows.append((glyphs[0]['origin'][1],value))
+                                    if value=='-12.50': physical_values.append(value)
+                        physical_ids.extend(value for _,value in sorted(rows))
+                    self.assertEqual(physical_ids,[str(1000+i) for i in range(1,75)])
+                    self.assertEqual(len(physical_values),74)
+                    target = doc.resolve_names()['table.1.1']
+                    self.assertEqual(target['page'],1)
+                    self.assertTrue(any(link.get('nameddest')=='table.1.1'
+                                        for page in doc for link in page.get_links()))
+                    self.assertEqual((self.root/(name+'.lot')).read_text().count('FLOWCAPTION'),1)
+                    for page_index,page in enumerate(doc):
+                        table_rules = [path['rect'] for path in page.get_drawings()
+                                       if path['color']==(0,0,0)
+                                       and path['rect'].height<.05 and path['rect'].width>20]
+                        for block in page.get_text('dict')['blocks']:
+                            for line in block.get('lines',[]):
+                                box = fitz.Rect(line['bbox'])
+                                self.assertGreaterEqual(box.x0,18/25.4*72-1)
+                                self.assertLessEqual(box.x1,page.rect.width-18/25.4*72+1)
+                                for rule in table_rules:
+                                    if box.x1>rule.x0 and box.x0<rule.x1:
+                                        self.assertFalse(box.y0<rule.y0<box.y1,
+                                                         (page_index,line,rule))
+                    if long_notice:
+                        # The added sentence actually spans lines, rather than
+                        # being silently omitted to pass the width check.
+                        self.assertGreater(text.count('NOTICEWORD'),1)
+        path = self.root/'flow_tables.tex'; original = path.read_text()
+        begin = original.index(r'\newcommand{\hllpdf@flowcontinuation}[2]')
+        end = original.index('\n% flowtable{',begin)
+        broken = original[:begin]+r'\newcommand{\hllpdf@flowcontinuation}[2]{\multicolumn{#1}{c}{#2}}'+original[end:]
+        try:
+            path.write_text(broken)
+            result = self.compile(compact_flow_fixture('english'),'natural-flow-old-notice',passes=3)
+            self.assertEqual(result.returncode,0,result.stdout[-3000:])
+            with fitz.open(self.root/'natural-flow-old-notice.pdf') as doc:
+                with self.assertRaisesRegex(AssertionError,'notice widened natural columns'):
+                    assert_natural_flow_widths(doc)
+                # The negative retains every record and the native destination;
+                # its rejection measures the rendered width defect alone.
+                self.assertEqual(doc.resolve_names()['table.1.1']['page'],1)
+                text = '\n'.join(page.get_text() for page in doc[1:])
+                for i in range(1,75): self.assertEqual(text.count(str(1000+i)),1)
+        finally:
+            path.write_text(original)
 
     @requires_reproduction_engine
     def test_raw_hbox_column_reproduces_digit_reversal(self):

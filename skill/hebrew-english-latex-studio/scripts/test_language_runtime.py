@@ -458,6 +458,175 @@ See \autoref{ch:en} and \autoref{app:en}.
                                       str(directory/'main.pdf')], capture_output=True, text=True)
                 self.assertEqual(nav.returncode,0,nav.stdout+nav.stderr)
 
+    def test_subcaption_rtl_labels_and_explicit_preamble_styles(self):
+        def caption_source(main):
+            other = 'english' if main == 'hebrew' else 'hebrew'
+            source = profile_header(main+'-with-'+other, main)
+            source += r'\usepackage{subcaption}\begin{document}'+'\n'
+            for locale, marker in ((main, 'SUBBASE'), (other, 'SUBMINORITY')):
+                if locale != main:
+                    source += fr'\begin{{{locale}prose}}'+'\n'
+                description = (r'32 records \en{'+marker+r'} preserve $x^2$ and \h{תוצאה}. '
+                               if locale == 'english' else
+                               r'32 רשומות \en{'+marker+r'} שומרות $x^2$ ועם \en{LLVM}. ')
+                source += (r'\begin{figure}[H]\centering'
+                    + r'\begin{subfigure}{.8\linewidth}\centering\rule{2cm}{1cm}'
+                    + r'\caption{'+description*6+r'}\label{sub:'+marker+r'}\end{subfigure}'
+                    + r'\caption{\en{Parent '+marker+r'}}\label{fig:'+marker+r'}\end{figure}'+'\n')
+                if locale != main:
+                    source += fr'\end{{{locale}prose}}'+'\n'
+                source += r'\clearpage'+'\n'
+            return (source+r'\en{References: \subref{sub:SUBBASE}, '
+                    + r'\subref{sub:SUBMINORITY}, \ref{fig:SUBBASE}.}\listoffigures\end{document}')
+
+        def assert_sub_label(pdf, marker):
+            with fitz.open(pdf) as doc:
+                for page in doc:
+                    raw = [c for b in page.get_text('rawdict')['blocks']
+                           for l in b.get('lines', []) for s in l['spans'] for c in s['chars']]
+                    spans = [s for b in page.get_text('dict')['blocks']
+                             for l in b.get('lines', []) for s in l['spans']]
+                    hits = [s for s in spans if marker in s['text']]
+                    if not hits:
+                        continue
+                    # The first marker occurrence is the caption, before lists.
+                    baseline = hits[0]['origin'][1]
+                    row = [c for c in raw if abs(c['origin'][1]-baseline) < .2]
+                    openings = [c for c in row if c['c'] == '(']
+                    closings = [c for c in row if c['c'] == ')']
+                    if len(openings) != 1 or len(closings) != 1:
+                        continue
+                    self.assertLess(openings[0]['bbox'][0], closings[0]['bbox'][0],
+                                    ('SUBCAPTION-PARENTHESIS-ORDER', marker, openings, closings))
+                    letters = [c for c in row if c['c'] == 'a'
+                               and openings[0]['bbox'][0] < c['bbox'][0] < closings[0]['bbox'][0]]
+                    self.assertEqual(len(letters), 1, ('SUBCAPTION-LABEL-ISOLATION', marker, row))
+                    self.assertEqual(hits[0]['color'], 0)
+                    self.assertFalse(hits[0]['flags'] & 16)
+                    self.assertAlmostEqual(hits[0]['size'], 9.96264, delta=.12)
+                    return
+            self.fail(('SUBCAPTION-MARKER-NOT-FOUND', marker, str(pdf)))
+
+        for main in ('hebrew', 'english'):
+            source = caption_source(main)
+            result, directory = self.compile(source, 'subcaption-direction-'+main, passes=3)
+            self.assertEqual(result.returncode, 0, result.stdout[-6000:])
+            self.assertNotIn('Overfull', (directory/'main.log').read_text())
+            for marker in ('SUBBASE', 'SUBMINORITY'):
+                assert_sub_label(directory/'main.pdf', marker)
+            navigation = subprocess.run([sys.executable, str(ROOT/'scripts/check_pdf_navigation.py'),
+                                         str(directory/'main.pdf')], capture_output=True, text=True)
+            self.assertEqual(navigation.returncode, 0, navigation.stdout+navigation.stderr)
+            broken, mutant = self.compile(source, 'subcaption-unisolated-'+main, passes=3,
+                mutate=lambda tex: tex.replace(
+                    r'\DeclareCaptionLabelFormat{lakit-sub}{\mbox{\lakitcaptionlabelstyle{\en{(#2)}}}}',
+                    r'\DeclareCaptionLabelFormat{lakit-sub}{(#2)}'))
+            self.assertEqual(broken.returncode, 0, broken.stdout[-6000:])
+            hebrew_marker = 'SUBBASE' if main == 'hebrew' else 'SUBMINORITY'
+            with self.assertRaisesRegex(AssertionError, 'SUBCAPTION-PARENTHESIS-ORDER'):
+                assert_sub_label(mutant/'main.pdf', hebrew_marker)
+
+        def local_native_source(main, size):
+            other = 'english' if main == 'hebrew' else 'hebrew'
+            baseline = '8' if size == '6.3' else '12'
+            select = fr'\fontsize{{{size}}}{{{baseline}}}\selectfont'
+            text = ('Local records preserve mathematics $x^2$ and '+r'\h{תוצאה}. '
+                    if main == 'english' else
+                    r'רשומות מקומיות שומרות $x^2$ ועם \en{LLVM}. ')
+            return (profile_header(main+'-with-'+other, main)
+                + r'\usepackage{subcaption}\begin{document}'+select+'\n'
+                + r'\noindent\en{BODYLOCAL}\newline\en{BODYSECOND}\par'+'\n'
+                + r'\makeatletter\typeout{LOCALBASE|\f@size|\the\baselineskip|\f@baselineskip}'
+                + r'{\lakitcaptionstyle\typeout{LOCALSTYLE|\f@size|\the\baselineskip|\f@baselineskip}'
+                + r'\en{DIRECTLOCAL}\newline\en{DIRECTSECOND}\par}\makeatother'+'\n'
+                + r'\begin{center}\rule{2cm}{1cm}\captionof{figure}{\en{NATSHORT} '+text+r'}\label{native:short}\end{center}'+'\n'
+                + r'\begin{minipage}{.55\linewidth}\centering'+select+r'\rule{2cm}{1cm}'
+                + r'\captionof{table}{\en{NATLONG} '+text*7+r'}\label{native:long}\end{minipage}'+'\n'
+                + r'\begin{figure}[H]\centering'+select
+                + r'\begin{subfigure}{.65\linewidth}\centering'+select+r'\rule{2cm}{1cm}'
+                + r'\caption{\en{SUBLOCAL} '+text*5+r'}\label{native:sub}\end{subfigure}'
+                + r'\caption{\en{PARENTLOCAL} '+text*3+r'}\label{native:parent}\end{figure}'+'\n'
+                + r'\en{AFTERLOCAL}\par\makeatletter'
+                + r'\ifdefined\hllpdf@nativecaptionfontsize\typeout{NATIVECAPTURE-LEAK}\fi'
+                + r'\makeatother\en{References: \ref{native:short}, \ref{native:long}, '
+                + r'\subref{native:sub}, \ref{native:parent}.}\end{document}')
+
+        def assert_local_native(directory, size, check_baseline=True):
+            log = (directory/'main.log').read_text()
+            self.assertNotIn('NATIVECAPTURE-LEAK', log)
+            self.assertNotIn('Overfull', log)
+            with fitz.open(directory/'main.pdf') as doc:
+                spans = [s for page in doc for b in page.get_text('dict')['blocks']
+                         for l in b.get('lines', []) for s in l['spans']]
+                if check_baseline:
+                    def baseline(marker):
+                        hits = [s for s in spans if marker in s['text']]
+                        self.assertEqual(len(hits), 1, marker)
+                        return hits[0]['origin'][1]
+                    body_step = baseline('BODYSECOND')-baseline('BODYLOCAL')
+                    caption_step = baseline('DIRECTSECOND')-baseline('DIRECTLOCAL')
+                    self.assertAlmostEqual(body_step, caption_step, delta=.02,
+                                           msg='CAPTION-BASELINE-STRETCH-APPLIED-TWICE')
+                for marker in ('BODYLOCAL', 'BODYSECOND', 'DIRECTLOCAL', 'DIRECTSECOND',
+                               'NATSHORT', 'NATLONG', 'SUBLOCAL', 'PARENTLOCAL', 'AFTERLOCAL'):
+                    hits = [s for s in spans if marker in s['text']]
+                    self.assertTrue(hits, marker)
+                    for span in hits:
+                        self.assertAlmostEqual(span['size'], float(size)*72/72.27, delta=.12,
+                                               msg='NATIVE-CAPTION-LOCAL-SIZE: '+marker)
+                        self.assertEqual(span['color'], 0)
+                        self.assertFalse(span['flags'] & 16)
+            nav = subprocess.run([sys.executable, str(ROOT/'scripts/check_pdf_navigation.py'),
+                                  str(directory/'main.pdf')], capture_output=True, text=True)
+            self.assertEqual(nav.returncode, 0, nav.stdout+nav.stderr)
+
+        for main in ('hebrew', 'english'):
+            for size in ('6.3', '9'):
+                source = local_native_source(main, size)
+                result, directory = self.compile(source, 'native-local-'+main+'-'+size, passes=3)
+                self.assertEqual(result.returncode, 0, result.stdout[-6000:])
+                assert_local_native(directory, size)
+        source = local_native_source('english', '6.3')
+        capture = (r'\AddToHook{cmd/caption@begin/after}{%'+'\n'
+                   + r'  \edef\hllpdf@nativecaptionfontsize{\f@size}%'+'\n'
+                   + r'  \edef\hllpdf@nativecaptionbaseline{\f@baselineskip}}')
+        result, mutant = self.compile(source, 'native-local-reset-mutant', passes=3,
+            mutate=lambda tex: tex.replace(capture, r'\AddToHook{cmd/caption@begin/after}{}'))
+        self.assertEqual(result.returncode, 0, result.stdout[-6000:])
+        with self.assertRaisesRegex(AssertionError, 'NATIVE-CAPTION-LOCAL-SIZE'):
+            assert_local_native(mutant, '6.3')
+        result, mutant = self.compile(source, 'caption-baseline-stretch-mutant', passes=3,
+            mutate=lambda tex: tex.replace(r'\edef\hllpdf@captionbaseline{\f@baselineskip}%',
+                                          r'\edef\hllpdf@captionbaseline{\the\baselineskip}%'))
+        self.assertEqual(result.returncode, 0, result.stdout[-6000:])
+        with self.assertRaisesRegex(AssertionError, 'CAPTION-BASELINE-STRETCH-APPLIED-TWICE'):
+            assert_local_native(mutant, '6.3')
+
+        # An explicit template may choose a different size, separator or label
+        # format. Both pre-core options and normal later setup must remain final.
+        options = 'font=Large,labelsep=period,labelformat=simple'
+        for mode in ('early-options', 'package-options', 'preamble-setup'):
+            prefix = (fr'\PassOptionsToPackage{{{options}}}{{subcaption}}'+'\n'
+                      if mode == 'early-options' else '')
+            package = (fr'\usepackage[{options}]{{subcaption}}'
+                       if mode == 'package-options' else r'\usepackage{subcaption}')
+            setup = fr'\captionsetup[sub]{{{options}}}' if mode == 'preamble-setup' else ''
+            source = (prefix+profile_header('english', 'english')+package+setup+'\n'
+                + r'\begin{document}\fontsize{6.3}{8}\selectfont\begin{figure}[H]\centering\fontsize{6.3}{8}\selectfont'
+                + r'\begin{subfigure}{.85\linewidth}\centering\fontsize{6.3}{8}\selectfont\rule{2cm}{1cm}'
+                + r'\caption{REQUESTEDSTYLE Explicit template.}\end{subfigure}'
+                + r'\caption{Parent caption.}\end{figure}\end{document}')
+            result, directory = self.compile(source, 'subcaption-explicit-'+mode, passes=1)
+            self.assertEqual(result.returncode, 0, result.stdout[-6000:])
+            with fitz.open(directory/'main.pdf') as doc:
+                spans = [s for p in doc for b in p.get_text('dict')['blocks']
+                         for l in b.get('lines', []) for s in l['spans']]
+                requested = [s for s in spans if 'REQUESTEDSTYLE' in s['text']]
+                self.assertEqual(len(requested), 1)
+                self.assertAlmostEqual(requested[0]['size'], 14.3462, delta=.12)
+                self.assertIn('a. REQUESTEDSTYLE', requested[0]['text'])
+                self.assertNotIn('(a)', requested[0]['text'])
+
     def test_hebrew_data_starter_aligns_prose_and_numeric_columns(self):
         source = (ROOT/'assets/starter_data_report.tex').read_text()
         result, directory = self.compile(source, 'data-starter-alignment', passes=3)

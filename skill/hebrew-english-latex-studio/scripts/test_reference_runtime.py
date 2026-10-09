@@ -182,6 +182,64 @@ def local_callout_fixture(profile, main):
     return source+r'\end{referencecolumns}\end{document}'+'\n'
 
 
+def local_caption_fixture(main, body_size, *, old_size=False):
+    """Bare and opt-in frame captions must follow the authored local type size."""
+    layers = ('document_components.tex',) + ASSETS[1:]
+    source = header(main+'-with-'+('hebrew' if main=='english' else 'english'), main,
+                    options='12pt,a4paper', layers=layers,
+                    body_font_size=str(body_size), body_baseline=str(body_size*1.25))
+    if old_size:
+        source += r'\renewcommand{\lakitcaptionstyle}{\normalfont\small\color{black}\hypersetup{allcolors=black}}'+'\n'
+    caption = (r'A wrapped caption with \h{עברית}, the model $x^2$ and '
+               if main=='english' else
+               r'כיתוב ארוך עם \en{English}, המודל \en{$x^2$} ועם ')
+    source += r'\begin{document}\section{'+('Local caption controls' if main=='english' else 'בדיקת כיתובים מקומיים')+r'}\begin{referencecolumns}[3]'+'\n'
+    source += prose(main,'BODYLOCAL')
+    source += r'\begin{center}\begin{otherlanguage}{english}\begin{tabular}{rr}\toprule OPENROWS & Value\\\midrule 001 & -12.50\\\bottomrule\end{tabular}\end{otherlanguage}'+'\n'
+    source += r'\tabcap[Open short]{\label{tbl:local-open}'+caption+r'\en{CAPOPEN} '+('a sufficiently long explanation that wraps within the column.' if main=='english' else 'הסבר נוסף שנשבר באופן טבעי בתוך הטור.')+r'}\end{center}'+'\n'
+    source += r'\begin{referencefigure}\begin{tikzpic}\begin{tikzpicture}\draw(0,0)rectangle(2,.6);\node at(1,.3){\en{FIGLOCAL}};\end{tikzpicture}\end{tikzpic}'+'\n'
+    source += r'\figcap[Figure short]{\label{fig:local}'+caption+r'\en{CAPFIG} '+('a second line of descriptive text.' if main=='english' else 'שורה נוספת של טקסט תיאורי.')+r'}\end{referencefigure}\par\columnbreak'+'\n'
+    source += r'\begin{framedtable}[Fit short]{2}{rr}{'+caption+r'\en{CAPFIT} '+('a sufficiently long explanation that wraps within the column.' if main=='english' else 'הסבר נוסף שנשבר באופן טבעי בתוך הטור.')+r'}{tbl:local-fit}\toprule FITROWS & Value\\\midrule 001 & -12.50\\\bottomrule\end{framedtable}\par\columnbreak'+'\n'
+    source += r'\begin{semanticframedtable}[Semantic short]{2}{rr}{'+caption+r'\en{CAPSEM} '+('a sufficiently long explanation that wraps within the column.' if main=='english' else 'הסבר נוסף שנשבר באופן טבעי בתוך הטור.')+r'}{tbl:local-semantic}\toprule SEMROWS & Value\\\midrule 001 & -12.50\\\bottomrule\end{semanticframedtable}'+'\n'
+    source += r'\end{referencecolumns}\par '+('See ' if main=='english' else 'ראו ')+r'\ref{tbl:local-open}, \ref{fig:local}, \ref{tbl:local-fit}, \ref{tbl:local-semantic}.\clearpage\listoftables\listoffigures\end{document}'+'\n'
+    return source
+
+
+def assert_local_caption_size(pdf, declared_size, main):
+    """Measure actual caption prose glyphs, independent of TeX macro spelling."""
+    for token in ('CAPOPEN','CAPFIG','CAPFIT','CAPSEM'):
+        page_index, token_box = exact_occurrence(pdf,token)
+        spans = [span for block in pdf[page_index].get_text('dict')['blocks']
+                 for line in block.get('lines',[]) for span in line['spans']
+                 if fitz.Rect(span['bbox']).intersects(token_box)]
+        if not spans or any(abs(span['size']-declared_size)>.1 for span in spans):
+            raise AssertionError(('caption enlarged beyond local body',token,
+                                  declared_size,[span['size'] for span in spans]))
+        if any(span['color']!=0 or any(weight in span['font'].lower()
+                                     for weight in ('bold','italic')) for span in spans):
+            raise AssertionError(('caption prose style differs',token,spans))
+    # A local size restoration must restore the raw NFSS baseline. Capturing
+    # effective \baselineskip and feeding it to \fontsize applies linespread
+    # twice, visibly inflating the same paragraph despite correct glyph sizes.
+    page_index,token_box = exact_occurrence(pdf,'CAPFIT')
+    page = pdf[page_index]
+    prose_font = next(span['font'] for block in page.get_text('dict')['blocks']
+        for line in block.get('lines',[]) for span in line['spans']
+        if 'CAPFIT' in span['text'])
+    start = next(site.y0 for kind,number,site in render.caption_sites(page,0,'normal')
+                 if (kind,number)==('tbl','2'))
+    baselines = sorted({round(span['origin'][1],2)
+        for block in page.get_text('dict')['blocks']
+        for line in block.get('lines',[]) for span in line['spans']
+        if span['font']==prose_font and span['text'].strip()
+        and abs(span['size']-declared_size)<.1 and span['bbox'][1]>=start-.2
+        and column_index(page,fitz.Rect(span['bbox']),3,main)==1})
+    expected = declared_size*1.25*1.3*72/72.27
+    gaps = [after-before for before,after in zip(baselines,baselines[1:])]
+    if not gaps or any(abs(gap-expected)>.2 for gap in gaps):
+        raise AssertionError(('caption baseline differs from local body',expected,gaps))
+
+
 def occurrences(pdf, token):
     return [(index, box) for index, page in enumerate(pdf) for box in page.search_for(token)]
 
@@ -1567,6 +1625,65 @@ class ReferenceRuntime(unittest.TestCase):
                 path.read_bytes()).hexdigest(),'added_line':[left,y,right,y],
                 'target_background':list(box),'target_language':note['language']})
         return records
+
+    def test_bare_and_framed_captions_keep_local_reference_size_and_navigation(self):
+        assets = ASSETS + ('document_components.tex',)
+        for main in ('english','hebrew'):
+            for size in (9,6.3):
+                name = f'local-captions-{main}-{size}'
+                directory,result = self.compile(name,local_caption_fixture(main,size),
+                                                passes=3,assets=assets)
+                with self.subTest(main=main,size=size):
+                    self.assertEqual(result.returncode,0,result.stdout[-3000:])
+                    self.assertNotIn('Overfull ',result.stdout)
+                    self.assertNotIn('Missing character:',result.stdout)
+                    aux = (directory/'main.aux').read_text()
+                    with fitz.open(directory/'main.pdf') as pdf:
+                        assert_local_caption_size(pdf,size,main)
+                        tail = pdf[0].search_for('See' if main=='english' else 'ראו')
+                        self.assertEqual(len(tail),1)
+                        column_ink_bottom = max(span['bbox'][3]
+                            for block in pdf[0].get_text('dict')['blocks']
+                            for line in block.get('lines',[]) for span in line['spans']
+                            if abs(span['size']-size)<.1)
+                        self.assertGreaterEqual(tail[0].y0,column_ink_bottom)
+                        for label,token in (('tbl:local-open','OPENROWS'),
+                                            ('fig:local','FIGLOCAL'),
+                                            ('tbl:local-fit','FITROWS'),
+                                            ('tbl:local-semantic','SEMROWS')):
+                            fields = label_fields(aux,label)
+                            page_index,object_box = exact_occurrence(pdf,token)
+                            target,_,y = pdf.resolve_link('#nameddest='+fields[4])
+                            self.assertEqual(target,page_index)
+                            self.assertLess(y,object_box.y1)
+                            self.assertGreaterEqual(y,0)
+                            links = [(page,link) for page in pdf for link in page.get_links()
+                                     if link.get('nameddest')==fields[4]]
+                            self.assertGreaterEqual(len(links),2)  # body reference and native list
+                            for page,link in links:
+                                self.assertEqual(link.get('page',target),target)
+                        for suffix,short in (('lot','Open short'),('lot','Fit short'),
+                                             ('lot','Semantic short'),('lof','Figure short')):
+                            self.assertEqual((directory/f'main.{suffix}').read_text().count(short),1)
+        # The old \small preset is a real compiled negative witness: navigation
+        # remains valid, but the identical PDF typography policy rejects it.
+        directory,result = self.compile('local-captions-old-size',
+            local_caption_fixture('english',6.3,old_size=True),passes=3,assets=assets)
+        self.assertEqual(result.returncode,0,result.stdout[-3000:])
+        with fitz.open(directory/'main.pdf') as pdf:
+            with self.assertRaisesRegex(AssertionError,'caption enlarged beyond local body'):
+                assert_local_caption_size(pdf,6.3,'english')
+        inflated = local_caption_fixture('english',9).replace(r'\begin{document}',
+            r'\makeatletter\renewcommand{\lakitcaptionstyle}{%'
+            +'\n'+r'\edef\qaCaptionSize{\f@size}\edef\qaCaptionBaseline{\the\baselineskip}%'
+            +'\n'+r'\normalfont\small\fontsize{\qaCaptionSize}{\qaCaptionBaseline}\selectfont\color{black}\hypersetup{allcolors=black}}'
+            +r'\makeatother\begin{document}')
+        directory,result = self.compile('local-captions-inflated-baseline',inflated,
+                                        passes=3,assets=assets)
+        self.assertEqual(result.returncode,0,result.stdout[-3000:])
+        with fitz.open(directory/'main.pdf') as pdf:
+            with self.assertRaisesRegex(AssertionError,'caption baseline differs from local body'):
+                assert_local_caption_size(pdf,9,'english')
 
     def test_actual_pdf_render_gate_accepts_reference_layout_with_declared_caption_contract(self):
         for (profile, main), directory in self.directories.items():

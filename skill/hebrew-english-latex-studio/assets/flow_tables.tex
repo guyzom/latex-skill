@@ -41,6 +41,15 @@
 \newcolumntype{E}[1]{>{\iflanguage{hebrew}{\raggedleft}{\raggedright}\arraybackslash\collectcell\en}p{#1}<{\endcollectcell}}
 \newcolumntype{N}[1]{>{\iflanguage{hebrew}{\raggedright}{\raggedleft}\arraybackslash\collectcell\en}p{#1}<{\endcollectcell}}
 \makeatletter
+% Continuation notices share the caption's safe paragraph width, but contribute
+% no width to the alignment. A spanning unbreakable notice would otherwise
+% enlarge compact natural columns just to accommodate its own sentence. Like
+% longtable's native caption, its zero-width centered box preserves real row
+% widths while retaining the complete breakable notice and its vertical extent.
+\newcommand{\hllpdf@flowcontinuation}[2]{%
+  \multicolumn{#1}{c}{\hbox to\z@{\hss
+    \parbox[t]{\LTcapwidth}{\centering\lakitcaptionstyle #2\par
+      \vskip.5\baselineskip}\hss}}}
 % flowtable{column count}{column specification}{caption}{label}{heading row}
 % The heading argument excludes its trailing \\; the environment owns rules,
 % repeated heads/feet and one caption/list entry. Body rows end with \\.
@@ -80,13 +89,16 @@
   #5\\
   \midrule
   \endfirsthead
-  \multicolumn{#1}{c}{\iflanguage{english}{Table \en{\thetable} — continued}{\h{טבלה \en{\thetable} — המשך}}}\\
+  \hllpdf@flowcontinuation{#1}{\iflanguage{english}{Table \en{\thetable} — continued}{\h{טבלה \en{\thetable} — המשך}}}\\
   \toprule
   #5\\
   \midrule
   \endhead
   \midrule
-  \multicolumn{#1}{c}{\iflanguage{english}{Continued on next page}{\h{המשך בעמוד הבא}}}\\
+  \hllpdf@flowcontinuation{#1}{\iflanguage{english}{Continued on next page}{\h{המשך בעמוד הבא}}}\\
+  % longtable reserves \ht\LT@foot rather than height+depth. Materialize the
+  % final paragraph row's depth into the footer height, including wrapped lines.
+  \noalign{\kern0pt}%
   \endfoot
   \bottomrule
   \endlastfoot

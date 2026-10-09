@@ -7,14 +7,15 @@ A heuristic guard on content BALANCE, pushing both ways:
   * against THIN output in opted-in teaching profiles — sparse content:
     long prose chapters, few numbered equations or exercises; and
   * against OVER-BOXED output — the page stuffed into colored boxes instead
-    of free prose / standalone numbered equations / gray tables. Two separate
+    of free prose / standalone numbered equations / unframed tables. Two separate
     overuse advisories were calibrated from an earlier teaching corpus
     (v3.28). Those observations are not minimums or design targets:
     zero emphasis boxes is valid. EMPHASIS boxes
     (defbox/thmbox/notebox/warnbox/keybox) trigger
     [OVER-BOX-EMPHASIS] above 25%; exbox is exercise FORMAT,
     counted only toward the profile-specific combined wallpaper guard
-    (>55%); the gray tablebox is a neutral data frame and is NOT counted;
+    (>55%); optional table frames are neutral data containers, excluded from
+    semantic emphasis counts;
   * and against CODE-FRICTION (v3.24) — a multi-token code expression embedded
     inline in a Hebrew prose sentence (\\code{lw $t1, -4($t0)} mid-sentence)
     zigzags the reader RTL<->LTR and, being an unbreakable island, line-breaks
@@ -334,9 +335,9 @@ def box_balance(text: str):
     into two observations: (emphasis_frac, combined_frac). Emphasis =
     defbox/thmbox/notebox/warnbox/keybox; combined also counts exbox
     (exercise format). These fractions have no minimum or recommended target;
-    the caller applies separate overuse advisories. The gray
-    tablebox is intentionally NOT counted in either — it is a neutral data
-    frame, not a colored semantic box. See content-style §4.
+    the caller applies separate overuse advisories. Table containers, including
+    optional frames, are intentionally NOT counted in either — they hold data
+    rather than semantic emphasis. See content-style §4.
     (A back-to-back box-CHAIN count was tried and dropped: on the reference doc
     it false-flagged legitimate patterns — a theorem→example→note unit and a
     series of exercise boxes — so it is not a reliable automated signal.)"""
@@ -408,10 +409,10 @@ def structural_container_counts(text: str):
 
     Semantic table wrappers retain their historical count. A bare tabular is a
     table only when it is outside a semantic table or another tabular, so an
-    implementation nested in tablebox/flowtable is not counted twice. This is
+    implementation nested in an optional frame/flowtable is not counted twice. This is
     an advisory source scan, not TeX macro expansion or a rendered frame count.
     """
-    table_wrappers = {"tablebox", "flowtable"}
+    table_wrappers = {"tablebox", "framedtable", "semanticframedtable", "flowtable"}
     tabular_names = {"tabular", "tabular*"}
     table_ancestors = table_wrappers | tabular_names
     stack = []
@@ -513,12 +514,13 @@ def main(paths, profile="generic", section_macros=()):
               f"({tbl_ratio:.2f}/{unit_short}), {boxes} boxes "
               f"({box_ratio:.2f}/{unit_short}), {exercises} exercises.")
         print(f"INFO: {struct_ratio:.2f} mapped structural elements per {unit} "
-              f"(equations + tables + boxes; thin below {STRUCT_PER_CHAPTER_MIN}).")
+              f"(equations + tables + boxes; advisory reference {STRUCT_PER_CHAPTER_MIN}).")
         if policy["thin"] and struct_ratio < STRUCT_PER_CHAPTER_MIN:
             warns.append(f"THIN: only {struct_ratio:.2f} mapped elements/{unit} "
-                         f"(numbered eqs + tables + boxes; target ≥{STRUCT_PER_CHAPTER_MIN}). "
-                         f"The draft leans on prose — map more claims to numbered "
-                         f"equations, tables, or boxes.")
+                         f"(numbered eqs + tables + boxes; heuristic reference {STRUCT_PER_CHAPTER_MIN}). "
+                         f"Review whether the genre and content need additional structure. "
+                         f"Choose equations, tables or callouts only when they help the reader; "
+                         f"prose and zero callouts can be appropriate.")
         if (policy["exercises"] and chapters >= CHAPTERS_FOR_EXERCISE
                 and exercises == 0):
             warns.append(f"DENSITY: {chapters} {units} but 0 worked exercises. A "
@@ -531,7 +533,7 @@ def main(paths, profile="generic", section_macros=()):
     print(f"INFO: {100*emph_frac:.0f}% of body content sits inside EMPHASIS boxes "
           f"(def/thm/note/warn/key; descriptive only, no minimum or target), "
           f"{100*box_frac:.0f}% incl. exbox; the rest = free prose / numbered "
-          f"eqs / gray tables / neutral reference cards.")
+          f"eqs / tables (unframed by default) / neutral reference cards.")
     if emph_frac > EMPH_BOX_FRAC_MAX:
         # path-prefixed like the per-line flags, so the regression harness
         # (selftest run_case filters on the path) can lock this rule too;
@@ -560,7 +562,7 @@ def main(paths, profile="generic", section_macros=()):
     # prescription) tripped RHYTHM because its tableboxes counted as prose.
     structural = re.compile(
         r"\\begin\{(equation|align|gather|multline|defbox|thmbox|notebox|exbox|"
-        r"warnbox|keybox|tablebox|flowtable|tabular\*?|"
+        r"warnbox|keybox|tablebox|framedtable|semanticframedtable|flowtable|tabular\*?|"
         + "|".join(REFERENCE_BOX_NAMES) + r"|enumerate|itemize|qcirc|tikzpic|center|"
         r"asmblock|lstlisting|verbatim|Verbatim)\}|\\\[|\$\$|"
         + section_pat.pattern + r"|\\subsection\b|\\codeline\b")
@@ -577,8 +579,9 @@ def main(paths, profile="generic", section_macros=()):
         if worst >= MAX_PROSE_PARAS_RUN:
             rhythm_unit = "section" if sec_unit else "chapter"
             warns.append(f"RHYTHM: {rhythm_unit} #{ci} has a run of {worst} consecutive "
-                         f"prose paragraphs with no equation/box/list — likely "
-                         f"under-formalized; break it with numbered eqs or a box.")
+                         f"prose paragraphs with no mapped equation/table/list/callout. "
+                         f"Review paragraph grouping and headings for this genre; "
+                         f"add a component only when the content benefits from it.")
 
     if friction_total:
         warns.append(f"CODE-FRICTION: {friction_total} multi-token inline code "
@@ -591,7 +594,7 @@ def main(paths, profile="generic", section_macros=()):
             print("  • " + w)
         print("See references/content-style.md for the density spec and exemplars.")
     else:
-        print("OK: content density within target range.")
+        print("OK: no content advisories for the selected profile.")
     return 2 if read_failures else 0
 
 
