@@ -459,6 +459,8 @@ See \autoref{ch:en} and \autoref{app:en}.
                 self.assertEqual(nav.returncode,0,nav.stdout+nav.stderr)
 
     def test_subcaption_rtl_labels_and_explicit_preamble_styles(self):
+        import check_pdf_render as render
+
         def caption_source(main):
             other = 'english' if main == 'hebrew' else 'hebrew'
             source = profile_header(main+'-with-'+other, main)
@@ -482,6 +484,10 @@ See \autoref{ch:en} and \autoref{app:en}.
         def assert_sub_label(pdf, marker):
             with fitz.open(pdf) as doc:
                 for page in doc:
+                    # Older LuaHBTeX can mirror the drawn glyph while keeping
+                    # its logical Unicode value. Inspect the embedded font's
+                    # glyph IDs, as the render gate does, before testing order.
+                    visible = render._visible_parenthesis_overrides(page)
                     raw = [c for b in page.get_text('rawdict')['blocks']
                            for l in b.get('lines', []) for s in l['spans'] for c in s['chars']]
                     spans = [s for b in page.get_text('dict')['blocks']
@@ -492,10 +498,19 @@ See \autoref{ch:en} and \autoref{app:en}.
                     # The first marker occurrence is the caption, before lists.
                     baseline = hits[0]['origin'][1]
                     row = [c for c in raw if abs(c['origin'][1]-baseline) < .2]
-                    openings = [c for c in row if c['c'] == '(']
-                    closings = [c for c in row if c['c'] == ')']
-                    if len(openings) != 1 or len(closings) != 1:
-                        continue
+                    def drawn_char(char):
+                        value = char['c']
+                        origin = char['origin']
+                        return visible.get((ord(value), round(origin[0], 3),
+                                            round(origin[1], 3)), value)
+
+                    openings = [c for c in row if drawn_char(c) == '(']
+                    closings = [c for c in row if drawn_char(c) == ')']
+                    # The historical unisolated label draws two closing
+                    # parentheses. Missing/extra glyphs must fail, not skip.
+                    self.assertEqual((len(openings), len(closings)), (1, 1),
+                                     ('SUBCAPTION-PARENTHESIS-ORDER', marker,
+                                      openings, closings))
                     self.assertLess(openings[0]['bbox'][0], closings[0]['bbox'][0],
                                     ('SUBCAPTION-PARENTHESIS-ORDER', marker, openings, closings))
                     letters = [c for c in row if c['c'] == 'a'

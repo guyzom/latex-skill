@@ -331,6 +331,15 @@ data contracts rather than approving the runtime matrix. Retain actual logs,
 exit codes and full/fast receipts outside the source. Package creation checks
 static contracts, not those execution receipts; verify them separately.
 
+For caption diagnosis, manually dispatch the repository's test workflow with
+`validation_scope=caption`. This retains synthetic caption PDFs and sources in
+the private `test-results` artifact for actual pixel inspection. The default
+`full` dispatch, pull-request checks and pushes to `main` still run the whole
+routine suite; a focused artifact does not certify that suite. Parenthesis
+geometry must use the embedded glyph identity when the PDF's logical Unicode
+map differs from the drawn shape, and missing or extra delimiters must remain
+hard failures. Keep historical negative controls active.
+
 The final archive's SHA-256 must equal the candidate's. Check final archive
 members, CRC and modes against the candidate, and retain the compatibility and
 intentional-revision evidence as part of the reviewable release. If a source

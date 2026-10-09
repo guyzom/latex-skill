@@ -586,7 +586,7 @@ if python3 scripts/test_v490.py >"$HARNESS_TMP/v490_unit.log" 2>&1; then
 else bad "v4.9.0 unit contracts failed"; tail -25 "$HARNESS_TMP/v490_unit.log"; fi
 if [ "${FAST:-0}" != "1" ]; then
   if python3 scripts/test_v490_runtime.py >"$HARNESS_TMP/v490_runtime.log" 2>&1; then
-    ok "7 real-engine flow-table tests preserve rows, digits, headers, numbering and destinations"
+    ok "real-engine flow-table controls preserve rows, digits, headers, numbering and destinations"
   else bad "v4.9.0 runtime controls failed"; tail -30 "$HARNESS_TMP/v490_runtime.log"; fi
 fi
 
