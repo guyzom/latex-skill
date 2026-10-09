@@ -59,7 +59,7 @@
       "id": "starter",
       "hebrew": "קובץ התחלה",
       "english": "Starter",
-      "definition": "קובץ מקור לדוגמה שממנו מתחילים לערוך את התוכן. מדגים הרכבה וסגנון מתאים לסוג המסמך; אינו מנגנון הבנייה ואינו מסמך מוגמר.",
+      "definition": "קובץ מקור לדוגמה שממנו מתחילים לערוך את התוכן. מדגים הרכבה וסגנון מתאים לסוג המסמך; אינו מנגנון הבנייה ואינו מסמך מוגמר. מבני טבלאות הם דוגמאות הניתנות להתאמה: בוחרים מן התוכן את מספר העמודות, הכותרות, הסדר, הרוחבים והיישור; אין סכמת עמודות חובה.",
       "example": "תוכן `starter_letter.tex` מוחלף בפרטי הפנייה האמיתית. הוראות עריכה נשארות בהערות מקור או בתיעוד, ולא בגוף המכתב שנמסר.",
       "audience": "both",
       "status": "existing",
@@ -78,7 +78,7 @@
       "owner": "skill-documentation",
       "aliases": [],
       "introduced_in": "5.4.0",
-      "updated_in": "5.4.5"
+      "updated_in": "5.4.6"
     },
     {
       "id": "document-kind",
@@ -174,7 +174,7 @@
       "owner": "skill-documentation",
       "aliases": [],
       "introduced_in": "5.4.0",
-      "updated_in": "5.4.5"
+      "updated_in": "5.4.6"
     },
     {
       "id": "layout",
@@ -1410,7 +1410,7 @@
       "owner": "skill-documentation",
       "aliases": [],
       "introduced_in": "5.4.0",
-      "updated_in": "5.4.0"
+      "updated_in": "5.4.6"
     },
     {
       "id": "recipe",
@@ -1862,9 +1862,57 @@
       ],
       "introduced_in": "5.4.5",
       "updated_in": "5.4.5"
+    },
+    {
+      "audience": "both",
+      "status": "existing",
+      "section": "typography",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.6",
+      "updated_in": "5.4.6",
+      "id": "table-structure",
+      "hebrew": "מבנה טבלה לפי התוכן",
+      "english": "Content-selected table structure",
+      "definition": "בחירת מספר העמודות, כותרותיהן, סדרן, רוחבן ויישורן בהתאם לתוכן ולמשימת הקורא. אין מספר קבוע או סכמת חובה; לפעמים רשימה, פסקה או מבנה חלופי מתאימים יותר.",
+      "example": "גלריית הטבלאות פותחת בטבלאות פתוחות קומפקטיות ורחבות בעברית ובאנגלית, עם מספרים, מתמטיקה וטקסט נשבר; מספר העמודות בכל דוגמה הוא בחירה לפי התוכן ולא מגבלת הממשק.",
+      "related_ids": [
+        "starter",
+        "semantic-extension",
+        "theme"
+      ],
+      "source_refs": [
+        "references/tables-and-captions.md",
+        "assets/example_tables.tex",
+        "assets/starter_data_report.tex"
+      ]
+    },
+    {
+      "audience": "both",
+      "status": "existing",
+      "section": "typography",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.6",
+      "updated_in": "5.4.6",
+      "id": "table-frame-mode",
+      "hebrew": "מצב מסגרת לטבלה",
+      "english": "Optional table frame mode",
+      "definition": "בחירה מפורשת בין מסגרת המתאימה לתוכן לבין קופסה ברוחב ובשוליים הפנימיים של הקופסאות הסמנטיות הפעילות. בשני המצבים העמודות נקבעות מן התוכן ואינן נמתחות מכנית. ברירת המחדל ללא מסגרת. המסגרת אפורה ניטרלית והרקע לבן; צבעי קטגוריות התיבות הסמנטיות אינם צבעי טבלה, והכיתוב שחור.",
+      "example": "framedtable מודדת שורות וכיתוב; semanticframedtable משתמשת בגיאומטריה המשותפת לעיצוב הפעיל. שתיהן אטומיות לעמוד יחיד ושומרות כיתובים, מספור, קישורים והפניות.",
+      "related_ids": [
+        "table-structure",
+        "semantic-extension",
+        "theme"
+      ],
+      "source_refs": [
+        "references/tables-and-captions.md",
+        "assets/document_components.tex",
+        "assets/preamble.tex"
+      ]
     }
   ],
-  "skill_version": "5.4.5",
+  "skill_version": "5.4.6",
   "paths": {
     "records": "references/glossary/terms.json",
     "markdown": "references/glossary-he-en.md"

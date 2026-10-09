@@ -320,8 +320,9 @@ def write_fixture(root: Path, project: Path, family: str, language: str) -> dict
     # Caption hooks are declared using their public signatures, then the
     # chosen theme may deliberately override these shared presentation hooks.
     pre += r'\input{preamble.tex}' + '\n'
-    pre += (r'\renewcommand{\lakitcaptionlabelstyle}[1]{\textcolor{cGray}{\textbf{#1}}}' + '\n'
-            + r'\renewcommand{\lakitcaptionpunctuation}{.}' + '\n'
+    pre += (r'\renewcommand{\lakitcaptionstyle}{\normalfont\small\color{black}}' + '\n'
+            + r'\renewcommand{\lakitcaptionlabelstyle}[1]{#1}' + '\n'
+            + r'\renewcommand{\lakitcaptionpunctuation}{:}' + '\n'
             + r'\lakitcaptionnumbering{continuous}' + '\n')
     pre += ''.join(r'\input{' + name + '}\n' for name in assets[1:])
     if family == 'custom':
@@ -353,8 +354,18 @@ def write_fixture(root: Path, project: Path, family: str, language: str) -> dict
         label = 'Synthetic source annotation' if language == 'english' else 'תווית מקור סינתטית'
         other = 'hebrew' if language == 'english' else 'english'
         minority_label = 'תווית מקור בעברית' if other == 'hebrew' else 'A local English source'
-        body += (rf'\sourcelink{{https://example.org/control?first=1&second=2\#part}}{{{label}}}{{{label}}}' + '\n'
+        body += (rf'\glossaryentry{{{label}}}{{{minority_label}}}' + '\n'
+                 + rf'\sourcelink{{https://example.org/control?first=1&second=2\#part}}{{{label}}}{{{label}}}' + '\n'
                  + rf'\begin{{{other}prose}}\sourcelink{{https://example.org/local}}{{{minority_label}}}{{{minority_label}}}\end{{{other}prose}}' + '\n')
+        body += (r'\begin{framedtable}[Compact controls]{2}{r>{\raggedright\arraybackslash}p{\framedtablewidth-3cm}}'
+                 r'{\en{Optional framed records.}}{tab:optional-frame}' + '\n'
+                 + r'\toprule\en{ID}&\en{State}\\\midrule\en{001}&\en{Observed.}\\\bottomrule'
+                 + '\n' + r'\end{framedtable}' + '\n')
+        body += (r'\begin{semanticframedtable}[Adaptable controls]{5}{rrrrl}'
+                 r'{\en{Five content-selected fields.}}{tab:semantic-frame}' + '\n'
+                 + r'\toprule\en{ID}&\en{N}&\en{Mean}&\en{SD}&\en{State}\\'
+                 + r'\midrule\en{001}&\en{12}&\en{1.25}&$x^2$&\en{Observed.}\\\bottomrule'
+                 + '\n' + r'\end{semanticframedtable}' + '\n')
     pre += r'\hypersetup{pdftitle={Synthetic component QA},pdfauthor={}}' + '\n'
     source = pre + r'\begin{document}' + '\n' + body + r'\end{document}' + '\n'
     if any(ord(char) < 32 and char not in '\n\t' for char in source):

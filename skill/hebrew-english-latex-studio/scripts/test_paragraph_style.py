@@ -725,8 +725,7 @@ class ParagraphRuntime(unittest.TestCase):
                                   'tab:measurements': str(expected_page)}
                         for label in ('eq:mean', 'tab:measurements'):
                             owned = prefix + label
-                            self.assertEqual(source.count(r'\label{' + owned + '}'),
-                                             1 if label.startswith('eq:') else 0)
+                            self.assertEqual(source.count(r'\label{' + owned + '}'), 1)
                             if label.startswith('tab:'):
                                 self.assertEqual(source.count('{' + owned + '}'), 2)
                                 self.assertEqual(source.count(r'\autoref{' + owned + '}'), 1)
@@ -798,6 +797,22 @@ class ParagraphRuntime(unittest.TestCase):
                                 self.assertNotEqual(record['destination'], 'equation.' + number,
                                                     'old-format control must change real anchor names')
                             rows.append(record)
+                            if kind == 'table' and main == 'english' and locale == main and not old_naming:
+                                # The old frame cushion on a bare table can
+                                # land above its Data heading while generic
+                                # caption-distance checks still pass. Rebuild
+                                # that actual TeX mutation and require the
+                                # same physical target test to reject it.
+                                mutant = self.root / 'negative-frameless-frame-cushion'
+                                shutil.copytree(directory, mutant)
+                                (mutant/'main.tex').write_text(source.replace(
+                                    r'\begin{document}', r'\lakintabframedtrue'+'\n'+r'\begin{document}', 1))
+                                broken, _ = self.compile_generated(mutant)
+                                self.assertEqual(broken.returncode, 0, broken.stdout[-9000:])
+                                with self.fitz.open(mutant/'main.pdf') as bad_pdf:
+                                    with self.assertRaisesRegex(AssertionError, 'misses its rendered target'):
+                                        reference_link(bad_pdf, bad_pdf[expected_page-1], prose_bounds,
+                                            kind, number, locale, expected_page, target_bounds)
                         for token in DATA_NOTES[locale]:
                             line = unique_line(lines, token)
                             self.assertEqual(line['page'], expected_page, (locale, token, line))

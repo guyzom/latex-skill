@@ -415,7 +415,7 @@
     },
     {
       "id": "data-report",
-      "recipe_revision": 2,
+      "recipe_revision": 6,
       "title": {
         "he": "דוח נתונים",
         "en": "Data report"
@@ -425,7 +425,7 @@
         {
           "language": "hebrew",
           "asset_path": "assets/starter_data_report.tex",
-          "sha256": "9f459d578ff43bb38a7d4c88f2ce60fedbd84f08761c7a42d4259f7f30949191",
+          "sha256": "2346da8865d33ec31fc2f9479dd032406d32ccf8af237f77a71fcf6988e097da",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "11pt,a4paper",
@@ -437,7 +437,7 @@
         {
           "language": "english",
           "asset_path": "assets/starter_data_report_english.tex",
-          "sha256": "b5b3b89aa19f707c740632b76b0eb80cf49cf160ec459255ebbd45afc70d7f6c",
+          "sha256": "5ed03a765fa31d5e001f851e52eefa3c61278309ef0ef441c4b837c334bea98b",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "11pt,a4paper",
@@ -461,7 +461,8 @@
       ],
       "docs": [
         "references/template-catalog.md",
-        "references/catalog-development.md"
+        "references/catalog-development.md",
+        "references/tables-and-captions.md"
       ],
       "glossary_refs": [
         "template",
@@ -471,7 +472,9 @@
         "recipe-revision",
         "composer",
         "source-handler",
-        "paragraph-style"
+        "paragraph-style",
+        "table-structure",
+        "table-frame-mode"
       ],
       "acceptance": [
         "template:data-report:native",
@@ -962,8 +965,8 @@
       "copy_stage": "before-layout",
       "local_filename": null,
       "caption_contract": {
-        "label_color": "555555",
-        "label_weight": "bold"
+        "label_color": "000000",
+        "label_weight": "normal"
       },
       "build_defaults": [],
       "docs": [
@@ -990,8 +993,8 @@
       "copy_stage": "none",
       "local_filename": null,
       "caption_contract": {
-        "label_color": "555555",
-        "label_weight": "bold"
+        "label_color": "000000",
+        "label_weight": "normal"
       },
       "build_defaults": [],
       "docs": [
@@ -1018,8 +1021,8 @@
       "copy_stage": "none",
       "local_filename": "theme.tex",
       "caption_contract": {
-        "label_color": "555555",
-        "label_weight": "bold"
+        "label_color": "000000",
+        "label_weight": "normal"
       },
       "build_defaults": [],
       "docs": [
@@ -1121,8 +1124,8 @@
       "copy_stage": "none",
       "local_filename": null,
       "caption_contract": {
-        "label_color": "555555",
-        "label_weight": "bold"
+        "label_color": "000000",
+        "label_weight": "normal"
       },
       "build_defaults": [],
       "docs": [
@@ -1149,8 +1152,8 @@
       "copy_stage": "none",
       "local_filename": null,
       "caption_contract": {
-        "label_color": "555555",
-        "label_weight": "bold"
+        "label_color": "000000",
+        "label_weight": "normal"
       },
       "build_defaults": [],
       "docs": [
@@ -1366,15 +1369,19 @@
       "id": "tables",
       "asset_path": "assets/example_tables.tex",
       "architecture_assets": [
-        "assets/preamble.tex"
+        "assets/preamble.tex",
+        "assets/document_components.tex"
       ],
-      "language_profile": "hebrew",
+      "language_profile": "hebrew-with-english",
       "docs": [
-        "references/template-catalog.md"
+        "references/template-catalog.md",
+        "references/tables-and-captions.md"
       ],
       "glossary_refs": [
         "starter",
-        "public-api"
+        "public-api",
+        "table-structure",
+        "table-frame-mode"
       ],
       "acceptance": [
         "example:tables:runtime"

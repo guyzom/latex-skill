@@ -10,52 +10,39 @@
 % content. Content here is deliberately topic-neutral (math / physics / CS)
 % because the skill serves a wide range of subjects.
 %
-% THE ONE DECISION that governs every mixed-direction table:
-%   * Columns ALWAYS lay out LEFT-to-right — the FIRST declared column lands
-%     LEFTMOST, in a plain tabular exactly as in otherlanguage (measured on
-%     rendered pages; an earlier version of this comment claimed plain
-%     tabular is RTL — it is not).
-%   * Hebrew-primary table (labels & cells mostly Hebrew, scanned from the
-%     right) -> plain tabular, and declare the KEY column LAST so it lands
-%     RIGHTMOST — the RTL reader meets the key before its explanation
-%     (side-by-side render comparison: key-on-the-right reads naturally,
-%     key-on-the-left forces the eye to jump).
-%   * LTR-primary table (code, truth tables, sequences — content that must
-%     READ left-to-right) -> wrap the tabular in otherlanguage{english}:
-%     it left-aligns the LTR cells uniformly and keeps the whole block in
-%     LTR reading order.
-%   Every table below is also wrapped in tablebox + \tabcap (uniform slate
-%   frame + auto-numbered "טבלה N.M." caption inside) — never \caption*.
-%
-% TWO MORE MEASURED FACTS (v3.40.2, calibration renders):
-%   * SIDE-BY-SIDE minipages are the OPPOSITE of columns: the minipage
-%     declared FIRST lands RIGHTMOST (paragraph-level blocks follow the
-%     page's RTL flow; tabular columns do not). See pattern 7.
-%   * DO NOT use longtable here: under the RTL base it REVERSES the declared
-%     column order relative to plain tabular (measured — first declared
-%     column landed rightmost). The preamble does NOT load longtable, and with
-%     it loaded by hand inside tablebox the output is broken: the first page
-%     comes out empty and \tabcap never prints (re-measured on v4.7.3; the
-%     older head/foot mechanism did not reproduce). Multi-page tables need a
-%     dedicated verification cycle first (DEFECTS BIDI-25).
+% Declare table order explicitly. In otherlanguage{english}, first column
+% is leftmost. Hebrew cell islands preserve their own reading direction; put
+% the Hebrew lookup key LAST so it is physically rightmost. Plain tabular
+% behavior can vary with context/Babel; do not teach an implicit order rule.
+% Code and truth tables use the same explicit LTR table order.
+% Short examples use natural-width tabular + tabcap. tablebox remains an
+% explicitly requested full-width framed panel, not a default for every table.
+% Side-by-side minipages follow the surrounding paragraph direction (the first
+% is rightmost in Hebrew); their individual tables keep explicit LTR order.
+% Use flowtable outside boxes for actual multipage data; it follows its local
+% language at the table level and has a separate documented column contract.
 % ============================================================================
+\def\lakitlanguageprofile{hebrew-with-english}
 \input{preamble.tex}
+\input{document_components.tex} % two opt-in frame modes, adaptable patterns 13–15
 \usepackage{colortbl}   % per-DOCUMENT load for \rowcolor (pattern 11) — NOT a
                         % preamble package; copy this line only when you need it.
 \newcommand{\patternheading}[1]{%
   \Needspace{11\baselineskip}%
   {\large\bfseries\noindent #1\par}\smallskip}
-% (No \setcounter{chapter} hack needed: since v3.30 \tabcap prints "טבלה N."
+% (No \setcounter{chapter} hack needed: \tabcap prints "טבלה N:"
 %  while no \chapter exists, and "טבלה C.N" once chapters start.)
 \begin{document}
 
 {\LARGE\bfseries\noindent מאגר תבניות טבלאות\par}\medskip
-\noindent העתק את התבנית שאתה צריך והחלף תוכן. כל טבלה כאן עוברת \code{tablebox} ו-\code{tabcap}
-— מסגרת אחידה וכותרת ממוספרת בפנים. שני כללים לטבלה מעורבת: כשהתוכן עברי־ראשי,
-השתמש ב-\code{tabular} רגיל \emph{והצהר את עמודת המפתח אחרונה} — היא נוחתת מימין,
+\noindent העתק את התבנית שאתה צריך והחלף תוכן. הטבלאות הקצרות ממורכזות ברוחב התוכן, עם כיתוב ממוספר.
+בחר רוחב עמודת טקסט לפי התוכן; מסגרת \code{tablebox} היא אפשרות מפורשת. שני כללים לטבלה מעורבת: כשהתוכן עברי־ראשי,
+הגדר סדר עמודות אנגלי, בודד תאים עבריים ב-\code{\textbackslash h},
+והצהר את עמודת המפתח אחרונה — היא נוחתת מימין,
 והקורא פוגש אותה ראשונה; כשהתוכן \en{LTR}־ראשי (קוד, נוסחאות, טבלת אמת), עטוף ב-\en{otherlanguage}.
-תבניות \en{1–6} הן משפחת ה-\en{booktabs} הפתוחה (קווים אופקיים בלבד); תבניות 8, 9 ו-12
-הן משפחת הרשת המלאה — המראה ה״סטנדרטי״ של מסמכי מקור (מסגרת + מפרידים אנכיים).
+רוב הדוגמאות הן טבלאות פתוחות ממשפחת \en{booktabs}, בעברית ובאנגלית;
+תבניות 8 ו-9 מדגימות רשת רק כאשר המקור מבקש אותה במפורש.
+שתי המסגרות האפורות בתבניות \en{13–15} הן אפשרויות בלבד, ולא ברירת המחדל.
 \bigskip
 
 % +--- PATTERN 1: basic data table --------------------------------
@@ -63,21 +50,23 @@
 % |           may hold short math islands.
 % | KEY:      booktabs rules (\toprule/\midrule/\bottomrule); short
 % |           math as \en{$...$}; caption via \tabcap. Hebrew-primary
-% |           -> plain tabular, KEY column declared LAST (lands rightmost).
+% |           -> explicit English table order, Hebrew cell islands, KEY column declared LAST (lands rightmost).
 % +----------------------------------------------------------------
 \patternheading{1. טבלת נתונים בסיסית}
-\begin{tablebox}\centering\small
+\begin{center}
+\begin{otherlanguage}{english}
 \begin{tabular}{@{}lll@{}}
 \toprule
-\textbf{הערה} & \textbf{סיבוכיות זמן} & \textbf{שיטה}\\
+\h{\textbf{הערה}} & \h{\textbf{סיבוכיות זמן}} & \h{\textbf{שיטה}}\\
 \midrule
-ללא דרישת מיון.        & \en{$O(n)$}        & חיפוש לינארי\\
-דורש מערך ממוין.       & \en{$O(\log n)$}   & חיפוש בינארי\\
-תלוי בפונקציית הגיבוב. & \en{$O(1)$} בממוצע & טבלת גיבוב\\
+\h{ללא דרישת מיון.} & \en{$O(n)$}        & \h{חיפוש לינארי}\\
+\h{דורש מערך ממוין.} & \en{$O(\log n)$}   & \h{חיפוש בינארי}\\
+\h{תלוי בפונקציית הגיבוב.} & \h{\en{$O(1)$} בממוצע} & \h{טבלת גיבוב}\\
 \bottomrule
 \end{tabular}
+\end{otherlanguage}
 \tabcap{השוואת שיטות חיפוש.}
-\end{tablebox}
+\end{center}
 \bigskip
 
 % +--- PATTERN 2: glossary / symbol -> meaning --------------------
@@ -85,22 +74,24 @@
 % |           in physics/math summaries). Prefer this over bullets.
 % | KEY:      the SYMBOL column is declared LAST -> lands RIGHTMOST (the
 % |           RTL reader scans symbol -> meaning); meaning = p{} so it
-% |           wraps. Hebrew-primary -> plain tabular.
+% |           wraps. Hebrew-primary -> explicit English table order with Hebrew cell islands.
 % +----------------------------------------------------------------
 \patternheading{2. טבלת מקרא (סמל $\leftarrow$ משמעות)}
-\begin{tablebox}\centering\small
+\begin{center}
+\begin{otherlanguage}{english}
 \begin{tabular}{@{}p{8cm}@{\hspace{1.1cm}}l@{}}
 \toprule
-\textbf{משמעות} & \textbf{סימון}\\
+\h{\textbf{משמעות}} & \h{\textbf{סימון}}\\
 \midrule
-עיגול כלפי מטה.                & \en{$\lfloor x \rfloor$}\\
-שארית החלוקה של \en{x} ב-\en{y}. & \en{$x \bmod y$}\\
-דיברגנץ של שדה וקטורי.          & \en{$\nabla \cdot \vec{F}$}\\
-מכפלה פנימית (סימון דיראק).     & \en{$\langle \psi \mid \phi \rangle$}\\
+\h{עיגול כלפי מטה.} & \en{$\lfloor x \rfloor$}\\
+\h{שארית החלוקה של \en{x} ב-\en{y}.} & \en{$x \bmod y$}\\
+\h{דיברגנץ של שדה וקטורי.} & \en{$\nabla \cdot \vec{F}$}\\
+\h{מכפלה פנימית (סימון דיראק).} & \en{$\langle \psi \mid \phi \rangle$}\\
 \bottomrule
 \end{tabular}
+\end{otherlanguage}
 \tabcap{מוסכמות סימון.}
-\end{tablebox}
+\end{center}
 \bigskip
 
 % +--- PATTERN 3: LTR / code column (+ multi-line cell) -----------
@@ -112,7 +103,7 @@
 % |           Never put Hebrew INSIDE a code run.
 % +----------------------------------------------------------------
 \patternheading{3. טבלה עם עמודת קוד / LTR}
-\begin{tablebox}\centering\small
+\begin{center}
 \begin{otherlanguage}{english}
 \begin{tabular}{@{}l@{\hspace{1.2cm}}l@{}}
 \toprule
@@ -125,7 +116,7 @@
 \end{tabular}
 \end{otherlanguage}
 \tabcap{עמודת קוד עטופה ב-\en{otherlanguage}; תא רב־שורתי דרך \en{tabular} מקונן.}
-\end{tablebox}
+\end{center}
 \bigskip
 
 % +--- PATTERN 4: two prose columns -------------------------------
@@ -135,18 +126,20 @@
 % |           (lands rightmost). Widths sum to a bit under \textwidth.
 % +----------------------------------------------------------------
 \patternheading{4. טבלת שני טורי פרוזה}
-\begin{tablebox}\centering\small
+\begin{center}
+\begin{otherlanguage}{english}
 \begin{tabular}{@{}p{9cm}p{3cm}@{}}
 \toprule
-\textbf{הסבר} & \textbf{מונח}\\
+\h{\textbf{הסבר}} & \h{\textbf{מונח}}\\
 \midrule
-כל קורא רואה את הערך העדכני ביותר של הנתון המשותף. & עקביות\\
-כל בקשה מקבלת תשובה, גם אם לא בהכרח העדכנית ביותר. & זמינות\\
-המערכת ממשיכה לתפקד למרות ניתוקים בין רכיביה.      & סבילות\\
+\h{כל קורא רואה את הערך העדכני ביותר של הנתון המשותף.} & \h{עקביות}\\
+\h{כל בקשה מקבלת תשובה, גם אם לא בהכרח העדכנית ביותר.} & \h{זמינות}\\
+\h{המערכת ממשיכה לתפקד למרות ניתוקים בין רכיביה.} & \h{סבילות}\\
 \bottomrule
 \end{tabular}
+\end{otherlanguage}
 \tabcap{שלוש התכונות של משפט \en{CAP}.}
-\end{tablebox}
+\end{center}
 \bigskip
 
 % +--- PATTERN 5: wide numeric / truth table ----------------------
@@ -158,7 +151,7 @@
 % |           groups (inputs|outputs) with @{\hspace{..}}.
 % +----------------------------------------------------------------
 \patternheading{5. טבלה רחבה / טבלת אמת}
-\begin{tablebox}\centering\small
+\begin{center}
 \begin{otherlanguage}{english}
 \begin{tabular}{@{}cc@{\hspace{1.5em}}cc@{}}
 \toprule
@@ -172,29 +165,27 @@ $A$ & $B$ & $A \wedge B$ & $A \vee B$\\
 \end{tabular}
 \end{otherlanguage}
 \tabcap{טבלת אמת עבור \en{AND} ו-\en{OR}.}
-\end{tablebox}
+\end{center}
 
-% ---- numeric columns: decimal alignment WITHOUT any package (v3.37) --------
-% dcolumn and siunitx both SCRAMBLE under the RTL base (render-proven:
-% D{.}{.}{3.3} shipped "12.75" as ".7512"; \SI{3.5}{eV} ships "eV 3.5") — do
-% not load them. The bidi-safe recipe: (a) give every value in the column the
-% SAME number of decimals, (b) declare the column `l` — under babel-RTL the
-% l/r colspec letters swap their VISUAL meaning, so `l` right-aligns (measured:
-% all decimal points at x=322.7 exactly). Hebrew headers need no tricks here.
-\begin{tablebox}\centering\small
-\begin{tabular}{l l}
+% Numeric columns: explicit LTR table order and physical right alignment.
+% Keep numeric values in one island when adapting this example with signs.
+\begin{center}
+\begin{otherlanguage}{english}
+\begin{tabular}{r l}
 \toprule
-\textbf{שם} & \textbf{ערך} \\
+\h{\textbf{ערך}} & \h{\textbf{שם}}\\
 \midrule
-אלפא & 1.500 \\
-בטא & 12.750 \\
-גמא & 103.200 \\
-דלתא & 0.008 \\
+1.500  & \h{אלפא}\\
+12.750  & \h{בטא}\\
+103.200  & \h{גמא}\\
+0.008  & \h{דלתא}\\
 \bottomrule
 \end{tabular}
-\tabcap{יישור עשרוני: ספרות אחידות + עמודת \code{l} (ימין ויזואלי תחת RTL).}
-\end{tablebox}
+\end{otherlanguage}
+\tabcap{ערכים מספריים בעלי שלוש ספרות אחרי הנקודה.}
+\end{center}
 \bigskip
+
 
 % +--- PATTERN 6: grouped column headers (v3.40.2) ----------------
 % | USE WHEN: a super-header spans several sub-columns (before/after
@@ -207,19 +198,21 @@ $A$ & $B$ & $A \wedge B$ & $A \vee B$\\
 % |           (here: לפני before אחרי).
 % +----------------------------------------------------------------
 \patternheading{6. כותרות מקובצות (\en{multicolumn} + \en{cmidrule})}
-\begin{tablebox}\centering\small
+\begin{center}
+\begin{otherlanguage}{english}
 \begin{tabular}{@{}cccc l@{}}
 \toprule
-\multicolumn{2}{c}{\textbf{אחרי כיול}} & \multicolumn{2}{c}{\textbf{לפני כיול}} & \\
+\multicolumn{2}{c}{\h{\textbf{אחרי כיול}}} & \multicolumn{2}{c}{\h{\textbf{לפני כיול}}} & \\
 \cmidrule(lr){1-2}\cmidrule(lr){3-4}
-\textbf{שגיאה} & \textbf{דיוק} & \textbf{שגיאה} & \textbf{דיוק} & \textbf{מודל}\\
+\h{\textbf{שגיאה}} & \h{\textbf{דיוק}} & \h{\textbf{שגיאה}} & \h{\textbf{דיוק}} & \h{\textbf{מודל}}\\
 \midrule
-\en{0.04} & \en{96\%} & \en{0.12} & \en{88\%} & רגרסיה\\
-\en{0.02} & \en{98\%} & \en{0.09} & \en{91\%} & רשת עצבית\\
+\en{0.04} & \en{96\%} & \en{0.12} & \en{88\%} & \h{רגרסיה}\\
+\en{0.02} & \en{98\%} & \en{0.09} & \en{91\%} & \h{רשת עצבית}\\
 \bottomrule
 \end{tabular}
+\end{otherlanguage}
 \tabcap{כותרות־על מקובצות: כל קבוצה משתרעת על שתי עמודות־בת.}
-\end{tablebox}
+\end{center}
 \bigskip
 
 % +--- PATTERN 7: two tables side by side (v3.40.2) ---------------
@@ -232,29 +225,33 @@ $A$ & $B$ & $A \wedge B$ & $A \vee B$\\
 % |           So declare the RIGHT-hand table first.
 % +----------------------------------------------------------------
 \patternheading{7. שתי טבלאות זו לצד זו}
-\begin{tablebox}\centering\small
+\begin{center}
 \begin{minipage}[t]{0.44\textwidth}\centering
+\begin{otherlanguage}{english}
 \begin{tabular}{@{}ll@{}}
 \toprule
-\textbf{ערך} & \textbf{פרמטר}\\
+\h{\textbf{ערך}} & \h{\textbf{פרמטר}}\\
 \midrule
 \en{$10^{16}$} & \en{$N_A$}\\
-\en{$300$K} & טמפרטורה\\
+\en{$300$K} & \h{טמפרטורה}\\
 \bottomrule
 \end{tabular}
+\end{otherlanguage}
 \end{minipage}\hfill
 \begin{minipage}[t]{0.44\textwidth}\centering
+\begin{otherlanguage}{english}
 \begin{tabular}{@{}ll@{}}
 \toprule
-\textbf{ערך} & \textbf{פרמטר}\\
+\h{\textbf{ערך}} & \h{\textbf{פרמטר}}\\
 \midrule
 \en{$10^{12}$} & \en{$n_i$}\\
-\en{$1.1$eV} & פער אסור\\
+\en{$1.1$eV} & \h{פער אסור}\\
 \bottomrule
 \end{tabular}
+\end{otherlanguage}
 \end{minipage}
 \tabcap{זוג טבלאות במיניפייג׳ים: המוצהר ראשון נוחת מימין — הפוך מעמודות.}
-\end{tablebox}
+\end{center}
 \bigskip
 
 % +--- PATTERN 8: full-grid "standard" table (v3.40.2) ------------
@@ -266,20 +263,22 @@ $A$ & $B$ & $A \wedge B$ & $A \vee B$\\
 % |           cell; row-header column declared LAST -> rightmost.
 % +----------------------------------------------------------------
 \patternheading{8. טבלה סטנדרטית — רשת מלאה עם כותרות שורה ועמודה}
-\begin{tablebox}\centering\small
+\begin{center}
+\begin{otherlanguage}{english}
 \begin{tabular}{|c|c|c|c|}
 \hline
-\textbf{ג} & \textbf{ב} & \textbf{א} & \\
+\h{\textbf{ג}} & \h{\textbf{ב}} & \h{\textbf{א}} & \\
 \hline
-\en{7} & \en{4} & \en{0} & \textbf{א}\\
+\en{7} & \en{4} & \en{0} & \h{\textbf{א}}\\
 \hline
-\en{2} & \en{0} & \en{4} & \textbf{ב}\\
+\en{2} & \en{0} & \en{4} & \h{\textbf{ב}}\\
 \hline
-\en{0} & \en{2} & \en{7} & \textbf{ג}\\
+\en{0} & \en{2} & \en{7} & \h{\textbf{ג}}\\
 \hline
 \end{tabular}
+\end{otherlanguage}
 \tabcap{מטריצת מרחקים: רשת מלאה, תא פינה ריק, כותרות בשני הצירים.}
-\end{tablebox}
+\end{center}
 \bigskip
 
 % +--- PATTERN 9: schedule / timetable (v3.40.2) ------------------
@@ -291,18 +290,20 @@ $A$ & $B$ & $A \wedge B$ & $A \vee B$\\
 % |           en-dash inside one island: \en{10–12}.
 % +----------------------------------------------------------------
 \patternheading{9. מערכת שעות / לוח זמנים}
-\begin{tablebox}\centering\small
+\begin{center}
+\begin{otherlanguage}{english}
 \begin{tabular}{|c|c|c|c|c|c|}
 \hline
-\textbf{ה} & \textbf{ד} & \textbf{ג} & \textbf{ב} & \textbf{א} & \textbf{שעה}\\
+\h{\textbf{ה}} & \h{\textbf{ד}} & \h{\textbf{ג}} & \h{\textbf{ב}} & \h{\textbf{א}} & \h{\textbf{שעה}}\\
 \hline
- & מעבדה & הרצאה &  & הרצאה & \en{10–12}\\
+ & \h{מעבדה} & \h{הרצאה} &  & \h{הרצאה} & \en{10–12}\\
 \hline
-תרגול &  &  & תרגול &  & \en{14–16}\\
+\h{תרגול} &  &  & \h{תרגול} &  & \en{14–16}\\
 \hline
 \end{tabular}
+\end{otherlanguage}
 \tabcap{הימים מוצהרים בסדר הפוך (ה קודם) כדי שיום א ינחת מימין, צמוד לעמודת השעה.}
-\end{tablebox}
+\end{center}
 \bigskip
 
 % +--- PATTERN 10: feature-comparison matrix (v3.40.2) ------------
@@ -313,18 +314,20 @@ $A$ & $B$ & $A \wedge B$ & $A \vee B$\\
 % |           the feature column declared LAST -> rightmost.
 % +----------------------------------------------------------------
 \patternheading{10. מטריצת השוואת תכונות (סימוני וי)}
-\begin{tablebox}\centering\small
+\begin{center}
+\begin{otherlanguage}{english}
 \begin{tabular}{@{}ccc l@{}}
 \toprule
-\en{C} & \en{Java} & \en{Python} & \textbf{תכונה}\\
+\en{C} & \en{Java} & \en{Python} & \h{\textbf{תכונה}}\\
 \midrule
-$\times$ & $\checkmark$ & $\checkmark$ & ניהול זיכרון אוטומטי\\
-$\checkmark$ & $\checkmark$ & $\times$ & טיפוסים סטטיים\\
-$\checkmark$ & $\times$ & $\times$ & גישה ישירה לזיכרון\\
+$\times$ & $\checkmark$ & $\checkmark$ & \h{ניהול זיכרון אוטומטי}\\
+$\checkmark$ & $\checkmark$ & $\times$ & \h{טיפוסים סטטיים}\\
+$\checkmark$ & $\times$ & $\times$ & \h{גישה ישירה לזיכרון}\\
 \bottomrule
 \end{tabular}
+\end{otherlanguage}
 \tabcap{השוואת תכונות: $\checkmark$ ו־$\times$ במתמטיקה — לא תווי יוניקוד.}
-\end{tablebox}
+\end{center}
 \bigskip
 
 % +--- PATTERN 11: highlighted answer row (v3.40.2) ---------------
@@ -338,45 +341,123 @@ $\checkmark$ & $\times$ & $\times$ & גישה ישירה לזיכרון\\
 % |              it before the lint caught the idea).
 % |           ✅ \en{1.9\,ns} — one island, order fixed.
 % +----------------------------------------------------------------
-\patternheading{11. הדגשת שורת התשובה (\en{rowcolor})}
-\begin{tablebox}\centering\small
+\patternheading{11. טבלה פתוחה קומפקטית באנגלית}
+\begin{englishprose}
+\noindent A compact unframed table uses three selected fields. Its rows stay
+at their natural width; a restrained row highlight marks the chosen option.
+\begin{center}
+\begin{otherlanguage}{english}
 \begin{tabular}{@{}ll l@{}}
 \toprule
-\textbf{זמן גישה} & \textbf{\en{hit rate}} & \textbf{תצורה}\\
+\textbf{Configuration} & \textbf{Hit rate} & \textbf{Access time}\\
 \midrule
-\en{2.4\,ns} & \en{89\%} & מטמון ישיר\\
+Direct & \en{89\%} & \en{2.4\,ns}\\
 \rowcolor{black!12}
-\en{1.9\,ns} & \en{94\%} & \en{two-way} — נבחרה\\
-\en{2.1\,ns} & \en{95\%} & \en{four-way}\\
+Two-way (selected) & \en{94\%} & \en{1.9\,ns}\\
+Four-way & \en{95\%} & \en{2.1\,ns}\\
 \bottomrule
 \end{tabular}
-\tabcap{שורת התשובה מודגשת ברקע אפור: \code{rowcolor} מ־\en{colortbl}, נטען פר־מסמך.}
-\end{tablebox}
+\end{otherlanguage}
+\tabcap{\label{tab:unframed-english-compact}Compact cache comparison with one selected row.}
+\end{center}
+\end{englishprose}
 \bigskip
 
-% +--- PATTERN 12: reference table, Latin term+number (v3.40.2) ---
-% | USE WHEN: source-document style lookup tables keyed by a Latin
-% |           term WITH a number (RAID 5, USB 3.0, IEEE 802.11).
-% | KEY:      the term AND its number are ONE island: \en{RAID 0}.
-% |           Real course material shipped "0 RAID" by typing them
-% |           as separate runs (user-supplied screenshot). Grid look:
-% |           outer frame + column separators, \hline only at top /
-% |           below header / bottom.
+% +--- PATTERN 12: wide unframed English table, five chosen fields ---
+% | USE WHEN: five fields support a real comparison with wrapping prose.
+% | KEY: natural short fields, a content-based allowance for the prose column;
+% |      keep Latin term + number together. This replaces a redundant grid
+% |      example. Neither five fields nor this allowance is a prescribed schema.
 % +----------------------------------------------------------------
-\patternheading{12. טבלת עיון — מונח לועזי ממוספר}
-\begin{tablebox}\centering\small
-\begin{tabular}{|l|l|l|}
-\hline
-\multicolumn{1}{|c|}{\textbf{שימוש}} & \multicolumn{1}{c|}{\textbf{תיאור}} & \multicolumn{1}{c|}{\textbf{רמה}}\\
-\hline
-ביצועים, לא יתירות   & \en{Striping} בלבד                & \en{RAID 0}\\
-אמינות גבוהה         & \en{Mirroring}                     & \en{RAID 1}\\
-איזון ביצועים/מקום   & \en{Striping + Parity} מבוזר       & \en{RAID 5}\\
-סובלנות ל־2 כשלים    & כמו 5 עם 2 בלוקי \en{parity}       & \en{RAID 6}\\
-ביצועים + יתירות     & \en{Mirror of Stripes}             & \en{RAID 10}\\
-\hline
+\patternheading{12. טבלה פתוחה רחבה — חמישה שדות וטקסט נשבר באנגלית}
+\begin{englishprose}
+\noindent These synthetic records need five fields; long explanations wrap
+while short values and formulas retain their own widths. Choose another count
+or a list when it communicates the information better.
+\begin{center}
+\begin{otherlanguage}{english}
+\begin{tabular}{@{}rlrc>{\raggedright\arraybackslash}p{\dimexpr\linewidth-7.1cm\relax}@{}}
+\toprule
+\textbf{ID} & \textbf{Standard} & \textbf{Value} & \textbf{Model} & \textbf{Explanation}\\
+\midrule
+101 & USB 3.0 & -3.50 & $x^2+\sigma^2$ &
+A long explanation wraps within its chosen column. The Hebrew term \h{ערוץ}
+and the formula stay readable without shrinking the table.\\
+102 & IEEE 802.11 & 0.75 & $x^2$ & A shorter comparison keeps its term and number together.\\
+103 & RAID 5 & 1.25 & $x^3$ & Another illustrative record; these values are synthetic.\\
+\bottomrule
 \end{tabular}
-\tabcap{רמות \en{RAID}: המונח והמספר שלו הם אי אחד — \code{\textbackslash en\{RAID 0\}}, לעולם לא שני איים.}
-\end{tablebox}
+\end{otherlanguage}
+\tabcap{\label{tab:unframed-english-wide}Five selected fields with wrapping prose, mathematics and a Hebrew term.}
+\end{center}
+\end{englishprose}
 
+\clearpage
+\patternheading{13. שתי מסגרות לבחירה — מבנה לפי התוכן}
+\noindent ברירת המחדל נשארת טבלה פתוחה. אפשר לבחור מסגרת ברוחב הקופסאות הסמנטיות
+של המסמך, או מסגרת המתאימה לתוכן. מספר העמודות, סדרן, הכותרות ויישורן נבחרים לפי
+התוכן; הדוגמאות אינן סכמת חובה. לעיתים רשימה או פסקה מתאימות יותר מטבלה.
+המסגרות אפורות והרקע לבן, כדי לא לסמן את הטבלה כקטגוריה סמנטית צבעונית.
+\begin{defbox}[frametitle={קופסה סמנטית להשוואת הרוחב}]
+\noindent המסגרת הסמנטית של הטבלה הבאה משתמשת באותו רוחב ובאותם שוליים פנימיים.
+העמודות עצמן נשארות קצרות ואינן נמתחות כדי למלא את הקופסה.
+\end{defbox}
+\begin{semanticframedtable}[נתונים קצרים ברוחב סמנטי]{2}{rr}
+  {מדידות קצרות.}{tab:optional-semantic}
+\toprule\h{ערך}&\h{מזהה}\\\midrule
+\en{-12.50}&\en{001}\\\en{0.00}&\en{002}\\\bottomrule
+\end{semanticframedtable}
+\begin{framedtable}[חמישה שדות במסגרת לפי התוכן]{5}{lcrrr}
+  {חמישה שדות שנבחרו מן הנתונים.}{tab:optional-short}
+\toprule\h{מצב}&\h{מודל}&\h{ממוצע}&\h{כמות}&\h{מזהה}\\\midrule
+\h{נצפה}&$x^2$&\en{1.25}&\en{12}&\en{001}\\
+\h{אומת}&$x^3$&\en{-0.50}&\en{8}&\en{002}\\\bottomrule
+\end{framedtable}
+\noindent הפניה ל־\autoref{tab:optional-semantic} ול־\autoref{tab:optional-short}.
+\clearpage
+\patternheading{14. תיאור נשבר וערכים — ארבע עמודות שנבחרו לתוכן}
+\noindent כאן השוואת התוכן מצדיקה תיאור, מודל, ערך ומזהה. אין דרישה לארבע עמודות:
+במסמך אחר אפשר לבחור מספר, סדר, כותרות ורוחבים אחרים, או מבנה שאינו טבלה.
+רוחב התיאור הוקצה לאחר בחינת שלוש העמודות הקצרות; הגופן נשאר בגודל הרגיל.
+\begin{semanticframedtable}[תיאור נשבר ברוחב סמנטי]{4}
+  {>{\raggedleft\arraybackslash}p{\framedtablewidth-4.6cm}crr}
+  {תיאור ארוך עם \en{LLVM} ועם $x^2$, הנשבר לשורות בכיתוב אחיד ובאותו רוחב בטוח.}{tab:optional-long}
+\toprule\h{תיאור}&\h{מודל}&\h{ערך}&\h{מזהה}\\\midrule
+\h{תיאור עברי ארוך נשבר באופן טבעי בשורות העמודה, ללא כיווץ הגופן וללא חריגה מהמסגרת.
+המונח \en{LLVM} והנוסחה $x^2$ נשארים קריאים ומשולבים בהסבר.}&$x^2+\sigma^2$&\en{-3.50}&\en{101}\\
+\h{תיאור קצר להשוואה עם מונח \en{control} בתוך המשפט.}&$x^2$&\en{0.75}&\en{102}\\\bottomrule
+\end{semanticframedtable}
+\noindent הכיתוב, העמודות והמסגרת נבדקים יחד. לטבלה העוברת בין עמודים משתמשים
+ב־\code{flowtable} ללא מסגרת, או מפצלים את התוכן. שתי המסגרות כאן מחזיקות טבלה
+שלמה בעמוד אחד בלבד. הפניה ל־\autoref{tab:optional-long}.
+\clearpage
+\patternheading{15. בחירות תוכן באנגלית — מבנים חלופיים}
+\begin{englishprose}
+\noindent Choose the fields from the content; these layouts are adaptable examples.
+The semantic-width option matches the real semantic box below. Natural inner
+columns remain compact. A content-fit frame follows its rows and caption.
+\begin{defbox}[frametitle={Semantic reference in this document}]
+\noindent This box and the next table share their outer width and inset conventions.
+\end{defbox}
+\begin{semanticframedtable}[English compact semantic records]{2}{rr}
+  {Compact values.}{tab:optional-english-semantic}
+\toprule ID&Value\\\midrule 001&-12.50\\002&0.00\\\bottomrule
+\end{semanticframedtable}
+\begin{framedtable}[English five-field records]{5}{rrrrl}
+  {Five selected fields.}{tab:optional-english}
+\toprule ID&Count&Mean&Model&State\\\midrule
+001&12&1.25&$x^2$&Observed\\002&8&-0.50&$x^3$&Checked\\\bottomrule
+\end{framedtable}
+\begin{semanticframedtable}[English wrapped four-field records]{4}
+  {rrc>{\raggedright\arraybackslash}p{\framedtablewidth-4.8cm}}
+  {Four selected fields with a wrapped explanation, $x^2$ and \h{מונח}.}{tab:optional-english-wrapped}
+\toprule ID&Value&Model&Explanation\\\midrule
+101&-3.50&$x^2+\sigma^2$&Long explanatory prose wraps within its chosen column.
+The formula and the Hebrew term \h{מונח} stay readable without scaling the table.\\
+102&0.75&$x^2$&A shorter comparison.\\\bottomrule
+\end{semanticframedtable}
+\noindent See \autoref{tab:optional-english-semantic}, \autoref{tab:optional-english},
+and \autoref{tab:optional-english-wrapped}. A list or another structure can be a
+better fit when the content does not need a table.
+\end{englishprose}
 \end{document}

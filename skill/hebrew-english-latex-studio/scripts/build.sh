@@ -84,8 +84,8 @@ REPRO="${REPRO:-0}"
 MAX_CROSS_PAGE_DESTINATIONS="${MAX_CROSS_PAGE_DESTINATIONS:-0}"
 PDF_FOLIO_LAYOUT="${PDF_FOLIO_LAYOUT:-center}"
 PDF_FOLIO_BAND="${PDF_FOLIO_BAND:-footer}"
-PDF_CAPTION_COLOR="${PDF_CAPTION_COLOR:-555555}"
-PDF_CAPTION_LABEL_WEIGHT="${PDF_CAPTION_LABEL_WEIGHT-bold}"
+PDF_CAPTION_COLOR="${PDF_CAPTION_COLOR:-000000}"
+PDF_CAPTION_LABEL_WEIGHT="${PDF_CAPTION_LABEL_WEIGHT-normal}"
 if ! python3 "$SCRIPT_DIR/validate_build_config.py" \
     --content-profile "$DENSITY_PROFILE" \
     --expected-paper "$EXPECTED_PAPER" \
@@ -959,7 +959,7 @@ fi
 echo ""
 echo "▶ PDF metadata / outline / navigation check:"
 if ! python3 "$SCRIPT_DIR/check_pdf_navigation.py" \
-    "${PDF_NAVIGATION_ARGS[@]}" "$PDF"; then
+    ${PDF_NAVIGATION_ARGS[@]+"${PDF_NAVIGATION_ARGS[@]}"} "$PDF"; then
   echo "✗ PDF NAVIGATION GATE FAILED — repair metadata/bookmarks before delivery."
   echo "  BUILD NOT OK."
   exit 1

@@ -47,8 +47,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--source-date-epoch", default="1700000000")
     parser.add_argument("--folio-layout", default="center")
     parser.add_argument("--folio-band", default="footer")
-    parser.add_argument("--caption-color", default="555555")
-    parser.add_argument("--caption-label-weight", default="bold")
+    parser.add_argument("--caption-color", default="000000")
+    parser.add_argument("--caption-label-weight", default="normal")
     args = parser.parse_args(argv)
 
     errors: list[str] = []

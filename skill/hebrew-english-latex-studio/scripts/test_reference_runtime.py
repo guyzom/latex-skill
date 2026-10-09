@@ -1428,7 +1428,9 @@ class ReferenceRuntime(unittest.TestCase):
                                  ('שימוש:', 'תנאים:', 'שאלה:', 'פתרון:', 'זהירות', 'איור', 'טבלה')):
                     self.assertIn(expected, text)
                 sites = [site for page in pdf for site in render.caption_sites(page, 0, 'normal')]
-                self.assertEqual([(kind, number) for kind, number, _ in sites],
+                # Physical baseline collection can interleave neighboring
+                # columns; require every exact caption identity once.
+                self.assertCountEqual([(kind, number) for kind, number, _ in sites],
                                  [('tbl','1'),('fig','1'),('tbl','2')])
                 hard, soft = [], []
                 self.assertEqual(render.dest_landing(pdf, hard, soft, 0, 'normal'), 3)

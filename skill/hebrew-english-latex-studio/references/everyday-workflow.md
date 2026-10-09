@@ -75,6 +75,14 @@ content, titles, metadata, and recipient details before delivery. All starter
 kinds use a supported `article` shell; choose `report` in the document-class hook
 if the actual document requires chapters. Genre and document class are separate.
 
+Choose each table's column count, order, headers, widths and alignment from its
+actual content; starter and gallery examples do not prescribe a schema. Short
+tables use their natural width by default. Optional `framedtable` fits its
+contents; `semanticframedtable` matches the active semantic boxes' actual width
+and insets while keeping short columns natural. A list or prose may suit the
+information better. See [tables and captions](tables-and-captions.md) for wrapping,
+uniform numbered captions, multipage tables and both frame modes.
+
 Paragraph policy belongs to the document recipe, independently of its theme.
 New non-paper starters declare `\lakitparagraphstyle{block}` with `\def` before
 `preamble.tex`: flush paragraphs with a modest separating gap. Papers explicitly
@@ -237,8 +245,8 @@ and `PDF_FOLIO_BAND` values. A declared contract does not alter the source layou
 
 A wrapper selecting the academic or reference theme also supplies `PDF_CAPTION_COLOR=000000` and
 `PDF_CAPTION_LABEL_WEIGHT=normal` only when those variables are unset.
-Other themes retain the managed builder's gray/bold baseline unless explicitly
-configured. When customizing captions, match verification settings to the
+All shipped themes inherit the managed builder's regular black paragraph
+baseline (`000000` / `normal`) unless explicitly configured. When customizing captions, match verification settings to the
 actual label style; the variables do not recolor or change the PDF.
 
 `project.json` records the skill version, independent choices, selected packages,

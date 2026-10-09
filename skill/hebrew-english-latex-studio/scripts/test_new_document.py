@@ -209,7 +209,7 @@ class ProjectGeneratorTests(unittest.TestCase):
                                       secondary + 'prose}', source)
                         self.assertEqual(manifest['recipe']['composer_id'], 'paired-full-pages')
                         self.assertEqual(manifest['recipe']['recipe_revision'],
-                                         2 if kind == 'data-report' else 3)
+                                         6 if kind == 'data-report' else 3)
 
     def test_short_and_specialized_bilingual_bodies_retain_continuous_flow(self):
         for kind in ('note', 'general', 'letter', 'annotated-note'):

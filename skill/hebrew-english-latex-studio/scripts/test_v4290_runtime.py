@@ -27,7 +27,7 @@ ROOT = Path(__file__).resolve().parent.parent
 WRAPPERS = ('defbox', 'thmbox', 'notebox', 'exbox', 'warnbox', 'keybox')
 STYLES = ('asm', 'cstyle', 'pystyle', 'htmlstyle')
 SLATE = (63/255, 74/255, 86/255)
-TABLE = (185/255, 196/255, 210/255)
+TABLE = (118/255, 118/255, 118/255)
 RESTORE = r"""  \ifhllpdf@lstnumbermasked
     \let\thelstnumber\hllpdf@savedlstnumber
     \hllpdf@lstnumbermaskedfalse
@@ -217,8 +217,14 @@ class NestedContainers(unittest.TestCase):
         for variant,expected in [('table',4),('mutation-table-edges',1)]:
             with fitz.open(self.root/variant/'probe.pdf') as doc:
                 self.assertEqual(len(doc),1)
-                boxes=fills(doc[0],tuple(x/255 for x in (250,251,252)))
+                # White semantic bodies may surround the table. Identify the
+                # table's own white fill by touching neutral gray edges, not
+                # by the retired blue-tinted table background. A missing frame
+                # still fails the exact count and four/one-edge assertions.
+                boxes=[box for box in fills(doc[0],(1,1,1))
+                       if edges(doc[0],box,TABLE)]
                 self.assertEqual(len(boxes),2)
+                self.assertFalse(fills(doc[0],tuple(x/255 for x in (250,251,252))))
                 self.assertEqual(len(edges(doc[0],boxes[0],TABLE)),expected)
                 self.assertEqual(len(edges(doc[0],boxes[1],TABLE)),4)
                 destinations=doc.resolve_names()

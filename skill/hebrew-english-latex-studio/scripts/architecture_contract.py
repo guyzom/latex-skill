@@ -140,7 +140,7 @@ CAP_REFERENCE_PRESENTATION = "presentation.reference"
 
 # Mutable presentation hooks are distinct from uniquely owned semantic APIs:
 # the core supplies their defaults and a theme may deliberately redefine them.
-PRESENTATION_HOOKS = ("lakitcaptionlabelstyle", "lakitcaptionpunctuation")
+PRESENTATION_HOOKS = ("lakitcaptionstyle", "lakitcaptionlabelstyle", "lakitcaptionpunctuation")
 
 EXAM_COMPONENT_SYMBOLS = ("qlabel", "pts", "finalans", "srcfig", "srcfigdir")
 TOPICRAIL_PUBLIC_SYMBOLS = (
@@ -406,7 +406,7 @@ ASSET_SPECS: tuple[AssetSpec, ...] = (
         "semantic-extension",
         requires_roles=("mechanism-core",),
         provides=("semantic.document-api",),
-        public_symbols=("sourcelink",),
+        public_symbols=("sourcelink", "glossaryentry", "framedtable", "semanticframedtable", "framedtablewidth"),
         runtime_requires=("assets/preamble.tex",),
         maintenance_sync=True,
         density_exempt=True,

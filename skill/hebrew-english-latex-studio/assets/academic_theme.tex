@@ -44,7 +44,6 @@
 % Routine derivations use equation*/align* or \[...\]. Avoid invented tags.
 \mathtoolsset{showonlyrefs=true,showmanualtags=false}
 \lakitcaptionnumbering{continuous}
-\renewcommand{\lakitcaptionlabelstyle}[1]{\normalfont\color{black}#1}
 \renewcommand{\lakitcaptionpunctuation}{:}
 
 % Localized front matter follows the current language and nested prose islands.
@@ -91,7 +90,7 @@
 \definecolor{cRed}{HTML}{000000}    \definecolor{cRedBg}{HTML}{FFFFFF}
 \definecolor{cSlate}{HTML}{000000}  \definecolor{cSlateBg}{HTML}{FFFFFF}
 \definecolor{cRule}{HTML}{000000}
-\definecolor{cTblLine}{HTML}{000000}\definecolor{cTblBg}{HTML}{FFFFFF}
+\definecolor{cTblLine}{HTML}{767676}\definecolor{cTblBg}{HTML}{FFFFFF}
 \mdfdefinestyle{hllpdfacademic}{
   frametitle={},leftline=false,rightline=false,topline=false,bottomline=false,
   backgroundcolor=white,linecolor=black,roundcorner=0pt,
@@ -102,6 +101,8 @@
   frametitlefont=\normalfont\rmfamily\bfseries,
   frametitleaboveskip=3pt,frametitlebelowskip=3pt
 }
+\renewcommand{\hllpdfsemanticframestyle}{hllpdfacademic}
+\renewcommand{\hllpdftableframestyle}{hllpdfacademic}
 \renewmdenv[style=hllpdfacademic]{defbox}
 \renewmdenv[style=hllpdfacademic]{thmbox}
 \renewmdenv[style=hllpdfacademic]{notebox}

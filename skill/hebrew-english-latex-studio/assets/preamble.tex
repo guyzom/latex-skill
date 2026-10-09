@@ -650,36 +650,31 @@
 % bug, not an authoring rule). The explicit reset makes every box titleless
 % unless ITS OWN [frametitle={...}] says otherwise; verified both directions:
 % no duplicate on the nested box, an explicit title still renders.
-\newmdenv[frametitle={},linecolor=cBlue,backgroundcolor=cBlueBg,linewidth=1.1pt,
+% Geometry is shared with the optional semantic-width table container. Themes
+% select their own existing semantic style below; neither path fixes columns.
+\mdfdefinestyle{hllpdfsemanticgeometry}{linewidth=1.1pt,
+  innertopmargin=6pt,innerbottommargin=7pt,skipabove=9pt,skipbelow=9pt,
+  innerleftmargin=9pt,innerrightmargin=9pt,everyline=true,
+  splitbottomskip=6pt,splittopskip=12pt,roundcorner=3pt}
+\newcommand{\hllpdfsemanticframestyle}{hllpdfsemanticgeometry}
+\newmdenv[frametitle={},style=hllpdfsemanticgeometry,linecolor=cBlue,backgroundcolor=cBlueBg,
   frametitlebackgroundcolor=cBlue,frametitlefontcolor=white,
-  innertopmargin=6pt,innerbottommargin=7pt,skipabove=9pt,skipbelow=9pt,
-  innerleftmargin=9pt,innerrightmargin=9pt,everyline=true,splitbottomskip=6pt,splittopskip=12pt,
-  roundcorner=3pt]{defbox}   % הגדרה
-\newmdenv[frametitle={},linecolor=cGreen,backgroundcolor=cGreenBg,linewidth=1.1pt,
+  ]{defbox}   % הגדרה
+\newmdenv[frametitle={},style=hllpdfsemanticgeometry,linecolor=cGreen,backgroundcolor=cGreenBg,
   frametitlebackgroundcolor=cGreen,frametitlefontcolor=white,
-  innertopmargin=6pt,innerbottommargin=7pt,skipabove=9pt,skipbelow=9pt,
-  innerleftmargin=9pt,innerrightmargin=9pt,everyline=true,splitbottomskip=6pt,splittopskip=12pt,
-  roundcorner=3pt]{thmbox}   % משפט/טענה
-\newmdenv[frametitle={},linecolor=cAmber,backgroundcolor=cAmberBg,linewidth=1.1pt,
+  ]{thmbox}   % משפט/טענה
+\newmdenv[frametitle={},style=hllpdfsemanticgeometry,linecolor=cAmber,backgroundcolor=cAmberBg,
   frametitlebackgroundcolor=cAmber,frametitlefontcolor=white,
-  innertopmargin=6pt,innerbottommargin=7pt,skipabove=9pt,skipbelow=9pt,
-  innerleftmargin=9pt,innerrightmargin=9pt,everyline=true,splitbottomskip=6pt,splittopskip=12pt,
-  roundcorner=3pt]{notebox}  % הערה
-\newmdenv[frametitle={},linecolor=cPurple,backgroundcolor=cPurpleBg,linewidth=1.1pt,
+  ]{notebox}  % הערה
+\newmdenv[frametitle={},style=hllpdfsemanticgeometry,linecolor=cPurple,backgroundcolor=cPurpleBg,
   frametitlebackgroundcolor=cPurple,frametitlefontcolor=white,
-  innertopmargin=6pt,innerbottommargin=7pt,skipabove=9pt,skipbelow=9pt,
-  innerleftmargin=9pt,innerrightmargin=9pt,everyline=true,splitbottomskip=6pt,splittopskip=12pt,
-  roundcorner=3pt]{exbox}    % דוגמה
-\newmdenv[frametitle={},linecolor=cRed,backgroundcolor=cRedBg,linewidth=1.1pt,
+  ]{exbox}    % דוגמה
+\newmdenv[frametitle={},style=hllpdfsemanticgeometry,linecolor=cRed,backgroundcolor=cRedBg,
   frametitlebackgroundcolor=cRed,frametitlefontcolor=white,
-  innertopmargin=6pt,innerbottommargin=7pt,skipabove=9pt,skipbelow=9pt,
-  innerleftmargin=9pt,innerrightmargin=9pt,everyline=true,splitbottomskip=6pt,splittopskip=12pt,
-  roundcorner=3pt]{warnbox}  % טעות נפוצה
-\newmdenv[frametitle={},linecolor=cTeal,backgroundcolor=cTealBg,linewidth=1.1pt,
+  ]{warnbox}  % טעות נפוצה
+\newmdenv[frametitle={},style=hllpdfsemanticgeometry,linecolor=cTeal,backgroundcolor=cTealBg,
   frametitlebackgroundcolor=cTeal,frametitlefontcolor=white,
-  innertopmargin=6pt,innerbottommargin=7pt,skipabove=9pt,skipbelow=9pt,
-  innerleftmargin=9pt,innerrightmargin=9pt,everyline=true,splitbottomskip=6pt,splittopskip=12pt,
-  roundcorner=3pt]{keybox}   % רעיון מרכזי
+  ]{keybox}   % רעיון מרכזי
 
 % ---- codebox (v4.5.0): the dedicated container for code -------------------
 % An OPTION, not a policy: asmblock unboxed stays canonical for a full listing,
@@ -800,12 +795,13 @@
 % ============================================================================
 % Unified TABLE presentation: subtle uniform slate frame + auto-numbered
 % caption rendered INSIDE the frame. Use:
-%   \begin{tablebox}\centering\small  <tabular>  \tabcap{<description>}\end{tablebox}
+%   \begin{tablebox}\centering  <tabular>  \tabcap{<description>}\end{tablebox}
 % Replaces the buggy \caption* (which emitted a stray "טבלה N : *" line) and
-% gives every table one identical frame + numbered caption "טבלה N.M.".
+% provides an explicit framed option + numbered caption "טבלה N.M: תיאור".
 % Optional intro text may be placed at the TOP, before the tabular, inside the box.
 % ============================================================================
-\definecolor{cTblLine}{HTML}{B9C4D2}  \definecolor{cTblBg}{HTML}{FAFBFC}
+% Tables are neutral data containers, not another semantic color category.
+\definecolor{cTblLine}{HTML}{767676}  \definecolor{cTblBg}{HTML}{FFFFFF}
 % v3.23: class-aware — under `article` there is no chapter counter (the promised
 % report->article switch used to die with "No counter 'chapter' defined").
 \makeatletter
@@ -850,10 +846,13 @@
 % page-tall table. NB: a table taller than ONE FULL PAGE can grind mdframed's
 % split-trial loop (reproduced: minimal doc, minutes of 1pt-step Overfull
 % probes) — break such a monster into two tables.
-\newmdenv[frametitle={},leftline=true,rightline=true,topline=true,bottomline=true,
-  linecolor=cTblLine,backgroundcolor=cTblBg,linewidth=0.9pt,
+\mdfdefinestyle{hllpdftablegeometry}{leftline=true,rightline=true,topline=true,bottomline=true,
+  linewidth=0.9pt,
   innertopmargin=9pt,innerbottommargin=8pt,skipabove=11pt,skipbelow=11pt,
-  innerleftmargin=11pt,innerrightmargin=11pt,roundcorner=4pt,
+  innerleftmargin=11pt,innerrightmargin=11pt,roundcorner=4pt}
+\newcommand{\hllpdftableframestyle}{hllpdftablegeometry}
+\newmdenv[frametitle={},style=hllpdftablegeometry,
+  linecolor=cTblLine,backgroundcolor=cTblBg,
   % v4.2.0 (adopted): tablebox is ATOMIC. Short tableboxes near page bottoms
   % repeatedly entered mdframed's split trial, emitting benign Overfull-vbox
   % bursts and occasionally separating the intro prose from the tabular.
@@ -938,12 +937,24 @@
 % it is manufactured by this macro, which is why every source linter was blind.
 % \mbox makes the label one atomic box so nothing can reorder across it. Verified
 % zero-regression: an ordinary Hebrew caption keeps identical x-geometry.
-% Public caption-presentation hooks. Their core defaults retain the historical
-% gray bold label and period exactly. Themes may change these two hooks, while
-% the core remains the sole owner of counters, label state and raised anchors.
-% The enclosing \mbox in both caption commands keeps the entire label atomic.
-\newcommand{\lakitcaptionlabelstyle}[1]{\textcolor{cGray}{\textbf{#1}}}
-\newcommand{\lakitcaptionpunctuation}{.}
+% One paragraph style covers label, number, separator and description.
+% Explicit project/template overrides remain possible; the label hook is kept
+% for compatibility, with an identity default. Counters/anchors stay unchanged.
+\newcommand{\lakitcaptionstyle}{\normalfont\small\color{black}\hypersetup{allcolors=black}}
+\newcommand{\lakitcaptionlabelstyle}[1]{#1}
+\newcommand{\lakitcaptionpunctuation}{:}
+% Native floats, captionof and longtable use the same presentation policy.
+% subcaption is optional and inherits the same font rather than a second size.
+\usepackage{caption}
+\DeclareCaptionFont{lakit}{\lakitcaptionstyle}
+\DeclareCaptionLabelFormat{lakit}{\lakitcaptionlabelstyle{#1~\en{#2}}}
+\DeclareCaptionLabelSeparator{lakit}{\lakitcaptionpunctuation\enspace}
+\captionsetup{font=lakit,labelfont={},textfont={},labelformat=lakit,
+  labelsep=lakit,justification=centering}
+\makeatletter
+\AtBeginDocument{\@ifpackageloaded{subcaption}{%
+  \captionsetup[sub]{font=lakit,labelfont={},textfont={},labelsep=lakit}}{}}
+\makeatother
 % v3.64: OPT-IN list-of-figures/tables entry via an optional short caption.
 % \listoffigures and \listoftables are inherited from report.cls and LOOK available,
 % but \figcap/\tabcap step the custom \c@fig/\c@tbl counters and never call
@@ -1009,7 +1020,12 @@
   \ifdim\lakintabraise>0pt
     \H@refstepcounter{tbl}\HyCnt@ProvideTheHCounter{tbl}\hyper@makecurrent{tbl}%
     \begingroup
-      \edef\HyperRaiseLinkDefault{\the\dimexpr\lakintabraise+42pt\relax}%
+      % A frameless table targets its measured top. The frame's historical
+      % cushion belongs only to tablebox and is corrected at box close.
+      \edef\HyperRaiseLinkDefault{\the\lakintabraise}%
+      \iflakintabframed
+        \edef\HyperRaiseLinkDefault{\the\dimexpr\lakintabraise+42pt\relax}%
+      \fi
       \Hy@raisedlink{\hyper@anchorstart{\@currentHref}\hyper@anchorend}%
     \endgroup
     \global\lakintabraise 0pt\relax
@@ -1019,13 +1035,13 @@
   \lakinrtitle{#2}\par\nopagebreak\addvspace{6pt}%
   \def\lakin@short{#1}\ifx\lakin@short\@empty\else
     \addcontentsline{lot}{table}{\protect\numberline{\thetbl}{\protect\ignorespaces #1}}\fi
-  {\centering\small\mbox{\lakitcaptionlabelstyle{\tablename~\thetbl\lakitcaptionpunctuation}}\enspace #2\par}}
+  {\centering\lakitcaptionstyle\mbox{\lakitcaptionlabelstyle{\tablename~\en{\thetbl}\lakitcaptionpunctuation}}\enspace #2\par}}
 \makeatother
 
 % ============================================================================
 % Unified FIGURE caption — the \tabcap twin for TikZ/plot figures (v3.34.0).
 % A figure (tikzpic) sits inline in the prose; put \figcap BELOW it for a
-% numbered, \ref-able caption "איור N.M." in the same gray style as \tabcap:
+% numbered, \ref-able caption "איור N.M: תיאור" in the same style as \tabcap:
 %   \begin{tikzpic} ... \end{tikzpic}
 %   \figcap{\label{fig:foo}description}     % \label FIRST, inside the argument
 % WHY a macro, not a hand-written gray line: a manual
@@ -1073,7 +1089,7 @@
   \lakinrtitle{#2}\par\nopagebreak\addvspace{4pt}%
   \def\lakin@short{#1}\ifx\lakin@short\@empty\else
     \addcontentsline{lof}{figure}{\protect\numberline{\thefig}{\protect\ignorespaces #1}}\fi
-  {\centering\lakin@pend\small\mbox{\lakitcaptionlabelstyle{\figurename~\thefig\lakitcaptionpunctuation}}\enspace #2\par}}
+  {\centering\lakin@pend\lakitcaptionstyle\mbox{\lakitcaptionlabelstyle{\figurename~\en{\thefig}\lakitcaptionpunctuation}}\enspace #2\par}}
 \makeatother
 
 % ============================================================================
@@ -1249,6 +1265,7 @@
 % page-fitting arithmetic to close the residue would be a heuristic with its own
 % failure mode, which is the trade this repo has repeatedly refused.
 \newif\iflakintabcapseen
+\newif\iflakintabframed
 % The Lua lives in ONE \directlua at load time, and is written with NO
 % backslash, %, # or ~ : \directlua expands its argument like \edef, so an
 % active ~ would expand to \nobreakspace and a % would eat the rest of the line
@@ -1333,13 +1350,13 @@
 % @-FREE NAMES ON PURPOSE: these two are named in the `tablebox` key list at
 % \newmdenv above, which is tokenised OUTSIDE any \makeatletter region — a
 % \lakin@... there would tokenise as \lakin followed by the letters @tabopen.
-\newcommand{\lakintabboxopen}{\global\lakintabcapseenfalse}
+\newcommand{\lakintabboxopen}{\lakintabframedtrue\global\lakintabcapseenfalse}
 \newcommand{\lakintabboxclose}{%
   \iflakintabcapseen
     \directlua{lakintab.fix(-\number\dimexpr\lakintabcushion\relax,
                             \number\dimexpr\textheight\relax)}%
     \global\lakintabcapseenfalse
-  \fi}
+  \fi\lakintabframedfalse}
 % The cushion above the box's CONTENT top. 42pt puts the dest 32.0pt above the
 % frame top (42pt - innertopmargin 9pt - linewidth 0.9pt), i.e. exactly where
 % the 295 correct dests already are — the correction moves only the broken ones.

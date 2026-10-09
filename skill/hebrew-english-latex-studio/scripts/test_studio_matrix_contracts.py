@@ -431,7 +431,7 @@ class MatrixContracts(unittest.TestCase):
     def test_every_hook_has_explicit_positive_negative_and_native_visual_case(self):
         rows = catalog_coverage.hook_coverage()
         self.assertEqual({row['name'] for row in rows}, {hook.name for hook in HOOK_SPECS})
-        self.assertEqual(len(rows), 29)
+        self.assertEqual(len(rows), 30)
         for row in rows:
             self.assertTrue(row['positive_controls'])
             self.assertTrue(row['negative_controls'])

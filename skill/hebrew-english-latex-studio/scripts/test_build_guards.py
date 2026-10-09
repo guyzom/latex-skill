@@ -118,7 +118,10 @@ def run_late_pass_recorder_escape(project: Path) -> None:
     output = proc.stdout + proc.stderr
     assert proc.returncode == 1, output
     assert "pass 2" in output, output
-    assert "untrusted external TeX input: /etc/passwd" in output, output
+    # The recorder guard reports canonical paths: macOS resolves /etc through
+    # /private/etc; Linux keeps /etc. The same external input must be rejected.
+    rejected_input = Path("/etc/passwd").resolve()
+    assert f"untrusted external TeX input: {rejected_input}" in output, output
     assert state.read_text(encoding="utf-8").strip() == "2", output
 
 

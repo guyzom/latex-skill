@@ -550,13 +550,13 @@ else bad "font bundle verification tests failed"; fi
 echo "═══ T2d: build trust/path guards ═══"
 BUILD_GUARD_ARGS=()
 if [ "${FAST:-0}" = "1" ]; then BUILD_GUARD_ARGS+=(--fast); fi
-if python3 scripts/test_build_guards.py "${BUILD_GUARD_ARGS[@]}" >/dev/null 2>&1; then
+if python3 scripts/test_build_guards.py ${BUILD_GUARD_ARGS[@]+"${BUILD_GUARD_ARGS[@]}"} >/dev/null 2>&1; then
   if [ "${FAST:-0}" = "1" ]; then
     ok "invalid project root and build configuration are hard pre-engine failures"
   else
     ok "invalid project root/config and pass-2 recorder escape are hard failures"
   fi
-else bad "build guard tests failed (run: python3 scripts/test_build_guards.py ${BUILD_GUARD_ARGS[*]})"; fi
+else bad "build guard tests failed (run: python3 scripts/test_build_guards.py ${BUILD_GUARD_ARGS[*]-})"; fi
 
 echo "═══ T2d2: package architecture contract ═══"
 if python3 scripts/test_architecture.py >/dev/null 2>&1; then
@@ -1092,7 +1092,8 @@ if [ "${FAST:-0}" != "1" ]; then
   cp assets/preamble.tex assets/clean_theme.tex assets/exam_components.tex assets/example_exam.tex "$MUT/"
   HOOK='AtBeginEnvironment.*thelstnumber'
   NHOOK=$(grep -c "$HOOK" "$MUT/clean_theme.tex" || true)
-  sed -i "/$HOOK/d" "$MUT/clean_theme.tex"
+  sed "/$HOOK/d" "$MUT/clean_theme.tex" > "$MUT/clean_theme.mutated"
+  mv "$MUT/clean_theme.mutated" "$MUT/clean_theme.tex"
   if [ "${NHOOK:-0}" != "3" ]; then
     bad "negative control is DEAD: found ${NHOOK:-0} \thelstnumber restore hooks in clean_theme.tex (want 3) — the source-of-truth mutation no longer reproduces the pre-v3.78 rendering"
   else
@@ -1118,7 +1119,9 @@ if [ "${FAST:-0}" != "1" ]; then
   MUT=$(mktemp -d)
   cp assets/preamble.tex assets/example_listings.tex "$MUT/"
   NNUM=$(sed -n '/lstdefinestyle{pystyle}/,$p' "$MUT/preamble.tex" | grep -c "numbers=left" || true)
-  sed -i '/lstdefinestyle{pystyle}/,$ {/numbers=left/d}' "$MUT/preamble.tex"
+  sed -e '/lstdefinestyle{pystyle}/,$ {' -e '/numbers=left/d' -e '}' \
+    "$MUT/preamble.tex" > "$MUT/preamble.mutated"
+  mv "$MUT/preamble.mutated" "$MUT/preamble.tex"
   if [ "${NNUM:-0}" != "2" ]; then
     bad "negative control is DEAD: found ${NNUM:-0} numbers=left keys at/after pystyle in preamble.tex (want 2) — the mutation no longer reproduces the pre-v3.78 rendering"
   else
@@ -1202,12 +1205,35 @@ if python3 -c "import fitz" 2>/dev/null; then
   # checks and "74 passed, 0 failed" off the PREVIOUS run's PDF, because the
   # &&-chain ran in a subshell whose status was discarded and the guard was a
   # bare [ -f ]. The `else bad "did not compile"` branch was unreachable.
+  # Historical engine mutations can become correct in later LuaHBTeX releases.
+  # Keep compiling those witnesses, but require independent physical-glyph
+  # controls to trigger the named rules on every supported engine.
+  python3 - "$HARNESS_TMP" <<'PYEOF'
+from pathlib import Path
+import sys
+import fitz
+root = Path(sys.argv[1])
+with fitz.open() as doc:
+    page = doc.new_page()
+    chars = 'Datapath'
+    widths = [fitz.get_text_length(char, fontsize=12) for char in chars]
+    for i, char in enumerate(chars):
+        page.insert_text((100+sum(widths[i+1:]), 100), char, fontsize=12)
+    doc.save(root/'forced-reversed-latin.pdf')
+with fitz.open() as doc:
+    page = doc.new_page()
+    page.insert_text((100, 100), ')1(', fontsize=12)
+    doc.save(root/'forced-mirrored-reference.pdf')
+PYEOF
   rm -f tests/render_broken.pdf
   (cd tests && lualatex -interaction=nonstopmode render_broken.tex >/dev/null 2>&1); rcb=$?
   if [ "$rcb" = "0" ] && [ -f tests/render_broken.pdf ]; then
     python3 scripts/check_pdf_render.py tests/render_broken.pdf tests/render_broken.tex >/dev/null 2>&1; rc=$?
-    if [ "$rc" = "1" ]; then ok "catches reversed Latin in the rendered PDF (exit 1)"
-    else bad "render checker on render_broken exited $rc (want 1 = finding)"; fi
+    FORCED_OUT=$(python3 scripts/check_pdf_render.py "$HARNESS_TMP/forced-reversed-latin.pdf" tests/render_broken.tex 2>&1); forced_rc=$?
+    if { [ "$rc" = "0" ] || [ "$rc" = "1" ]; } \
+       && [ "$forced_rc" = "1" ] && grep -q 'REVERSED-LATIN-RUN' <<< "$FORCED_OUT"; then
+      ok "catches deliberately reversed Latin glyph positions (historic witness exit $rc; forced exit 1)"
+    else bad "reversed-Latin controls failed (historic exit $rc; forced exit $forced_rc: $FORCED_OUT)"; fi
   else bad "render_broken.tex did not compile"; fi
   # TWO passes — \eqref resolves only on the second (pass 1 prints "??", no
   # digits, nothing to mirror). A stale local .aux masked this: the check
@@ -1218,8 +1244,11 @@ if python3 -c "import fitz" 2>/dev/null; then
      && lualatex -interaction=nonstopmode render_eqref_broken.tex >/dev/null 2>&1); rce=$?
   if [ "$rce" = "0" ] && [ -f tests/render_eqref_broken.pdf ]; then
     python3 scripts/check_pdf_render.py tests/render_eqref_broken.pdf tests/render_eqref_broken.tex >/dev/null 2>&1; rc=$?
-    if [ "$rc" = "1" ]; then ok "catches mirrored \\eqref parens in RTL prose (R4, exit 1)"
-    else bad "render checker on render_eqref_broken exited $rc (want 1 = finding)"; fi
+    FORCED_OUT=$(python3 scripts/check_pdf_render.py "$HARNESS_TMP/forced-mirrored-reference.pdf" 2>&1); forced_rc=$?
+    if { [ "$rc" = "0" ] || [ "$rc" = "1" ]; } \
+       && [ "$forced_rc" = "1" ] && grep -q 'MIRRORED-PAREN-DIGITS' <<< "$FORCED_OUT"; then
+      ok "catches deliberately mirrored reference parens (R4; historic witness exit $rc; forced exit 1)"
+    else bad "mirrored-reference controls failed (historic exit $rc; forced exit $forced_rc: $FORCED_OUT)"; fi
   else bad "render_eqref_broken.tex did not compile"; fi
   # v3.33.3: R4 must be SILENT on the superscript idiom "(x-1)^2(x-2)" — a
   # squared factor abutting another parenthesized factor is NOT a mirrored tag
@@ -1596,8 +1625,9 @@ PYEOF
   # can, so a Latin-INITIAL part title merged with its own number into a single
   # LTR unit and printed the number on the wrong side. Asserted on GEOMETRY, not
   # on the .toc string: a string assertion would survive any re-break of the fix.
-  # The negative half removes the preamble patch and demands the defect BACK, so
-  # deleting the fix cannot leave this test silently green. Always 3.
+  # Keep the patch-removal witness, but do not require a newer engine to retain
+  # its old defect. A second control deliberately moves only the Latin part's
+  # visible number to the wrong edge of the actual positive PDF. Always 3.
   PTOC_DIR="$HARNESS_TMP/part_toc"
   mkdir -p "$PTOC_DIR/good" "$PTOC_DIR/bad"
   cp assets/preamble.tex "$PTOC_DIR/good/preamble.tex"
@@ -1622,7 +1652,7 @@ for blk in fitz.open(sys.argv[1])[0].get_text("rawdict")["blocks"]:
         for span in line.get("spans", []):
             for ch in span.get("chars", []):
                 if ch["c"].strip():
-                    rows.setdefault(round((ch["bbox"][1] + ch["bbox"][3]) / 2), []).append(
+                    rows.setdefault(round(ch["origin"][1]), []).append(
                         (ch["bbox"][0], ch["c"]))
 def edge(row, number, title):
     nx = min(x for x, c in row if c in number)
@@ -1639,16 +1669,44 @@ PYEOF
   }
   PTOC_GOOD="$(_part_row_order "$PTOC_DIR/good/ptoc.pdf" 2>/dev/null)"
   PTOC_BAD="$(_part_row_order "$PTOC_DIR/bad/ptoc.pdf" 2>/dev/null)"
+  python3 - "$PTOC_DIR/good/ptoc.pdf" "$PTOC_DIR/forced-wrong-edge.pdf" <<'PYEOF'
+import sys
+import fitz
+with fitz.open(sys.argv[1]) as doc:
+    page = doc[0]
+    rows = {}
+    for block in page.get_text('rawdict')['blocks']:
+        for line in block.get('lines', []):
+            for span in line['spans']:
+                for ch in span['chars']:
+                    y = round(ch['origin'][1])
+                    rows.setdefault(y, []).append((span, ch))
+    matches = [chars for chars in rows.values()
+               if 'Hooks' in ''.join(ch['c'] for _, ch in sorted(chars, key=lambda pair: pair[1]['origin'][0]))]
+    assert len(matches) == 1, matches
+    chars = matches[0]
+    number = [(span, ch) for span, ch in chars if ch['c'] == 'I']
+    assert len(number) == 1, number
+    span, ch = number[0]
+    title_x = min(c['origin'][0] for _, c in chars if c['c'] in 'Hks')
+    assert ch['origin'][0] > title_x
+    page.add_redact_annot(fitz.Rect(ch['bbox']), fill=(1, 1, 1))
+    page.apply_redactions()
+    page.insert_text((title_x-24, ch['origin'][1]), 'I', fontsize=span['size'])
+    doc.save(sys.argv[2])
+PYEOF
+  PTOC_FORCED="$(_part_row_order "$PTOC_DIR/forced-wrong-edge.pdf" 2>/dev/null)"
   case "$PTOC_GOOD" in
     *LATIN_OK*) ok "a Latin-initial part title keeps its number at the RTL leading edge" ;;
     *) bad "the part number is NOT at the leading edge of a Latin-initial row (got: ${PTOC_GOOD:-nothing})" ;;
   esac
-  case "$PTOC_BAD" in
-    *LATIN_REVERSED*) ok "removing the preamble patch brings the reversed row back (gate is not vacuous)" ;;
-    *) bad "the T4l mutation did not reproduce the defect (got: ${PTOC_BAD:-nothing}) — the fix is not what holds the row" ;;
-  esac
+  if case "$PTOC_BAD" in *LATIN_OK*|*LATIN_REVERSED*) true ;; *) false ;; esac \
+     && case "$PTOC_FORCED" in *LATIN_REVERSED*) true ;; *) false ;; esac; then
+    ok "actual PDF geometry rejects a deliberately displaced Latin part number (historical witness: $PTOC_BAD)"
+  else bad "part-number controls failed (historical: ${PTOC_BAD:-nothing}; forced: ${PTOC_FORCED:-nothing})"; fi
   if case "$PTOC_GOOD" in *HEB_OK*) true ;; *) false ;; esac \
-     && case "$PTOC_BAD" in *HEB_OK*) true ;; *) false ;; esac; then
+     && case "$PTOC_BAD" in *HEB_OK*) true ;; *) false ;; esac \
+     && case "$PTOC_FORCED" in *HEB_OK*) true ;; *) false ;; esac; then
     ok "a Hebrew-initial part row is unaffected either way (the fix is a no-op where it must be)"
   else
     bad "the Hebrew control row moved (good: ${PTOC_GOOD:-nothing} / bad: ${PTOC_BAD:-nothing})"

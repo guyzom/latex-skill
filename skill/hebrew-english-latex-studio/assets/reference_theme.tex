@@ -41,7 +41,6 @@
 % \noeqref{label}; use starred environments for intermediate calculations.
 \mathtoolsset{showonlyrefs=true,showmanualtags=false}
 \lakitcaptionnumbering{continuous}
-\renewcommand{\lakitcaptionlabelstyle}[1]{\normalfont\color{black}#1}
 \renewcommand{\lakitcaptionpunctuation}{:}
 
 \definecolor{cBlue}{HTML}{000000}   \definecolor{cBlueBg}{HTML}{F2F2F2}
@@ -52,7 +51,7 @@
 \definecolor{cRed}{HTML}{000000}    \definecolor{cRedBg}{HTML}{F2F2F2}
 \definecolor{cSlate}{HTML}{000000}  \definecolor{cSlateBg}{HTML}{F2F2F2}
 \definecolor{cRule}{HTML}{000000}
-\definecolor{cTblLine}{HTML}{000000}\definecolor{cTblBg}{HTML}{FFFFFF}
+\definecolor{cTblLine}{HTML}{767676}\definecolor{cTblBg}{HTML}{FFFFFF}
 
 % The proven default mdframed renderer preserves both native directions.
 % Its Q/A frames deliberately use square corners: its renderer does not draw
@@ -233,6 +232,7 @@
   frametitlebackgroundcolor=black!5,frametitlefontcolor=black,
   frametitlefont=\normalfont\rmfamily\bfseries,
   frametitleaboveskip=2pt,frametitlebelowskip=2pt}
+\renewcommand{\hllpdfsemanticframestyle}{hllpdfreferencetheme}
 \renewmdenv[style=hllpdfreferencetheme,linecolor=black]{defbox}
 \renewmdenv[style=hllpdfreferencetheme,linecolor=black]{thmbox}
 \renewmdenv[style=hllpdfreferencetheme,linecolor=black]{notebox}

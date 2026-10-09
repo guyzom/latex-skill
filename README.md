@@ -13,6 +13,14 @@ separate layers. A JSON registry defines document recipes; Python scripts
 resolve recipes, generate projects, and check source and PDF contracts. The
 Bash builder compiles to convergence and publishes output atomically.
 
+Short tables use content widths; wide prose and continuing tables keep balanced
+columns and safe cell padding. Captions default to one regular black paragraph
+with a colon separator. Optional `framedtable` fits its content and caption;
+`semanticframedtable` matches the active semantic boxes' outer width and insets
+while natural inner columns stay compact. Both are atomic one-page choices.
+Column counts, widths, headers and structure come from the content; the examples
+are adaptable choices rather than required schemas. See [tables and captions](skill/hebrew-english-latex-studio/references/tables-and-captions.md).
+
 See the [architecture](skill/hebrew-english-latex-studio/references/architecture.md)
 and [template catalog](skill/hebrew-english-latex-studio/references/template-catalog.md).
 

@@ -5,8 +5,8 @@
 `flow_tables.tex` adds the `flowtable` environment for outer, single-column
 text in `article` or `report`. The table can continue across pages, repeat its
 header, and show localized continuation labels. Use this extension when the
-content calls for a continuing table; short framed tables can stay with
-`tablebox` plus `tabular`.
+content calls for a continuing table; short tables normally use a centered natural-width `tabular`.
+`tablebox` is available when a framed panel is explicitly wanted.
 
 Both Hebrew and English contexts are supported in version 5. The table follows
 the surrounding language; it does not force the whole document into one
@@ -57,7 +57,10 @@ applying its language wrapper. Thus a Hebrew cell can coexist with English
 column order without reversing the whole table. Avoid changing language
 inside a row to control column order.
 
-Column fractions should sum to 1. `\flowtablewidth` subtracts intercolumn
+For genuinely wide prose tables, column fractions should sum to 1.
+For short values, natural `l/r/c` columns are permitted and remain centered
+without stretching. Use `N` when a Hebrew numeric cell needs isolation;
+natural cells can instead explicitly wrap each value in `\en{...}`. `\flowtablewidth` subtracts both outer and intercolumn
 padding; use it instead of multiplying every fraction by `\linewidth`.
 The declared column count must match the specification and every row.
 There is no automatic column fitting, wide-table scaling or decimal-point
@@ -78,7 +81,9 @@ with appendix numbering such as A.1. Other declared numbering policies apply
 consistently. Each continuing table has one list-of-tables entry, regardless
 of its number of continuation pages.
 
-Captions and continuation labels follow the surrounding language. The caption
+Captions and continuation labels follow the surrounding language.
+The complete caption uses the core paragraph style: regular black text and
+a colon separator, with no label/description color or weight split. The caption
 is at the top and links use native `longtable` destinations in `table.*`.
 Do not rewrite these as `tbl.*`: that namespace belongs to the short-table
 bottom-caption geometry contract. Automated navigation checks resolve page and

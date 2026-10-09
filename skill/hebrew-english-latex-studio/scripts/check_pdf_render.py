@@ -77,8 +77,9 @@ Checks (all empirically validated against deliberately-broken fixtures):
             tablebox frame its own caption lives in. The frame is the only
             self-identifying object in the PDF: \\newmdenv strokes it 0.9pt
             (LuaTeX emits 0.897) in cTblLine, and over 1875 fleet pages that
-            width occurs with exactly the two cTblLine values and no third,
-            so (width, colour) is an exact key. Ownership runs through the
+            width occurred with two legacy cTblLine values. Current neutral
+            gray and those legacy values form the explicit frame-color key.
+            Ownership runs through the
             CAPTION — the frame that contains "טבלה N.M" IS that table's
             frame — never through "which frame encloses the dest", the
             broken rule that produced BOTH numbers of the v3.77 cycle: the
@@ -503,14 +504,16 @@ def _ASCII_TAG_CHAR(ch):
 # ----------------------------------------------------------------- R6 -------
 # tablebox frame identity (preamble constants, measured on the fleet).
 # \newmdenv[...linecolor=cTblLine,linewidth=0.9pt...]{tablebox}; cTblLine is
-# #B9C4D2 in preamble.tex and #C8C8C8 in clean_theme.tex. Measured over 1875
+# #767676 in current themes; #B9C4D2 / #C8C8C8 remain legacy diagnostic inputs.
+# Historical measurements over 1875
 # fleet pages: stroke width 0.897 occurs with exactly those two colours (1092 +
 # 128 segments) and with no third one, so (width, colour) is an exact key for
-# "this stroke is a tablebox edge".
+# "this stroke is a legacy tablebox edge". Current neutral ink is added
+# explicitly; theme-specific geometry is validated by the runtime controls.
 FRAME_W = 0.897
 FRAME_W_TOL = 0.02
-FRAME_COLORS = {(0.725, 0.769, 0.824), (0.784, 0.784, 0.784)}
-CAP_COLOR = 0x555555            # cGray — the \figcap/\tabcap label colour
+FRAME_COLORS = {(0.463, 0.463, 0.463), (0.725, 0.769, 0.824), (0.784, 0.784, 0.784)}
+CAP_COLOR = 0x000000            # regular black — the caption paragraph color
 CAP_WORD = {"טבלה": "tbl", "איור": "fig"}
 EN_CAP_WORD = {"Table": "tbl", "Figure": "fig"}
 EN_CAP_LABEL = re.compile(r"^(Table|Figure)([A-Za-z]?\.?\d+(?:\.\d+)*)\.?$")
@@ -644,62 +647,81 @@ def _normal_caption_sites(page, caption_color):
     Destination ownership is exact and unique in ``dest_landing``; there is no
     proximity fallback for this contract. This does not infer prose semantics.
     """
-    out = []
+    # A directional island may be exported as a separate PDF line object
+    # even on the SAME physical baseline (e.g. Hebrew label + LTR number).
+    # Reassemble adjacent fragments geometrically, keeping distant columns
+    # separate. Do not make ownership depend on renderer span segmentation.
+    glyphs = []
     for block in page.get_text("rawdict").get("blocks", []):
         for line in block.get("lines", []):
-            chars = []
             for span in line.get("spans", []):
                 if (span["color"] != caption_color or "Bold" in span["font"]
                         or span.get("flags", 0) & 16):
                     continue
-                chars.extend((ch["c"], fitz.Rect(ch["bbox"]))
-                             for ch in span.get("chars", []))
-            if not chars:
+                glyphs.extend((ch["origin"][1], ch["c"], fitz.Rect(ch["bbox"]))
+                              for ch in span.get("chars", []))
+    baselines = []
+    for y, c, rect in sorted(glyphs, key=lambda item: item[0]):
+        if not baselines or abs(y - baselines[-1][0]) > 1.0:
+            baselines.append((y, []))
+        baselines[-1][1].append((c, rect))
+    fragments = []
+    for _, row in baselines:
+        fragment = []
+        for char in sorted(row, key=lambda item: item[1].x0):
+            if fragment and char[1].x0-fragment[-1][1].x1 > max(16, 2*char[1].height):
+                fragments.append(fragment)
+                fragment = []
+            fragment.append(char)
+        if fragment:
+            fragments.append(fragment)
+    out = []
+    for chars in fragments:
+        if not chars:
+            continue
+        ltr = sorted(chars, key=lambda item: item[1].x0)
+        text = "".join(c for c, _ in ltr)
+        match = re.match(r"^\s*(Table|Figure)\s+([A-Za-z]?\.?\d+(?:\.\d+)*)\s*:(?=\s|$)", text)
+        if match:
+            selected = ltr[:match.end()]
+            kind, number = EN_CAP_WORD[match[1]], _norm_num(match[2])
+        else:
+            rtl = sorted(chars, key=lambda item: -item[1].x0)
+            text = "".join(c for c, _ in rtl)
+            # LuaTeX's native Hebrew label commonly omits both space
+            # characters from ToUnicode. The real label's mbox/enspace
+            # separation must then be measured from glyph geometry.
+            match = re.match(r"^\s*(טבלה|איור)\s*([A-Za-zא-ת0-9.\s]+?)\s*:", text)
+            if not match:
                 continue
-            ltr = sorted(chars, key=lambda item: item[1].x0)
-            text = "".join(c for c, _ in ltr)
-            match = re.match(r"^\s*(Table|Figure)\s+([A-Za-z]?\.?\d+(?:\.\d+)*)\s*:(?=\s|$)", text)
-            if match:
-                selected = ltr[:match.end()]
-                kind, number = EN_CAP_WORD[match[1]], _norm_num(match[2])
-            else:
-                rtl = sorted(chars, key=lambda item: -item[1].x0)
-                text = "".join(c for c, _ in rtl)
-                # LuaTeX's native Hebrew label commonly omits both space
-                # characters from ToUnicode. The real label's mbox/enspace
-                # separation must then be measured from glyph geometry.
-                match = re.match(r"^\s*(טבלה|איור)\s*([A-Za-zא-ת0-9.\s]+?)\s*:", text)
-                if not match:
-                    continue
-                selected = rtl[:match.end()]
-                following = next((glyph for c, glyph in rtl[match.end():] if c.strip()), None)
-                colon = selected[-1][1]
-                if following is not None and colon.x0-following.x1 < 1.0:
-                    continue
-                number_chars = rtl[match.start(2):match.end(2)]
-                numeric = "".join(c for c, _ in sorted(number_chars, key=lambda item: item[1].x0)
-                                  if c.strip() and not HEB[0] <= c <= HEB[1])
-                appendix = "".join(c for c, _ in number_chars if c in HEB_ALPH)
-                if appendix:
-                    numeric = appendix + "." + numeric.lstrip(".")
-                number = _norm_num(numeric)
-                if not NUMPAT.fullmatch(number):
-                    continue
-                kind = CAP_WORD[match[1]]
-            rect = fitz.Rect(selected[0][1])
-            for _, glyph in selected[1:]:
-                rect |= glyph
-            out.append((kind, number, rect))
+            selected = rtl[:match.end()]
+            following = next((glyph for c, glyph in rtl[match.end():] if c.strip()), None)
+            colon = selected[-1][1]
+            if following is not None and colon.x0-following.x1 < 1.0:
+                continue
+            number_chars = rtl[match.start(2):match.end(2)]
+            numeric = "".join(c for c, _ in sorted(number_chars, key=lambda item: item[1].x0)
+                              if c.strip() and not HEB[0] <= c <= HEB[1])
+            appendix = "".join(c for c, _ in number_chars if c in HEB_ALPH)
+            if appendix:
+                numeric = appendix + "." + numeric.lstrip(".")
+            number = _norm_num(numeric)
+            if not NUMPAT.fullmatch(number):
+                continue
+            kind = CAP_WORD[match[1]]
+        rect = fitz.Rect(selected[0][1])
+        for _, glyph in selected[1:]:
+            rect |= glyph
+        out.append((kind, number, rect))
     return out
 
 
-def caption_sites(page, caption_color=CAP_COLOR, caption_label_weight='bold'):
+def caption_sites(page, caption_color=CAP_COLOR, caption_label_weight='normal'):
     """[(kind, number, rect)] — every \\figcap/\\tabcap LABEL on the page.
 
-    Identified by the macro's own rendering, never by prose: the label is
-    \\textcolor{cGray}{\\mbox{\\textbf{טבלה~\\thetbl.}}}, so it is the only
-    bold run in the declared caption color carrying the literal Hebrew or
-    English caption label. A normal body reference has another color/weight.
+    Normal black colon labels are located at the physical leading edge, with
+    exact-number ownership. An explicitly declared legacy bold/color contract
+    uses styled glyph runs. Neither route depends on PDF span segmentation.
 
     CHARACTER level, not span level: span segmentation is unstable across the
     fleet — an appendix letter is emitted inside the Hebrew span on one page
@@ -794,7 +816,7 @@ def caption_dests(doc):
     return out
 
 
-def dest_landing(doc, hard, soft, caption_color=CAP_COLOR, caption_label_weight='bold'):
+def dest_landing(doc, hard, soft, caption_color=CAP_COLOR, caption_label_weight='normal'):
     """R6 — append every destination-landing finding to hard/soft.
 
     Doc-level (one resolve_names) plus a per-page pass that touches ONLY the
@@ -1012,7 +1034,7 @@ def _proven_column_right_margin(doc):
 
 def check(pdf_path, source_paths=None, max_cross_page=None, *,
           folio_layout='center', folio_band='footer', caption_color=CAP_COLOR,
-          caption_label_weight='bold'):
+          caption_label_weight='normal'):
     if not isinstance(caption_color, int) or not 0 <= caption_color <= 0xFFFFFF:
         print('ERROR: caption_color must be an RGB integer between 0 and 0xFFFFFF.')
         return 2
@@ -1366,8 +1388,8 @@ def main(argv=None):
     parser.add_argument('--folio-layout', choices=FOLIO_LAYOUTS, default='center')
     parser.add_argument('--folio-band', choices=FOLIO_BANDS, default='footer')
     parser.add_argument('--caption-color', type=parse_rgb_hex, default=CAP_COLOR,
-                        help='exact RGB caption-label color as RRGGBB (default: 555555)')
-    parser.add_argument('--caption-label-weight', choices=CAPTION_LABEL_WEIGHTS, default='bold',
+                        help='exact RGB caption-label color as RRGGBB (default: 000000)')
+    parser.add_argument('--caption-label-weight', choices=CAPTION_LABEL_WEIGHTS, default='normal',
                         help='declared label weight; normal requires a leading colon caption label')
     args = parser.parse_args(argv)
     if args.max_cross_page is not None and args.max_cross_page < 0:

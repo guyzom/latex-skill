@@ -34,7 +34,7 @@ class CaptionStyleTests(unittest.TestCase):
         for label, kind, number in [('Table 1.1.','tbl','1.1'), ('Figure 3.','fig','3'),
                                     ('Table A.2.','tbl','A.2'), ('Figure 0.1.','fig','1')]:
             with self.subTest(label=label), document(label) as doc:
-                sites = render.caption_sites(doc[0])
+                sites = render.caption_sites(doc[0],0x555555,'bold')
                 self.assertEqual([(x[0],x[1]) for x in sites],[(kind,number)])
 
     def test_regular_body_reference_is_not_caption(self):
@@ -43,39 +43,39 @@ class CaptionStyleTests(unittest.TestCase):
                                     ('See Table 1.1.','hebo',0x555555),
                                     ('Table 1.1 is discussed','hebo',0x555555)]:
             with self.subTest(label=label,font=font,color=color), document(label,font=font,color=color) as doc:
-                self.assertEqual(render.caption_sites(doc[0]),[])
+                self.assertEqual(render.caption_sites(doc[0],0x555555,'bold'),[])
 
     def test_custom_color_requires_exact_declared_style(self):
         with document(color=0x536570) as doc:
-            self.assertEqual(render.caption_sites(doc[0]),[])
-            self.assertEqual([(x[0],x[1]) for x in render.caption_sites(doc[0],0x536570)],
+            self.assertEqual(render.caption_sites(doc[0],0x555555,'bold'),[])
+            self.assertEqual([(x[0],x[1]) for x in render.caption_sites(doc[0],0x536570,'bold')],
                              [('tbl','1.1')])
-            self.assertEqual(render.caption_sites(doc[0],0x536571),[])
+            self.assertEqual(render.caption_sites(doc[0],0x536571,'bold'),[])
 
     def test_correct_english_destination_is_measured(self):
         with document() as doc:
             hard,soft=[],[]
-            self.assertEqual(render.dest_landing(doc,hard,soft),1)
+            self.assertEqual(render.dest_landing(doc,hard,soft,caption_color=0x555555,caption_label_weight='bold'),1)
             self.assertEqual(hard,[])
             self.assertEqual(soft,[])
 
     def test_destination_at_english_caption_is_rejected(self):
         with document(y=195) as doc:
             hard,soft=[],[]
-            render.dest_landing(doc,hard,soft)
+            render.dest_landing(doc,hard,soft,caption_color=0x555555,caption_label_weight='bold')
             self.assertEqual([x[1] for x in hard],['DEST-AT-CAPTION'])
             self.assertEqual(soft,[])
 
     def test_custom_caption_destination_is_measured(self):
         with document(color=0x536570) as doc:
             hard,soft=[],[]
-            render.dest_landing(doc,hard,soft,caption_color=0x536570)
+            render.dest_landing(doc,hard,soft,caption_color=0x536570,caption_label_weight='bold')
             self.assertEqual((hard,soft),([],[]))
 
     def test_wrong_caption_number_keeps_ownership_advisory(self):
         with document('Table 2.1.') as doc:
             hard,soft=[],[]
-            render.dest_landing(doc,hard,soft)
+            render.dest_landing(doc,hard,soft,caption_color=0x555555,caption_label_weight='bold')
             self.assertIn('DEST-PAIRED-BY-PROXIMITY',[x[1] for x in soft])
 
     def test_cli_custom_style_and_bad_values(self):
@@ -84,7 +84,7 @@ class CaptionStyleTests(unittest.TestCase):
             with document(color=0x536570) as doc:
                 doc.save(path)
             good=subprocess.run([sys.executable,str(ROOT/'check_pdf_render.py'),
-                                 '--caption-color','536570',str(path)],capture_output=True,text=True)
+                                 '--caption-color','536570','--caption-label-weight','bold',str(path)],capture_output=True,text=True)
             self.assertEqual(good.returncode,0,good.stdout+good.stderr)
             self.assertNotIn('DEST-CAPTION-NOT-FOUND',good.stdout)
             self.assertIn('the one',good.stdout)
