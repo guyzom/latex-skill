@@ -12,7 +12,9 @@
 %
 % Declare table order explicitly. In otherlanguage{english}, first column
 % is leftmost. Hebrew cell islands preserve their own reading direction; put
-% the Hebrew lookup key LAST so it is physically rightmost. Plain tabular
+% the Hebrew lookup key LAST so it is physically rightmost. Align Hebrew prose
+% with r (short) or raggedleft p (wrapped) in this physical English order;
+% inline language islands do not choose a cell alignment. Plain tabular
 % behavior can vary with context/Babel; do not teach an implicit order rule.
 % Code and truth tables use the same explicit LTR table order.
 % Short examples use natural-width tabular + tabcap. tablebox remains an
@@ -36,10 +38,13 @@
 
 {\LARGE\bfseries\noindent מאגר תבניות טבלאות\par}\medskip
 \noindent העתק את התבנית שאתה צריך והחלף תוכן. הטבלאות הקצרות ממורכזות ברוחב התוכן, עם כיתוב ממוספר.
-בחר רוחב עמודת טקסט לפי התוכן; מסגרת \code{tablebox} היא אפשרות מפורשת. שני כללים לטבלה מעורבת: כשהתוכן עברי־ראשי,
-הגדר סדר עמודות אנגלי, בודד תאים עבריים ב-\code{\textbackslash h},
-והצהר את עמודת המפתח אחרונה — היא נוחתת מימין,
-והקורא פוגש אותה ראשונה; כשהתוכן \en{LTR}־ראשי (קוד, נוסחאות, טבלת אמת), עטוף ב-\en{otherlanguage}.
+בחר רוחב עמודת טקסט לפי התוכן; מסגרת \code{tablebox} היא אפשרות מפורשת.
+סדר העמודות, כיוון הקריאה בכל תא ויישור הפרוזה הם בחירות נפרדות.
+כשהטבלה עברית־ראשית, הגדר סדר עמודות אנגלי מפורש והכרז את עמודת המפתח אחרונה,
+כך שהיא מימין והקורא פוגש אותה ראשונה. בודד טקסט עברי ב־\code{\textbackslash h}
+ויישר אותו לימין; הבידוד אינו בוחר יישור. בטבלה באנגלית המפתח משמאל והפרוזה
+מיושרת לשמאל. מספרים, נוסחאות וקוד שומרים על סדר \en{LTR} בתוך התא,
+גם כשהמפתח העברי מימין. טבלאות אמת ורשתות יכולות להשתמש ביישור ממורכז מפורש.
 רוב הדוגמאות הן טבלאות פתוחות ממשפחת \en{booktabs}, בעברית ובאנגלית;
 תבניות 8 ו-9 מדגימות רשת רק כאשר המקור מבקש אותה במפורש.
 שתי המסגרות האפורות בתבניות \en{13–15} הן אפשרויות בלבד, ולא ברירת המחדל.
@@ -50,12 +55,13 @@
 % |           may hold short math islands.
 % | KEY:      booktabs rules (\toprule/\midrule/\bottomrule); short
 % |           math as \en{$...$}; caption via \tabcap. Hebrew-primary
-% |           -> explicit English table order, Hebrew cell islands, KEY column declared LAST (lands rightmost).
+% |           -> explicit English table order, right-aligned Hebrew prose,
+% |           centered mathematics, KEY declared LAST (lands rightmost).
 % +----------------------------------------------------------------
 \patternheading{1. טבלת נתונים בסיסית}
 \begin{center}
 \begin{otherlanguage}{english}
-\begin{tabular}{@{}lll@{}}
+\begin{tabular}{@{}rcr@{}}
 \toprule
 \h{\textbf{הערה}} & \h{\textbf{סיבוכיות זמן}} & \h{\textbf{שיטה}}\\
 \midrule
@@ -74,12 +80,13 @@
 % |           in physics/math summaries). Prefer this over bullets.
 % | KEY:      the SYMBOL column is declared LAST -> lands RIGHTMOST (the
 % |           RTL reader scans symbol -> meaning); meaning = p{} so it
-% |           wraps. Hebrew-primary -> explicit English table order with Hebrew cell islands.
+% |           wraps and is physically right-aligned. English-primary uses
+% |           SYMBOL first and left-aligned meaning; islands alone do not align.
 % +----------------------------------------------------------------
 \patternheading{2. טבלת מקרא (סמל $\leftarrow$ משמעות)}
 \begin{center}
 \begin{otherlanguage}{english}
-\begin{tabular}{@{}p{8cm}@{\hspace{1.1cm}}l@{}}
+\begin{tabular}{@{}>{\raggedleft\arraybackslash}p{8cm}@{\hspace{1.1cm}}r@{}}
 \toprule
 \h{\textbf{משמעות}} & \h{\textbf{סימון}}\\
 \midrule
@@ -87,17 +94,47 @@
 \h{שארית החלוקה של \en{x} ב-\en{y}.} & \en{$x \bmod y$}\\
 \h{דיברגנץ של שדה וקטורי.} & \en{$\nabla \cdot \vec{F}$}\\
 \h{מכפלה פנימית (סימון דיראק).} & \en{$\langle \psi \mid \phi \rangle$}\\
+\h{המשתנה \en{x} הוא מספר ממשי. התיאור המילולי נשבר בתוך העמודה,
+והסימון המתמטי נשאר בכיוונו גם כאשר ההסבר כולל מונח באנגלית כמו \en{real number}.}
+& \en{$x\in\mathbb{R}$}\\
 \bottomrule
 \end{tabular}
 \end{otherlanguage}
-\tabcap{מוסכמות סימון.}
+\tabcap{\label{tab:notation-hebrew}מוסכמות סימון.}
 \end{center}
+\bigskip
+
+% The same lookup task in a local English block: Symbol is physically LEFT,
+% Meaning is RIGHT; prose is left-aligned even though the document base is RTL.
+\begin{englishprose}
+\Needspace{11\baselineskip}
+\noindent\textbf{English notation key}\par\smallskip
+\begin{center}
+\begin{otherlanguage}{english}
+\begin{tabular}{@{}l@{\hspace{1.1cm}}>{\raggedright\arraybackslash}p{8cm}@{}}
+\toprule
+\textbf{Symbol} & \textbf{Meaning}\\
+\midrule
+$\lfloor x\rfloor$ & Round down.\\
+$x\bmod y$ & The remainder when dividing \en{x} by \en{y}.\\
+$\nabla\cdot\vec{F}$ & Divergence of a vector field.\\
+$\langle\psi\mid\phi\rangle$ & Inner product (Dirac notation).\\
+$x\in\mathbb{R}$ & The variable \en{x} is a real number (\h{מספר ממשי}).
+This longer explanation wraps within its column while mathematics and the
+Hebrew term retain their own reading direction.\\
+\bottomrule
+\end{tabular}
+\end{otherlanguage}
+\tabcap{\label{tab:notation-english}The same notation with English descriptions.}
+\end{center}
+\end{englishprose}
 \bigskip
 
 % +--- PATTERN 3: LTR / code column (+ multi-line cell) -----------
 % | USE WHEN: a column holds code or dense LTR that must left-align
 % |           uniformly and read left-to-right.
-% | KEY:      wrap the WHOLE tabular in otherlanguage{english};
+% | KEY:      Hebrew Action is the lookup key at the RIGHT; code stays LEFT
+% |           aligned and LTR. Explicit otherlanguage{english} table order;
 % |           Hebrew labels then need \h{}; a multi-line code cell =
 % |           nested \ttfamily\begin{tabular}[t]{@{}l@{}}line\\line.
 % |           Never put Hebrew INSIDE a code run.
@@ -105,13 +142,13 @@
 \patternheading{3. טבלה עם עמודת קוד / LTR}
 \begin{center}
 \begin{otherlanguage}{english}
-\begin{tabular}{@{}l@{\hspace{1.2cm}}l@{}}
+\begin{tabular}{@{}l@{\hspace{1.2cm}}r@{}}
 \toprule
-\multicolumn{1}{c}{\h{\textbf{פעולה}}} & \multicolumn{1}{c}{\h{\textbf{קוד}}}\\
+\multicolumn{1}{r}{\h{\textbf{קוד}}} & \h{\textbf{פעולה}}\\
 \midrule
-\h{השמה}  & \ttfamily y = a + b\\
-\h{תנאי}  & \ttfamily\begin{tabular}[t]{@{}l@{}}if a < b:\\\ \ \ \ swap(a, b)\end{tabular}\\
-\h{לולאה} & \ttfamily\begin{tabular}[t]{@{}l@{}}while a < b:\\\ \ \ \ a = a + 1\end{tabular}\\
+\ttfamily y = a + b & \h{השמה}\\
+\ttfamily\begin{tabular}[t]{@{}l@{}}if a < b:\\\ \ \ \ swap(a, b)\end{tabular} & \h{תנאי}\\
+\ttfamily\begin{tabular}[t]{@{}l@{}}while a < b:\\\ \ \ \ a = a + 1\end{tabular} & \h{לולאה}\\
 \bottomrule
 \end{tabular}
 \end{otherlanguage}
@@ -120,15 +157,16 @@
 \bigskip
 
 % +--- PATTERN 4: two prose columns -------------------------------
-% | USE WHEN: term -> explanation, or any two justified Hebrew text
+% | USE WHEN: term -> explanation, or any two right-aligned Hebrew text
 % |           columns (definitions, pros/cons).
-% | KEY:      p{w1}p{w2} so both wrap; the TERM column is declared LAST
+% | KEY:      raggedleft p{w1}/p{w2} in English physical order so both
+% |           wrap and share their right edges; the TERM is declared LAST
 % |           (lands rightmost). Widths sum to a bit under \textwidth.
 % +----------------------------------------------------------------
 \patternheading{4. טבלת שני טורי פרוזה}
 \begin{center}
 \begin{otherlanguage}{english}
-\begin{tabular}{@{}p{9cm}p{3cm}@{}}
+\begin{tabular}{@{}>{\raggedleft\arraybackslash}p{9cm}>{\raggedleft\arraybackslash}p{3cm}@{}}
 \toprule
 \h{\textbf{הסבר}} & \h{\textbf{מונח}}\\
 \midrule
@@ -171,7 +209,7 @@ $A$ & $B$ & $A \wedge B$ & $A \vee B$\\
 % Keep numeric values in one island when adapting this example with signs.
 \begin{center}
 \begin{otherlanguage}{english}
-\begin{tabular}{r l}
+\begin{tabular}{r r}
 \toprule
 \h{\textbf{ערך}} & \h{\textbf{שם}}\\
 \midrule
@@ -200,7 +238,7 @@ $A$ & $B$ & $A \wedge B$ & $A \vee B$\\
 \patternheading{6. כותרות מקובצות (\en{multicolumn} + \en{cmidrule})}
 \begin{center}
 \begin{otherlanguage}{english}
-\begin{tabular}{@{}cccc l@{}}
+\begin{tabular}{@{}cccc r@{}}
 \toprule
 \multicolumn{2}{c}{\h{\textbf{אחרי כיול}}} & \multicolumn{2}{c}{\h{\textbf{לפני כיול}}} & \\
 \cmidrule(lr){1-2}\cmidrule(lr){3-4}
@@ -228,7 +266,7 @@ $A$ & $B$ & $A \wedge B$ & $A \vee B$\\
 \begin{center}
 \begin{minipage}[t]{0.44\textwidth}\centering
 \begin{otherlanguage}{english}
-\begin{tabular}{@{}ll@{}}
+\begin{tabular}{@{}rr@{}}
 \toprule
 \h{\textbf{ערך}} & \h{\textbf{פרמטר}}\\
 \midrule
@@ -240,7 +278,7 @@ $A$ & $B$ & $A \wedge B$ & $A \vee B$\\
 \end{minipage}\hfill
 \begin{minipage}[t]{0.44\textwidth}\centering
 \begin{otherlanguage}{english}
-\begin{tabular}{@{}ll@{}}
+\begin{tabular}{@{}rr@{}}
 \toprule
 \h{\textbf{ערך}} & \h{\textbf{פרמטר}}\\
 \midrule
@@ -316,7 +354,7 @@ $A$ & $B$ & $A \wedge B$ & $A \vee B$\\
 \patternheading{10. מטריצת השוואת תכונות (סימוני וי)}
 \begin{center}
 \begin{otherlanguage}{english}
-\begin{tabular}{@{}ccc l@{}}
+\begin{tabular}{@{}ccc r@{}}
 \toprule
 \en{C} & \en{Java} & \en{Python} & \h{\textbf{תכונה}}\\
 \midrule
@@ -407,7 +445,7 @@ and the formula stay readable without shrinking the table.\\
 \toprule\h{ערך}&\h{מזהה}\\\midrule
 \en{-12.50}&\en{001}\\\en{0.00}&\en{002}\\\bottomrule
 \end{semanticframedtable}
-\begin{framedtable}[חמישה שדות במסגרת לפי התוכן]{5}{lcrrr}
+\begin{framedtable}[חמישה שדות במסגרת לפי התוכן]{5}{rcrrr}
   {חמישה שדות שנבחרו מן הנתונים.}{tab:optional-short}
 \toprule\h{מצב}&\h{מודל}&\h{ממוצע}&\h{כמות}&\h{מזהה}\\\midrule
 \h{נצפה}&$x^2$&\en{1.25}&\en{12}&\en{001}\\

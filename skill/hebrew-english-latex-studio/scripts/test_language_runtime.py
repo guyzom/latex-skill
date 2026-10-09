@@ -8,6 +8,7 @@ new directory. Otherwise the controls run in a temporary directory. These are
 synthetic fixtures; their PDF text checks do not replace visual review.
 """
 from __future__ import annotations
+import json
 import os
 from pathlib import Path
 import re
@@ -78,6 +79,97 @@ def body(main):
             fr'\begin{{{env}}}'+'\n'+other+fr'\end{{{env}}}'+'\n'+
             r'\typeout{HLLCHECK-RETURN|\languagename|\the\exhyphenpenalty}'+'\n'+
             r'\clearpage\noindent\doclang{\en{HeaderCheck}}\end{document}')
+
+
+def table_alignment_fixture(profile, main, *, defect=None, apis=('open','frame','flow')):
+    """Local table semantics and cell alignment are independent of the base locale."""
+    source = profile_header(profile,main)+r'\begin{document}'+'\n'
+    records = []
+    for locale in ('hebrew','english'):
+        source += fr'\begin{{{locale}prose}}\section{{\en{{Local table controls}}}}'+'\n'
+        labels = []
+        for api in apis:
+            tag = {'open':'O','frame':'F','flow':'L'}[api]+locale[0].upper()
+            label = 'tab:alignment-'+tag
+            key,meaning = tag+'KEY',tag+'TEXT'
+            caption = 'Caption'+tag
+            source += fr'\noindent\en{{BODY{tag}}}\par'+'\n'
+            prose = ([r'ראשון קצר.',
+                r'שני ארוך: המונח \en{LLVM (CPU)} נשאר בכיוונו; הטווח \en{2020–2023}, '
+                r'הערך \en{-12.50} והמודל \en{$x_{12}+5$} נשארים קריאים. '
+                r'ההסבר נשבר בכמה שורות בעמודה בטוחה, בלי להקטין גופן ובלי לשנות סדר נתונים.',
+                r'\en{control} הוא מונח באנגלית הפותח משפט עברי.'] if locale=='hebrew' else
+                [r'First short note.',
+                r'Second longer text retains LLVM (CPU), the range 2020–2023, '
+                r'the value -12.50 and the model $x_{12}+5$. The Hebrew term \h{בקרה} '
+                r'retains its direction. This explanation wraps in several lines without shrinking the font.',
+                r'Third note contains the Hebrew term \h{קטן}.'])
+            heading_key = r'\en{'+key+'}'
+            heading_meaning = r'\en{'+meaning+'}'
+            if locale=='hebrew':
+                heading_key = r'\h{סמל '+heading_key+'}'
+                heading_meaning = r'\h{משמעות '+heading_meaning+'}'
+            else:
+                heading_key = 'Symbol '+heading_key
+                heading_meaning = 'Meaning '+heading_meaning
+            wrapped = [r'\h{'+p+'}' if locale=='hebrew' and api!='flow' else p for p in prose]
+            right_meaning = locale=='english'
+            if defect=='reversed-hebrew-order' and locale=='hebrew' and api=='open':
+                right_meaning = True
+            if api=='flow':
+                # flowtable owns native source-column order and H/E/N behavior.
+                # Budget for the full-size key header as well as the digits.
+                spec = r'@{}N{1.8cm}'+('H' if locale=='hebrew' else 'E')+r'{8cm}@{}'
+                heading = heading_key+'&'+heading_meaning
+                rows = '\n'.join(identifier+'&'+p+r'\\' for identifier,p in zip(('001','027','314'),wrapped))
+                source += fr'\begin{{flowtable}}{{2}}{{{spec}}}{{{caption}}}{{{label}}}{{{heading}}}'+'\n'+rows+'\n'+r'\end{flowtable}'+'\n'
+            else:
+                alignment = r'\raggedleft' if locale=='hebrew' else r'\raggedright'
+                if defect==('wrong-hebrew-alignment' if locale=='hebrew' else 'wrong-english-alignment'):
+                    alignment = r'\raggedright' if locale=='hebrew' else r'\raggedleft'
+                paragraph = r'>{'+alignment+r'\arraybackslash}p{8cm}'
+                spec = '@{}'+('l'+paragraph if right_meaning else paragraph+'r')+'@{}'
+                heading = heading_key+'&'+heading_meaning if right_meaning else heading_meaning+'&'+heading_key
+                rows = '\n'.join((r'\en{'+identifier+'}&'+p if right_meaning
+                                   else p+r'&\en{'+identifier+'}')+r'\\'
+                                  for identifier,p in zip(('001','027','314'),wrapped))
+                content = r'\toprule'+'\n'+heading+r'\\\midrule'+'\n'+rows+'\n'+r'\bottomrule'
+                if api=='frame':
+                    source += fr'\begin{{framedtable}}[{caption}]{{2}}{{{spec}}}{{{caption}}}{{{label}}}'+'\n'+content+'\n'+r'\end{framedtable}'+'\n'
+                else:
+                    source += r'\begin{center}\begin{otherlanguage}{english}'+'\n'+fr'\begin{{tabular}}{{{spec}}}'+'\n'+content+'\n'+r'\end{tabular}\end{otherlanguage}'+'\n'+fr'\tabcap[{caption}]{{\label{{{label}}}{caption}}}\end{{center}}'+'\n'
+            records.append({'locale':locale,'api':api,'tag':tag,'label':label,
+                            'key':key,'meaning':meaning,'caption':caption})
+            labels.append(label)
+        references = ', '.join(r'\ref{'+label+'}' for label in labels)
+        source += ('ראו '+r'\en{'+references+'}' if locale=='hebrew' else 'See '+references)+'.\n'
+        source += fr'\end{{{locale}prose}}\clearpage'+'\n'
+    return source+r'\listoftables\end{document}'+'\n',records
+
+
+def table_ink_rules(page):
+    """Actual booktabs rule rectangles, excluding frame and prose strokes."""
+    return sorted([fitz.Rect(d['rect']) for d in page.get_drawings()
+                   if (d['color']==(0.,0.,0.) or d['fill']==(0.,0.,0.))
+                   and d['rect'].height<1 and d['rect'].width>40],key=lambda r:r.y0)
+
+
+def paragraph_glyph_lines(page, region, *, min_size=0):
+    """Reassemble physical cell baselines, including split language/font spans."""
+    lines = {}
+    for block in page.get_text('rawdict')['blocks']:
+        for line in block.get('lines',[]):
+            for span in line['spans']:
+                if span['size']<min_size:
+                    continue  # actual mathematical scripts have smaller native tiers
+                for char in span['chars']:
+                    box = fitz.Rect(char['bbox'])
+                    if char['c'].strip() and region.contains(fitz.Point(
+                            (box.x0+box.x1)/2,char['origin'][1])):
+                        lines.setdefault(round(char['origin'][1],1),[]).append(
+                            {'char':char['c'],'box':box,'origin':char['origin'],
+                             'size':span['size'],'font':span['font']})
+    return [row for _,row in sorted(lines.items())]
 
 
 class LanguageRuntime(unittest.TestCase):
@@ -692,20 +784,21 @@ See \autoref{ch:en} and \autoref{app:en}.
             self.assertNotIn(bad, log)
         with fitz.open(directory/'main.pdf') as doc:
             sites = [(i, site) for i, page in enumerate(doc) for site in render.caption_sites(page)]
-            self.assertEqual(len(sites), 19)
-            self.assertEqual([site[1] for _, site in sites], list(map(str, range(1, 20))))
+            self.assertEqual(len(sites), 20)
+            self.assertEqual([site[1] for _, site in sites], list(map(str, range(1, 21))))
             # Actual filled containers: six optional frames, all after the
-            # thirteen unframed captions. Grid exceptions stay unframed too.
+            # fourteen unframed captions. Grid exceptions stay unframed too.
             frames = [(i, d['rect']) for i, page in enumerate(doc) for d in page.get_drawings()
                       if d['fill'] == (1., 1., 1.) and d['rect'].width > 40
                       and d['rect'].height > 25]
             self.assertEqual(len(frames), 6)
-            self.assertTrue(all(i > sites[12][0] for i, _ in frames))
+            self.assertTrue(all(i > sites[13][0] for i, _ in frames))
             for i, frame in frames: self.assert_neutral_table_frame(doc[i], frame)
-            page = next(p for p in doc if p.search_for('Configuration'))
-            compact = [page.search_for(t)[0] for t in ('Configuration', 'Hit rate', 'Access time')]
+            compact_page = next(p for p in doc if p.search_for('Configuration'))
+            compact = [compact_page.search_for(t)[0] for t in ('Configuration', 'Hit rate', 'Access time')]
             self.assertTrue(compact[0].x0 < compact[1].x0 < compact[2].x0)
-            self.assertLess(compact[-1].x1-compact[0].x0, page.rect.width/2)
+            self.assertLess(compact[-1].x1-compact[0].x0, compact_page.rect.width/2)
+            page = next(p for p in doc if p.search_for('Standard'))
             standard = page.search_for('Standard')[0]
             # Select the five-field table's physical header baseline, rather
             # than other occurrences of ID/Value in captions or examples.
@@ -719,17 +812,228 @@ See \autoref{ch:en} and \autoref{app:en}.
             self.assertTrue(page.search_for('IEEE 802.11'))
             # Check the real row rules, not just word extents: a compact
             # table must not acquire fill glue or a full-width rule/frame.
-            rules = [d['rect'] for d in page.get_drawings() if d['color']==(0.,0.,0.)
+            rules = [d['rect'] for d in compact_page.get_drawings() if d['color']==(0.,0.,0.)
                      and d['rect'].height < 1 and d['rect'].width > 40
                      and compact[0].y0-12 < d['rect'].y0 < compact[0].y1+65]
             self.assertTrue(rules)
-            self.assertLess(max(r.width for r in rules), page.rect.width*.6)
+            self.assertLess(max(r.width for r in rules), compact_page.rect.width*.6)
             dests = doc.resolve_names()
             for i, site in sites:
                 self.assertEqual(dests['tbl.0.'+site[1]]['page'], i)
+            self.assert_gallery_prose_alignment(doc,sites)
         nav = subprocess.run([sys.executable, str(ROOT/'scripts/check_pdf_navigation.py'),
                               str(directory/'main.pdf')], capture_output=True, text=True)
         self.assertEqual(nav.returncode, 0, nav.stdout+nav.stderr)
+        self.assert_local_table_alignment_profiles()
+
+    def assert_cell_paragraph_edge(self,page,region,locale,expected_edge,*,min_size=0):
+        rows = paragraph_glyph_lines(page,region,min_size=min_size)
+        self.assertTrue(rows,('missing actual paragraph glyphs',region))
+        edges = [max(c['box'].x1 for c in row) if locale=='hebrew'
+                 else min(c['box'].x0 for c in row) for row in rows]
+        code = ('HEBREW' if locale=='hebrew' else 'ENGLISH')+'-CELL-ALIGNMENT'
+        self.assertTrue(all(abs(edge-expected_edge)<.5 for edge in edges),
+                        (code,expected_edge,edges,region))
+        return rows
+
+    def assert_gallery_prose_alignment(self,pdf,sites):
+        """Check actual authored headers and all prose lines, including last lines."""
+        def band(number):
+            page_index,(_,_,caption) = next((i,site) for i,site in sites if site[1]==str(number))
+            page = pdf[page_index]
+            rules = [rule for rule in table_ink_rules(page) if rule.y1<caption.y0]
+            self.assertGreaterEqual(len(rules),3)
+            return page,*rules[-3:]
+        def phrase(page,text,top,mid):
+            hits = [fitz.Rect(word[:4]) for word in page.get_text('words')
+                    if word[4].strip('.:') in text.split() and top.y1<word[1]<mid.y0]
+            self.assertEqual(len(hits),len(text.split()),(text,hits))
+            box = hits[0]
+            for other in hits[1:]: box |= other
+            return box
+        def column(page,top,mid,bottom,left,right,locale,edge):
+            for y0,y1 in ((top.y1+.2,mid.y0-.2),(mid.y1+.2,bottom.y0-.2)):
+                self.assert_cell_paragraph_edge(page,fitz.Rect(left,y0,right,y1),locale,edge)
+        # Natural Hebrew note/key columns: right alignment does not change the
+        # centered mathematical column or Hebrew semantic source-column order.
+        page,top,mid,bottom = band(1)
+        note = phrase(page,'הערה',top,mid)
+        model = phrase(page,'סיבוכיות זמן',top,mid)
+        key = phrase(page,'שיטה',top,mid)
+        self.assertLess(note.x1,model.x0)
+        self.assertLess(model.x1,key.x0)
+        column(page,top,mid,bottom,top.x0-1,model.x0-.2,'hebrew',note.x1)
+        column(page,top,mid,bottom,model.x1+.2,top.x1+1,'hebrew',key.x1)
+        # The same notation task has opposite semantic orders in local Hebrew
+        # and English. The fixed prose budget is authored here, not a default.
+        width = 8/2.54*72
+        for number,locale in ((2,'hebrew'),(3,'english')):
+            page,top,mid,bottom = band(number)
+            meaning = phrase(page,'משמעות' if locale=='hebrew' else 'Meaning',top,mid)
+            key = phrase(page,'סימון' if locale=='hebrew' else 'Symbol',top,mid)
+            if locale=='hebrew':
+                self.assertLess(meaning.x1,key.x0)
+                left,right,edge = top.x0,top.x0+width,top.x0+width
+            else:
+                self.assertLess(key.x1,meaning.x0)
+                left,right,edge = top.x1-width,top.x1,top.x1-width
+                self.assertAlmostEqual(key.x0,top.x0,delta=.5)
+            column(page,top,mid,bottom,left-1,right+1,locale,edge)
+            self.assertGreater(len(paragraph_glyph_lines(page,
+                fitz.Rect(left-1,mid.y1+.2,right+1,bottom.y0-.2))),5)
+        # Both wrapped Hebrew prose columns, including the short term column.
+        page,top,mid,bottom = band(5)
+        explanation = phrase(page,'הסבר',top,mid)
+        term = phrase(page,'מונח',top,mid)
+        self.assertLess(explanation.x1,term.x0)
+        boundary = top.x0+9/2.54*72
+        column(page,top,mid,bottom,top.x0-1,boundary+1,'hebrew',boundary)
+        column(page,top,mid,bottom,boundary+6,top.x1+1,'hebrew',top.x1)
+
+    def alignment_table_geometry(self,pdf,record):
+        found = [(page,box) for page in pdf for box in page.search_for(record['meaning'])]
+        self.assertEqual(len(found),1,(record,found))
+        page,meaning_header = found[0]
+        keys = page.search_for(record['key'])
+        self.assertEqual(len(keys),1)
+        key_header = keys[0]
+        rules = table_ink_rules(page)
+        top = max((r for r in rules if r.y1<min(meaning_header.y0,key_header.y0)),key=lambda r:r.y0)
+        mid = min((r for r in rules if r.y0>max(meaning_header.y1,key_header.y1)),key=lambda r:r.y0)
+        bottom = min((r for r in rules if r.y0>mid.y1+.2),key=lambda r:r.y0)
+        meaning_left = meaning_header.x0<key_header.x0
+        width = 8/2.54*72
+        left,right = (top.x0,top.x0+width) if meaning_left else (top.x1-width,top.x1)
+        body = fitz.Rect(left-1,mid.y1+.2,right+1,bottom.y0-.2)
+        heading = fitz.Rect(left-1,top.y1+.2,right+1,mid.y0-.2)
+        key_body = (fitz.Rect(right+1,mid.y1+.2,top.x1+1,bottom.y0-.2) if meaning_left
+                    else fitz.Rect(top.x0-1,mid.y1+.2,left-1,bottom.y0-.2))
+        return page,{'meaning_left':meaning_left,'body':body,'heading':heading,
+                     'key_body':key_body,'edge':right if record['locale']=='hebrew' else left,
+                     'rules':(top,mid,bottom)}
+
+    def assert_table_semantic_order(self,pdf,record):
+        _,geometry = self.alignment_table_geometry(pdf,record)
+        self.assertEqual(geometry['meaning_left'],record['locale']=='hebrew',
+                         ('TABLE-SEMANTIC-COLUMN-ORDER',record,geometry))
+
+    def assert_table_paragraph_alignment(self,pdf,record):
+        page,geometry = self.alignment_table_geometry(pdf,record)
+        marker = page.search_for('BODY'+record['tag'])
+        self.assertEqual(len(marker),1)
+        sizes = [span['size'] for block in page.get_text('dict')['blocks']
+                 for line in block.get('lines',[]) for span in line['spans']
+                 if fitz.Rect(span['bbox']).intersects(marker[0])]
+        self.assertEqual(len(sizes),1)
+        size = sizes[0]
+        rows = self.assert_cell_paragraph_edge(page,geometry['body'],record['locale'],
+                                              geometry['edge'],min_size=.95*size)
+        self.assert_cell_paragraph_edge(page,geometry['heading'],record['locale'],geometry['edge'])
+        self.assertGreater(len(rows),3,'the actual long cell must wrap')
+        self.assertTrue(all(abs(c['size']-size)<.12 for row in rows for c in row),
+                        'normal table glyphs must retain the local body size')
+        # Read words/glyphs in their physical direction; extraction order is
+        # not evidence of either Hebrew order or an LTR numeric island.
+        hebrew = ''.join(c['char'] for c in sorted(rows[0],key=lambda c:-c['origin'][0])
+                         if '\u0590'<=c['char']<='\u05ff')
+        if record['locale']=='hebrew':
+            self.assertEqual(hebrew,'ראשוןקצר')
+            term = page.search_for('control',clip=geometry['body'])
+            following = [fitz.Rect(word[:4]) for word in page.get_text('words')
+                         if word[4]=='הוא' and geometry['body'].contains(fitz.Rect(word[:4]))]
+            self.assertEqual((len(term),len(following)),(1,1))
+            self.assertLess(following[0].x1,term[0].x0,
+                            'LATIN-LEADING-HEBREW-CELL must retain RTL sentence order')
+        numeric = paragraph_glyph_lines(page,geometry['key_body'])
+        self.assertEqual([''.join(c['char'] for c in sorted(row,key=lambda c:c['origin'][0]))
+                          for row in numeric],['001','027','314'])
+        import check_pdf_render as render
+        visible = render._visible_parenthesis_overrides(page)
+        def physical_literal(text):
+            boxes = page.search_for(text,clip=geometry['body'])
+            self.assertEqual(len(boxes),1,(text,boxes,record))
+            bounds = boxes[0]+(-.2,-.2,.2,.2)
+            chars = [c for row in paragraph_glyph_lines(page,bounds) for c in row]
+            return ''.join(visible.get((ord(c['char']),round(c['origin'][0],3),
+                                       round(c['origin'][1],3)),c['char'])
+                           for c in sorted(chars,key=lambda c:c['origin'][0]))
+        for text in ('2020–2023','-12.50','LLVM (CPU)'):
+            self.assertEqual(physical_literal(text),text.replace(' ',''),
+                             ('LTR-CELL-CONTENT',record,text))
+        all_chars = [c for row in paragraph_glyph_lines(page,geometry['body']) for c in row]
+        mathematical = [c for c in all_chars if c['font'].startswith(('CM','MSAM','MSBM'))]
+        x = [c for c in mathematical if c['char']=='x']
+        plus = [c for c in mathematical if c['char']=='+']
+        five = [c for c in mathematical if c['char']=='5']
+        self.assertEqual((len(x),len(plus),len(five)),(1,1,1))
+        self.assertLess(x[0]['origin'][0],plus[0]['origin'][0])
+        self.assertLess(plus[0]['origin'][0],five[0]['origin'][0])
+        subscripts = sorted([c for c in mathematical if c['size']<.9*size],
+                            key=lambda c:c['origin'][0])
+        self.assertEqual(''.join(c['char'] for c in subscripts),'12')
+        if record['api']=='flow':
+            self.assertAlmostEqual(geometry['rules'][0].width,
+                (8+1.8)/2.54*72+12*72/72.27,delta=.5)
+        else:
+            self.assertLess(geometry['rules'][0].width,8/2.54*72+150,
+                            'short keys must not be stretched to the paragraph width')
+        return {'tag':record['tag'],'locale':record['locale'],'api':record['api'],
+                'page':page.number+1,'meaning_body':list(geometry['body']),
+                'physical_edge':geometry['edge'],'body_point_size':size,
+                'actual_prose_lines':len(rows),'semantic_and_bidi_controls_passed':True}
+
+    def assert_local_table_alignment_profiles(self):
+        from test_academic_runtime import label_fields
+        measurements = []
+        profiles = [('english','english'),('hebrew','hebrew'),
+                    ('english-with-hebrew','english'),('hebrew-with-english','hebrew'),
+                    ('bilingual','english'),('bilingual','hebrew')]
+        for profile,main in profiles:
+            source,records = table_alignment_fixture(profile,main)
+            result,directory = self.compile(source,'table-alignment-'+profile+'-'+main,passes=3)
+            self.assertEqual(result.returncode,0,result.stdout[-6000:])
+            log = (directory/'main.log').read_text()
+            for bad in ('Overfull','Missing character:','undefined references','multiply defined'):
+                self.assertNotIn(bad,log)
+            aux = (directory/'main.aux').read_text()
+            with fitz.open(directory/'main.pdf') as pdf:
+                controls = []
+                for record in records:
+                    self.assert_table_semantic_order(pdf,record)
+                    controls.append(self.assert_table_paragraph_alignment(pdf,record))
+                    fields = label_fields(aux,record['label'])
+                    target,_,y = pdf.resolve_link('#nameddest='+fields[4])
+                    page,_ = self.alignment_table_geometry(pdf,record)
+                    self.assertEqual(target,page.number)
+                    self.assertGreaterEqual(y,0)
+                    self.assertGreaterEqual(sum(link.get('nameddest')==fields[4]
+                        for p in pdf for link in p.get_links()),2)  # authored ref + native list
+                    self.assertEqual((directory/'main.lot').read_text().count(record['caption']),1)
+            nav = subprocess.run([sys.executable,str(ROOT/'scripts/check_pdf_navigation.py'),
+                                  str(directory/'main.pdf')],capture_output=True,text=True)
+            self.assertEqual(nav.returncode,0,nav.stdout+nav.stderr)
+            measurements.append({'profile':profile,'main':main,'controls':controls})
+        for defect,code in [('wrong-hebrew-alignment','HEBREW-CELL-ALIGNMENT'),
+                            ('wrong-english-alignment','ENGLISH-CELL-ALIGNMENT'),
+                            ('reversed-hebrew-order','TABLE-SEMANTIC-COLUMN-ORDER')]:
+            source,records = table_alignment_fixture('bilingual','english',defect=defect,apis=('open',))
+            result,directory = self.compile(source,'table-alignment-negative-'+defect,passes=3)
+            self.assertEqual(result.returncode,0,result.stdout[-5000:])
+            with fitz.open(directory/'main.pdf') as pdf:
+                affected = next(record for record in records if record['locale']==
+                                ('english' if defect=='wrong-english-alignment' else 'hebrew'))
+                if defect=='reversed-hebrew-order':
+                    self.assert_table_paragraph_alignment(pdf,affected)
+                    with self.assertRaisesRegex(AssertionError,code):
+                        self.assert_table_semantic_order(pdf,affected)
+                else:
+                    self.assert_table_semantic_order(pdf,affected)
+                    with self.assertRaisesRegex(AssertionError,code):
+                        self.assert_table_paragraph_alignment(pdf,affected)
+            measurements.append({'negative':defect,'named_policy_rejected':code,
+                                 'independent_other_policy_still_passed':True})
+        (self.root/'table-alignment-measurements.json').write_text(
+            json.dumps(measurements,ensure_ascii=False,indent=2)+'\n')
 
     def assert_neutral_table_frame(self, page, frame, visible_border=True):
         # Actual PDF paints, not source declarations: table containers must

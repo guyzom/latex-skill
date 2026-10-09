@@ -1,5 +1,22 @@
 # Hebrew English LaTeX Studio — release metadata
 
+## v5.4.8
+
+Table examples now choose semantic column order, cell language and physical
+alignment separately. Hebrew prose is right aligned, including wrapped final
+lines, while English prose is left aligned. Hebrew notation keys sit at the
+right; a paired local English example puts the key at the left even in an RTL
+document. Mathematical, numerical and code cells retain their LTR reading order
+and deliberate alignment. The gallery, exam sample, reference-sheet starters
+and authoring instructions use these rules; both reference layout recipes are
+revised with their starter fingerprints. Natural table widths, caption styling
+and the enclosing-direction contract of flow-table H/E/N cells are preserved.
+
+Focused actual-PDF checks cover Hebrew, English, mixed and bilingual contexts,
+physical text edges, wrapped prose, semantic column order and independent bad
+alignment/order controls. Visual review and full-suite coverage are reported
+separately in each delivery. The existing scoped license is unchanged.
+
 ## v5.4.7
 
 Parenthetical subcaption labels remain intact before digit-leading Hebrew text.

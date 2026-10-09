@@ -427,6 +427,11 @@ inside columns do not enlarge their captions. Keep a table caption immediately a
 `\end{tabular}` while the same centering context is still active, so the core
 can locate the table itself. For example:
 
+Use this example in an English context. The table's explicit English order
+puts the quantity first at the physical left; its prose is left-aligned, while
+the unit formula is deliberately centered. Close the local table-language
+block before the caption so the caption keeps its surrounding language.
+
 ```latex
 \begin{referencefigure}
 \begin{tikzpic}
@@ -441,13 +446,15 @@ can locate the table itself. For example:
 
 \begin{referencetable}
 \begin{center}
-\begin{tabular}{cc}
+\begin{otherlanguage}{english}
+\begin{tabular}{lc}
 \toprule
 Quantity & Unit \\
 \midrule
 Momentum & $\mathrm{kg\,m\,s^{-1}}$ \\
 \bottomrule
 \end{tabular}
+\end{otherlanguage}
 \referencetabcap[Units]{\label{tab:units}Consistent units for energy and momentum.}
 \end{center}
 \end{referencetable}

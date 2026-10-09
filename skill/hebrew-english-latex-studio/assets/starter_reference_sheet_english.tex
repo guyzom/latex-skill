@@ -80,6 +80,9 @@ $uv$ at both endpoints.
 \setlength{\arrayrulewidth}{0.4pt}
 \setlength{\tabcolsep}{4pt}
 \renewcommand{\arraystretch}{1.05}
+% English lookup: the function key is physically left, derivatives right.
+% Keep this physical order explicit when the starter is used bilingually.
+\begin{otherlanguage}{english}
 \begin{tabular}{|c|c|}
 \hline
 \rowcolor{black!10}
@@ -89,6 +92,7 @@ $\mathrm e^{ax}$ & $a\mathrm e^{ax}$\\\hline
 $\sin(ax)$ & $a\cos(ax)$\\\hline
 $\log x$ & $1/x,\ x>0$\\\hline
 \end{tabular}
+\end{otherlanguage}
 \end{referencetable}
 \subsection{Local approximation}
 For a smooth $f$ near $x_0$, let $h=x-x_0$:
@@ -146,6 +150,9 @@ Equations must balance dimensions; keep a quantity's unit beside its value.
 \setlength{\arrayrulewidth}{0.4pt}
 \setlength{\tabcolsep}{4pt}
 \renewcommand{\arraystretch}{1.05}
+% English quantity keys are physically left and left aligned; mathematical
+% units and dimensions remain centered, with dimensions physically right.
+\begin{otherlanguage}{english}
 \begin{tabular}{|l|c|c|}
 \hline
 \rowcolor{black!10}
@@ -154,6 +161,7 @@ Force & $\mathrm N$ & $\mathrm{kg\,m\,s^{-2}}$\\\hline
 Energy & $\mathrm J$ & $\mathrm{kg\,m^2\,s^{-2}}$\\\hline
 Frequency & $\mathrm{Hz}$ & $\mathrm{s^{-1}}$\\\hline
 \end{tabular}
+\end{otherlanguage}
 \end{referencetable}
 Angles in analytic formulas are in radians. Consistent units are necessary,
 but do not establish that a model is correct.

@@ -673,7 +673,7 @@
     },
     {
       "id": "reference-compact",
-      "recipe_revision": 2,
+      "recipe_revision": 3,
       "title": {
         "he": "דף עזר צפוף",
         "en": "Compact reference"
@@ -685,7 +685,7 @@
         {
           "language": "hebrew",
           "asset_path": "assets/starter_reference_sheet.tex",
-          "sha256": "3c606225163eaca8d5a016eaec6c39c820f4c5e6a3d4de2a462e6dfff9a8b981",
+          "sha256": "61c1a900448e43eb158f8a4b7381cfe3f70675ce1e86039260ad49f0b7362b78",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "10pt,a4paper",
@@ -707,7 +707,7 @@
         {
           "language": "english",
           "asset_path": "assets/starter_reference_sheet_english.tex",
-          "sha256": "6ef3c9125e7ca591f830dba6120c6614c8c22f2616caba2dc40b5ba09dc78e0f",
+          "sha256": "0686f7da19d4c5b1bfe098b4be3eae9b5679e6324c855f8272e79038f75c8e36",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "10pt,a4paper",
@@ -813,7 +813,7 @@
     },
     {
       "id": "reference-readable",
-      "recipe_revision": 2,
+      "recipe_revision": 3,
       "title": {
         "he": "דף עזר קריא",
         "en": "Readable reference"
@@ -825,7 +825,7 @@
         {
           "language": "hebrew",
           "asset_path": "assets/starter_reference_sheet.tex",
-          "sha256": "3c606225163eaca8d5a016eaec6c39c820f4c5e6a3d4de2a462e6dfff9a8b981",
+          "sha256": "61c1a900448e43eb158f8a4b7381cfe3f70675ce1e86039260ad49f0b7362b78",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "10pt,a4paper",
@@ -847,7 +847,7 @@
         {
           "language": "english",
           "asset_path": "assets/starter_reference_sheet_english.tex",
-          "sha256": "6ef3c9125e7ca591f830dba6120c6614c8c22f2616caba2dc40b5ba09dc78e0f",
+          "sha256": "0686f7da19d4c5b1bfe098b4be3eae9b5679e6324c855f8272e79038f75c8e36",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "10pt,a4paper",
