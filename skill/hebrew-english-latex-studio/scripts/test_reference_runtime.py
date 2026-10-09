@@ -1640,13 +1640,16 @@ class ReferenceRuntime(unittest.TestCase):
                     aux = (directory/'main.aux').read_text()
                     with fitz.open(directory/'main.pdf') as pdf:
                         assert_local_caption_size(pdf,size,main)
-                        tail = pdf[0].search_for('See' if main=='english' else 'ראו')
-                        self.assertEqual(len(tail),1)
+                        # Search rectangles may split a single RTL word into
+                        # glyph segments. Require its unique complete word box
+                        # before checking the following paragraph's placement.
+                        tail_page,tail = exact_occurrence(pdf,'See' if main=='english' else 'ראו')
+                        self.assertEqual(tail_page,0)
                         column_ink_bottom = max(span['bbox'][3]
                             for block in pdf[0].get_text('dict')['blocks']
                             for line in block.get('lines',[]) for span in line['spans']
                             if abs(span['size']-size)<.1)
-                        self.assertGreaterEqual(tail[0].y0,column_ink_bottom)
+                        self.assertGreaterEqual(tail.y0,column_ink_bottom)
                         for label,token in (('tbl:local-open','OPENROWS'),
                                             ('fig:local','FIGLOCAL'),
                                             ('tbl:local-fit','FITROWS'),
