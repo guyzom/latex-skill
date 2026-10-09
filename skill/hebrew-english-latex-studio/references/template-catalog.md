@@ -178,7 +178,7 @@ Acceptance case identifiers: `template:annotated-note:native`, `template:annotat
 
 ### Template paper
 
-**מאמר אקדמי — Academic paper**. Recipe revision: 2.
+**מאמר אקדמי — Academic paper**. Recipe revision: 3.
 
 | Native source language | Starter | Authored declarations |
 |---|---|---|

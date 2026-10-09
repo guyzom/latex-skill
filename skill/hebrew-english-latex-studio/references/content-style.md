@@ -291,12 +291,14 @@ $t_m=80\,\mathrm{ns}$. לכן
 ```latex
 \begin{thebibliography}{9}
 \bibitem{mips}
-\en{David A. Patterson and John L. Hennessy.
+\bibentryprose{english}{David A. Patterson and John L. Hennessy.
 \emph{Computer Organization and Design}. Morgan Kaufmann, 2021.}
 \end{thebibliography}
 ```
 
-כל הרשומה הלטינית, כולל הנקודה הסופית, נמצאת באי LTR אחד. טווח citations
+רשומה מלאה באנגלית היא פסקה מקומית ב־`\bibentryprose{english}{...}`, כולל
+הפיסוק הסופי. כך גם שורות המשך נקראות משמאל לימין ומתחילות משמאל.
+לרשומה בעברית בוחרים `hebrew`; המנגנון משמר את מספר הרשומה ואת קישור הציטוט. טווח citations
 עדיף כקריאה מרובת־מפתחות אחת אם הפקודה תומכת בכך, ולא כשני איים מופרדים.
 
 אל תוסיף מקור שלא בדקת. אם המקור אינו זמין, סמן במפורש שהטענה דורשת

@@ -134,7 +134,7 @@ Read [architecture](references/architecture.md) before modifying an interface. U
 
 `registry/studio-catalog.json` owns template recipes and defaults; the architecture and build contracts retain their existing ownership. A new content structure usually needs a starter, and new preset values need a catalog record. Add a runtime component only for a new semantic, layout, page-shell or presentation responsibility. Follow [catalog development](references/catalog-development.md), update the relevant glossary terms and add current acceptance evidence with each public change.
 
-Load semantic extensions only when needed: `document_components.tex` for source annotations; `exam_components.tex` for exam helpers; `flow_tables.tex` for supported multipage tables; `deferred_notes.tex` for deferred notes from boxes/tables; `reference_components.tex` for reference-sheet blocks; `study_components.tex` for paired exercises/end solutions; `index_components.tex` with `index.ist` for an explicitly managed subject index. Column flow belongs to `reference_columns.tex`; reference-page title/header/folio presentation belongs to `reference_shell.tex`. Compose core, semantic extensions, layout extension, page shell and one theme in that order. `topicrail.tex` is an alternative running-header component, not a second shell to load alongside `reference_shell.tex`.
+Load semantic extensions only when needed: `document_components.tex` for source annotations, terminology paragraphs and manual bibliography entries; `exam_components.tex` for exam helpers; `flow_tables.tex` for supported multipage tables; `deferred_notes.tex` for deferred notes from boxes/tables; `reference_components.tex` for reference-sheet blocks; `study_components.tex` for paired exercises/end solutions; `index_components.tex` with `index.ist` for an explicitly managed subject index. Column flow belongs to `reference_columns.tex`; reference-page title/header/folio presentation belongs to `reference_shell.tex`. Compose core, semantic extensions, layout extension, page shell and one theme in that order. `topicrail.tex` is an alternative running-header component, not a second shell to load alongside `reference_shell.tex`.
 
 Select presentation separately. `reader_theme.tex` preserves heading semantics. `academic_theme.tex` keeps visible headings and uses selective equation numbering with regular black caption labels. `reference_theme.tex` supplies black ruled headings, gray reference notes, regular black caption labels and selective equations; selecting it alone does not create columns. `clean_theme.tex` intentionally hides section numbering and uses selective equation numbering. Choose one theme. `clean_variant.tex` is a generated legacy bundle; do not combine it with its source components or a competing theme.
 
@@ -181,6 +181,13 @@ the minority-language term separately. All four language pairs use one natural
 spaced em dash, without an automatic dot, fixed label column or stretched gap.
 Allow long terms and definitions to wrap; preserve authored sentence punctuation.
 Check the actual line edges, separators, math and links at the intended width.
+
+For complete bibliography entries load `document_components.tex` and write
+`\bibentryprose{english}{entry body}` (choose `hebrew` for a Hebrew entry)
+immediately after native `\bibitem` inside `thebibliography`. Isolate short minority-language names with `\h` or
+`\en`; whole entries need the paragraph helper so continuation lines and native
+pending labels retain their correct edges. Keep requested bibliography styles
+and authored typography. See [citations](references/citations.md).
 
 An exercise with a deferred solution needs a stable semantic key and its origin
 identity. Use the optional study component or an equally verified local route;

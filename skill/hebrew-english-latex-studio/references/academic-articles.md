@@ -196,7 +196,12 @@ Replace or extend it only with sources relevant to the authored argument.
 
 One shared bibliography is enough for a bilingual article. Keep original
 author names, titles and identifiers unless the source supplies an official
-translation; isolate Latin bibliography text in Hebrew contexts. See
+translation. A complete entry is a paragraph: place
+`\bibentryprose{english}{...}` or `\bibentryprose{hebrew}{...}` immediately
+after native `\bibitem`. It selects the entry language and continuation edge
+while preserving the bibliography heading, list spacing, numbers and citation
+targets. Entries remain breakable across pages and retain authored font styling;
+short minority-language runs still use `\h` or `\en`. See
 [citations](citations.md) for the supported direction and key-preservation
 contract. Journal styles using Biber, BibTeX or another processor require an
 explicitly implemented, tested pipeline; requesting a package does not add

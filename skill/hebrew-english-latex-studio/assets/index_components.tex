@@ -34,11 +34,20 @@
 % through protected@write and expands only when its page/float ships out.
 \newcommand{\hllpdf@indexrawpage}{\arabic{page}}
 \newcommand{\hllpdf@indexcheckformat}{%
+  % LaTeX before 2025/11 defines zero-argument renewcommand as long;
+  % newer kernels make it short. Accept only these exact core Arabic bodies
+  % in either form, without expanding a current-page value or changing folios.
   \edef\hllpdf@indexexpectedpage{\noexpand\foreignlanguage{english}{\noexpand\arabic{page}}}%
+  \long\edef\hllpdf@indexexpectedpagelong{\noexpand\foreignlanguage{english}{\noexpand\arabic{page}}}%
   \def\hllpdf@indexresetpage{\foreignlanguage{english}{\csname @arabic\endcsname\c@page}}%
+  \long\def\hllpdf@indexresetpagelong{\foreignlanguage{english}{\csname @arabic\endcsname\c@page}}%
   \ifx\thepage\hllpdf@indexexpectedpage\else
-    \ifx\thepage\hllpdf@indexresetpage\else
-      \PackageError{hllpdf-index}{Index requires the core Arabic folio contract}{Retain the core Arabic formatter; custom page numbering is unsupported.}
+    \ifx\thepage\hllpdf@indexexpectedpagelong\else
+      \ifx\thepage\hllpdf@indexresetpage\else
+        \ifx\thepage\hllpdf@indexresetpagelong\else
+          \PackageError{hllpdf-index}{Index requires the core Arabic folio contract}{Retain the core Arabic formatter; custom page numbering is unsupported.}
+        \fi
+      \fi
     \fi
   \fi}
 \newcommand{\hllpdf@indexwritecontext}{%

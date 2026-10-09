@@ -551,7 +551,7 @@
     },
     {
       "id": "paper",
-      "recipe_revision": 2,
+      "recipe_revision": 3,
       "title": {
         "he": "מאמר אקדמי",
         "en": "Academic paper"
@@ -561,7 +561,7 @@
         {
           "language": "hebrew",
           "asset_path": "assets/starter_paper.tex",
-          "sha256": "38398f755c206f72db15d35a60480f8c5acaf73e1de9f15f2fbda1de713a89d6",
+          "sha256": "2e0ba8880c93a39a14002a4e6d843e4f2ffa89954dfec269cc31bc7213f251d7",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "11pt,a4paper",
@@ -574,7 +574,7 @@
         {
           "language": "english",
           "asset_path": "assets/starter_paper_english.tex",
-          "sha256": "e7a521305ad92603f99965bd76fda6225d68e58f6bf58b9b1ca1b1fc927cece0",
+          "sha256": "2f26c015d2449585e5a1dd2d3d902fb6a5ec7b8a7be62011ceaf41642f616f6c",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "11pt,a4paper",

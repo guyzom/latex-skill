@@ -121,6 +121,13 @@ is unresolved under the literal-listing graph contract; do not silently treat
 such a caption as a verified local dependency or a language exemption. The
 checker does not evaluate arbitrary listings key definitions.
 
+A complete native `thebibliography` entry uses the document component's
+`\bibentryprose{english|hebrew}{entry}` immediately after `\bibitem`. It
+selects the local paragraph direction and preserves the outer list's pending
+label geometry; a prose environment after `\bibitem` alone can overlap that
+label when its direction differs from the bibliography shell. See
+[citations](citations.md). Keep an explicitly requested journal style intact.
+
 The current core supports ordinary `enumerate`, `itemize` and `description`
 lists inside either prose environment, including a minority-language section.
 Babel's `layout=lists` adapts list indentation to the paragraph direction;

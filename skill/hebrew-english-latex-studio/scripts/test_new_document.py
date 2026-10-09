@@ -390,6 +390,19 @@ PY
                 self.assertIn(r'\author{}', source)
                 self.assertIn(r'\date{}', source)
 
+    def test_paper_bibliography_retains_local_entry_paragraph_in_all_profiles(self):
+        for profile, main in [('hebrew', None), ('english', None),
+                              ('hebrew-with-english', None), ('english-with-hebrew', None),
+                              ('bilingual', 'hebrew'), ('bilingual', 'english')]:
+            with self.subTest(profile=profile, main=main):
+                _, source, _ = self.make('bib-' + profile + '-' + str(main), kind='paper',
+                                        language=profile, main_language=main)
+                bibliography = source[source.index(r'\begin{thebibliography}'):]
+                self.assertEqual(bibliography.count(r'\bibitem{boyd2004}'), 1)
+                self.assertIn(r'\bibentryprose{english}{Stephen Boyd', bibliography)
+                self.assertNotIn(r'\en{Stephen Boyd', bibliography)
+                self.assertNotIn(r'\begin{englishprose}', bibliography)
+
     def test_paper_numbers_cited_and_central_equations_and_leaves_working_unnumbered(self):
         for language in ('english', 'hebrew'):
             with self.subTest(language=language):

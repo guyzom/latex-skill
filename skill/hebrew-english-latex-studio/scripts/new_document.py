@@ -420,6 +420,8 @@ def main_source(kind: str, language: str, main_language: str, theme: str,
                             header, count=1)
             # A standard article has one title and one shared bibliography. Both
             # abstracts precede the paired bodies; references share the real key.
+            # Preserve each starter entry's explicit local paragraph scope;
+            # ending the secondary body must not turn English continuations RTL.
             title_pattern = r'(?m)^\\title\{([^{}]+)\}$'
             second_title = re.search(title_pattern, second_header)
             if not second_title:

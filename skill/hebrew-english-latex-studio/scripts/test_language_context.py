@@ -106,6 +106,22 @@ class LanguageContextTests(unittest.TestCase):
         source = declared('hebrew-with-english') + r'\begin{englishprose}2020–2023\end{englishprose} 2020–2023'
         self.assertEqual(self.flags(source), {'RANGE-SEP-BETWEEN-DIGITS'})
 
+    def test_bibliography_entry_paragraph_locale_is_local_and_nested(self):
+        source = declared('hebrew-with-english') + r'''\begin{thebibliography}{99}
+\bibitem{a}\bibentryprose{english}{ENTRY 2020–2023 \h{עברית 2020–2023} English $x^2$.}
+\bibitem{b}\bibentryprose{hebrew}{עברית \en{MINORITY 2020–2023} עברית 2020–2023.}
+\end{thebibliography}
+OUTER 2020–2023
+'''
+        context = LanguageContext(source)
+        for word, english in [('ENTRY', True), ('MINORITY', True), ('OUTER', False)]:
+            self.assertEqual(context.is_english(*context.line_column(source.index(word))), english)
+        inner = source.index('עברית 2020–2023')
+        self.assertFalse(context.is_english(*context.line_column(inner)))
+        self.assertFalse(context.boundary_errors)
+        self.assertFalse(context.exit_language == 'english')
+        self.assertEqual(self.flags(source), {'RANGE-SEP-BETWEEN-DIGITS'})
+
     def test_inner_hebrew_overrides_outer_english(self):
         source = declared() + r'\en{English \h{טווח 2020–2023} English}'
         context = LanguageContext(source)

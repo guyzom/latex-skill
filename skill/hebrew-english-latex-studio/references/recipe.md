@@ -262,16 +262,18 @@ escaped מתחיל comment ומוחק את יתר השורה.
 ## ביבליוגרפיה והפניות
 
 ה־pipeline אינו מריץ BibTeX/Biber. למסמך עצמאי השתמש ב־
-`thebibliography`:
+`thebibliography`. לרשומות מקומיות טען `document_components.tex` אחרי הפרמבול:
 
 ```latex
 \begin{thebibliography}{9}
 \bibitem{knuth}
-\en{Donald E. Knuth. \emph{The TeXbook}. Addison-Wesley, 1984.}
+\bibentryprose{english}{Donald E. Knuth. \emph{The TeXbook}. Addison-Wesley, 1984.}
 \end{thebibliography}
 ```
 
-הנקודה הסוגרת של רשומה לטינית נשארת בתוך אותו אי LTR. הפניות למשוואה
+רשומה מלאה נכתבת בפסקת `\bibentryprose` בשפתה, כולל הפיסוק הסופי.
+שורות המשך באנגלית מתחילות משמאל; הכותרת והמספור נשארים במעטפת המקורית.
+ראו [מדריך הסימוכין](citations.md); איים קצרים עדיין משתמשים ב־`\en` ו־`\h`. הפניות למשוואה
 בפרוזה הן `\eqref{...}` ללא `$...$`:
 
 ```latex

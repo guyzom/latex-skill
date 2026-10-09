@@ -91,6 +91,8 @@ if "verify_release_contract(root)" not in packager or "test_release_contract.py"
 # v5.3.5 (repository line): T1q (static + runtime) for the folio face; seven
 # LATIN-BEFORE-PAREN island-opener cases take the corpus to 678.
 # Native numeric hyperpage-range controls add eighteen cases, taking it to696.
+# v5.4.9 adds seven balanced bibliography paragraph/ownership cases, taking
+# the strictly counted source corpus to703 without removing prior controls.
 # v5.4.0 adds seven static catalog groups, one topic-rail engine group and one
 # sealed catalog visual gate; v5.4.1 carries T1q forward onto them and adds the
 # static T1r for routine runs, which run one check fewer.

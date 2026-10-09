@@ -255,20 +255,21 @@ class LanguageContext:
                         target, i = text[g[0]:g[1] - 1].strip(), g[1]
                         if target in LANGUAGES:
                             lang = target
-                elif cmd in {'h', 'en', 'texthebrew', 'textenglish', 'foreignlanguage'}:
+                elif cmd in {'h', 'en', 'texthebrew', 'textenglish', 'foreignlanguage', 'bibentryprose'}:
                     target = {'h': 'hebrew', 'en': 'english', 'texthebrew': 'hebrew',
                               'textenglish': 'english'}.get(cmd)
                     argpos = i
-                    if cmd == 'foreignlanguage':
+                    if cmd in {'foreignlanguage', 'bibentryprose'}:
                         # Babel's star form takes {language}{paragraph}; only
                         # the nonstar form accepts [options] before {language}.
                         argpos = skip_space(text, argpos)
-                        if text[argpos:argpos + 1] == '*':
-                            argpos += 1
-                        else:
-                            opt = group(text, argpos, '[', ']')
-                            if opt:
-                                argpos = opt[1]
+                        if cmd == 'foreignlanguage':
+                            if text[argpos:argpos + 1] == '*':
+                                argpos += 1
+                            else:
+                                opt = group(text, argpos, '[', ']')
+                                if opt:
+                                    argpos = opt[1]
                         spec = group(text, argpos)
                         if spec:
                             candidate = text[spec[0]:spec[1] - 1].strip()

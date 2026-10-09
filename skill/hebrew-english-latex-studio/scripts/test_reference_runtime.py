@@ -2655,6 +2655,71 @@ class IndexRuntime(unittest.TestCase):
         (directory/'proof.json').write_text(json.dumps(proof, ensure_ascii=False, indent=2)+'\n')
         return proof
 
+    def assert_index_folio_formatter_contract(self):
+        # Exercise the actual writer with both zero-argument macro prefix forms.
+        # These are controlled legacy semantics on the installed engine, not a
+        # claim that a different TeX Live distribution ran here.
+        core = r'\foreignlanguage{english}{\arabic{page}}'
+        reset = r'\foreignlanguage{english}{\csname @arabic\endcsname\c@page}'
+        cases = [(name, before, after, accepted, diagnostic) for name, before, after, accepted, diagnostic in (
+            ('core-short', r'\def\thepage{' + core + '}', '', True, ''),
+            ('core-long', r'\long\def\thepage{' + core + '}', '', True, ''),
+            ('reset-short', r'\def\thepage{' + reset + '}', '', True, ''),
+            ('reset-long', r'\long\def\thepage{' + reset + '}', '', True, ''),
+            ('roman-body', r'\def\thepage{\foreignlanguage{english}{\roman{page}}}', '', False, 'core Arabic folio contract'),
+            ('literal-current-page', r'\def\thepage{\foreignlanguage{english}{12}}', '', False, 'core Arabic folio contract'),
+            ('wrong-counter', r'\def\thepage{\foreignlanguage{english}{\arabic{section}}}', '', False, 'core Arabic folio contract'),
+            ('missing-direction', r'\def\thepage{\arabic{page}}', '', False, 'core Arabic folio contract'),
+            ('late-author-override', '', r'\def\thepage{\foreignlanguage{english}{12}}', False, 'core Arabic folio contract'),
+            ('roman-numbering', '', r'\pagenumbering{Roman}', False, 'Arabic page numbering'),
+        )]
+        proof = []
+        for name, before, after, accepted, diagnostic in cases:
+            with self.subTest(folio_formatter=name):
+                directory = self.root / ('folio-' + name)
+                directory.mkdir()
+                for asset in INDEX_ASSETS:
+                    shutil.copyfile(ROOT / 'assets' / asset, directory / asset)
+                source = (r'\def\lakitlanguageprofile{english}\input{preamble.tex}' + '\n'
+                          + r'\makeatletter' + before + r'\makeatother' + '\n'
+                          + r'\input{index_components.tex}\hypersetup{pdftitle={Arabic formatter probe}}' + '\n'
+                          + r'\begin{document}\makeatletter' + after + r'\makeatother\setcounter{page}{12}' + '\n'
+                          + r'\en{BODYFORMAT12}\lakitindex{english}{000001}{Body AX001}' + '\n'
+                          + r'\begin{figure}[p]\centering\en{FLOATFORMAT13}\lakitindex{english}{000002}{Float AX901}\end{figure}' + '\n'
+                          + r'\clearpage\end{document}' + '\n')
+                (directory / 'main.tex').write_text(source)
+                result = subprocess.run(['lualatex', '-interaction=nonstopmode', '-halt-on-error',
+                                         '-no-shell-escape', 'main.tex'], cwd=directory,
+                                        env=self.env, capture_output=True, text=True, timeout=120)
+                log = result.stdout + result.stderr
+                (directory / 'engine.log').write_text(log)
+                if accepted:
+                    self.assertEqual(result.returncode, 0, log[-6000:])
+                    entries = (directory / 'main.idx').read_text()
+                    self.assertRegex(entries, r'AX001.*\}\{12\}')
+                    self.assertRegex(entries, r'AX901.*\}\{13\}')
+                    with fitz.open(directory / 'main.pdf') as pdf:
+                        self.assertEqual(len(pdf), 2)
+                        self.assertEqual(declared_labels(pdf), ['12', '13'])
+                        self.assertIn('BODYFORMAT12', pdf[0].get_text())
+                        self.assertIn('FLOATFORMAT13', pdf[1].get_text())
+                        for page, folio in zip(pdf, ('12', '13')):
+                            self.assertTrue(any(word[4] == folio and word[1] > .85 * page.rect.height
+                                                for word in page.get_text('words')), (name, folio))
+                    proof.append({'case': name, 'accepted': True,
+                                  'idx_sha256': index_runtime_digest(directory / 'main.idx'),
+                                  'pdf_sha256': index_runtime_digest(directory / 'main.pdf'),
+                                  'printed_folios': ['12', '13'], 'body_locator': 12,
+                                  'delayed_float_locator': 13})
+                else:
+                    self.assertNotEqual(result.returncode, 0, name)
+                    self.assertIn(diagnostic, log)
+                    proof.append({'case': name, 'accepted': False,
+                                  'diagnostic': diagnostic, 'actual_exit': result.returncode})
+        (self.root / 'folio-format-contract.json').write_text(json.dumps(
+            {'cases': proof, 'scope': 'installed engine with controlled modern/legacy formatter definitions; no visual-review claim'},
+            ensure_ascii=False, indent=2) + '\n')
+
     def test_managed_index_local_languages_shipout_locators_and_failure_controls(self):
         preserve = os.environ.get('HLLPDF_INDEX_RUNTIME_EVIDENCE_DIR')
         if preserve:
@@ -2673,6 +2738,7 @@ class IndexRuntime(unittest.TestCase):
                         INDEX_PROCESSOR='makeindex', INDEX_STYLE='index.ist',
                         PYTHONDONTWRITEBYTECODE='1')
         self.env.pop('HEBREW_LATEX_PROJECT_ROOT', None)
+        self.assert_index_folio_formatter_contract()
         proof = []
         for profile, base, columns in INDEX_PROFILES:
             with self.subTest(profile=profile, base=base, columns=columns):
@@ -2695,6 +2761,8 @@ class IndexRuntime(unittest.TestCase):
                     self.assertEqual(index_runtime_digest(directory/'render'/page['image']), page['sha256'])
                 (directory/'proof.json').write_text(json.dumps(measured, ensure_ascii=False, indent=2)+'\n')
                 proof.append(measured)
+        self.assertEqual(len(proof), len(INDEX_PROFILES),
+                         "dependent index controls require all six successful positive PDFs")
         annotation_control = self.assert_annotation_only_wrong_page_control(
             self.root/'hebrew-with-english-hebrew-2', 'hebrew-with-english', 'hebrew', 2)
         # A valid destination can still refer to the authoring page instead of

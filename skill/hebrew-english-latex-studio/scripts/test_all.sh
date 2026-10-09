@@ -203,15 +203,15 @@ NEG_HITS=$(grep -c '^tests/.*\[' <<< "$NEG_OUT" || true)
 if [ "$NEG_RC" = "0" ] && [ "${NEG_HITS:-0}" = "0" ]; then ok "silent on negatives (exit 0)"
 else bad "negative fixture: checker exit $NEG_RC (want 0), $NEG_HITS finding(s)"; fi
 
-echo "═══ T1b: checker selftest corpus (696 cases) ═══"
+echo "═══ T1b: checker selftest corpus (703 cases) ═══"
 # v3.83: FLOOR assertion, the lesson T1 learned in v3.71 and this block never
 # did. selftest.py fails only on `failures`, so emptying CASES/SCOPE_CASES
 # printed "✓ selftest: all 0 cases pass" and this harness printed "✓ selftest
 # corpus passes" with the suite's LARGEST body of evidence silently gone
 # (measured). A corpus that does not know its own size cannot detect deletion.
 NCASES=$(python3 -c "import sys; sys.path.insert(0,'scripts'); import selftest; print(len(selftest.CASES)+len(selftest.SCOPE_CASES))" 2>/dev/null || echo 0)
-if [ "${NCASES:-0}" = "696" ]; then ok "selftest corpus carries exactly 696 cases"
-else bad "selftest corpus carries ${NCASES:-0} cases (want exactly 696)"; fi
+if [ "${NCASES:-0}" = "703" ]; then ok "selftest corpus carries exactly 703 cases"
+else bad "selftest corpus carries ${NCASES:-0} cases (want exactly 703)"; fi
 if python3 scripts/selftest.py >/dev/null 2>&1; then ok "selftest corpus passes"
 else bad "selftest corpus DRIFTED (run: python3 scripts/selftest.py)"; fi
 ARCH_TEX_FILES=()

@@ -222,4 +222,181 @@ class Runtime491Tests(unittest.TestCase):
         self.assertFalse((self.root/'missing.pdf').exists())
 
 
+def bibliography_paragraph_fixture(profile, main):
+    header = (rf'\def\lakitlanguageprofile{{{profile}}}'+'\n'
+              + (rf'\def\lakitmainlanguage{{{main}}}'+'\n' if profile == 'bilingual' else '')
+              + HEADER.replace(r'\input{reader_theme.tex}', ''))
+    english = ('An original synthetic entry preserves complete source details, '
+               'readable continuation lines, ordinary paragraph spacing and native citation identity. ')*40
+    hebrew = ('רשומה סינתטית מקורית שומרת על פרטי המקור ועל קריאות שורות ההמשך. '
+              'הפסקה צריכה להישאר בכיוון המקומי ולשמור על זהות ההפניה. ')*22
+    return header + r'''\begin{document}
+\begin{englishprose}\noindent CITMARK \cite{qa-he,qa-en,qa-style}\par
+{\Large\itshape STYLECONTROL Authored style.\par}\end{englishprose}
+\begin{thebibliography}{99}
+\bibitem{qa-en}\bibentryprose{english}{BIBEN Original source \textit{Title (2026)}.
+Escaped details \& 25\% and MATHMARK $x+2$. \h{מונח קצר}.
+''' + english + r' ENEND.}'+'\n'+r'''\bibitem{qa-he}\bibentryprose{hebrew}{מקור \en{BIBHE} רשומה בעברית עם \en{LLVM (CPU)}.
+''' + hebrew + r' \en{HEEND}.}'+'\n'+r'''\setcounter{enumiv}{11}
+\bibitem{qa-style}{\Large\itshape\bibentryprose{english}{BIBSTYLE Authored style retained.}}
+\end{thebibliography}
+\begin{englishprose}\noindent OUTSIDE English resumes normally.\par\end{englishprose}
+\end{document}
+'''
+
+
+def _bib_marker(doc, marker):
+    matches = [(i, rect) for i, page in enumerate(doc) for rect in page.search_for(marker)]
+    if len(matches) != 1:
+        raise AssertionError(f'{marker}: expected one visible occurrence, got {len(matches)}')
+    return matches[0]
+
+
+def _bib_line_extent(page, marker, exclude=None):
+    rect = page.search_for(marker)[0]
+    chars = []
+    for block in page.get_text('rawdict')['blocks']:
+        for line in block.get('lines', []):
+            for span in line['spans']:
+                for char in span['chars']:
+                    box = fitz.Rect(char['bbox'])
+                    if char['c'].strip() and rect.y0-.5 <= char['origin'][1] <= rect.y1+.5:
+                        if exclude is None or not box.intersects(exclude):
+                            chars.append(box)
+    if not chars:
+        raise AssertionError('no glyph extent for ' + marker)
+    return min(b.x0 for b in chars), max(b.x1 for b in chars)
+
+
+def assert_bibliography_paragraph_geometry(doc):
+    first_en, en_start = _bib_marker(doc, 'BIBEN')
+    last_en, en_end = _bib_marker(doc, 'ENEND')
+    if last_en <= first_en:
+        raise AssertionError('long English entry did not span physical pages')
+    left, _ = _bib_line_extent(doc[last_en], 'ENEND')
+    if abs(left-en_start.x0) > 1:
+        raise AssertionError('English continuation does not start at local left reading edge')
+    he_page, he_start = _bib_marker(doc, 'BIBHE')
+    he_last, he_end = _bib_marker(doc, 'HEEND')
+    labels = doc[he_page].search_for('[2]')
+    if len(labels) != 1:
+        raise AssertionError('missing native Hebrew-entry label [2]')
+    _, right = _bib_line_extent(doc[he_page], 'BIBHE', labels[0])
+    _, end_right = _bib_line_extent(doc[he_last], 'HEEND')
+    if abs(right-end_right) > 1:
+        raise AssertionError('Hebrew continuation does not end at local right reading edge')
+    for number, marker in [(1, 'BIBEN'), (2, 'BIBHE'), (12, 'BIBSTYLE')]:
+        page_num, body = _bib_marker(doc, marker)
+        labels = doc[page_num].search_for(f'[{number}]')
+        if len(labels) != 1 or labels[0].intersects(body):
+            raise AssertionError(f'pending native label [{number}] overlaps entry body or is missing')
+    for marker in ('STYLECONTROL', 'BIBSTYLE'):
+        page_num, rect = _bib_marker(doc, marker)
+        spans = [sp for b in doc[page_num].get_text('dict')['blocks'] for ln in b.get('lines', [])
+                 for sp in ln['spans'] if marker in sp['text']]
+        if len(spans) != 1:
+            raise AssertionError('cannot identify authored style span')
+        if marker == 'STYLECONTROL':
+            control = (spans[0]['size'], spans[0]['font'], spans[0]['flags'], spans[0]['color'])
+        elif control != (spans[0]['size'], spans[0]['font'], spans[0]['flags'], spans[0]['color']):
+            raise AssertionError('entry overrides authored font/size/style/color')
+    text = '\n'.join(p.get_text() for p in doc)
+    if '25%' not in text or '&' not in text or 'OUTSIDE' not in text:
+        raise AssertionError('escaped text or post-bibliography paragraph lost')
+
+
+def assert_bibliography_paragraph_navigation(doc):
+    expected = ['qa-he', 'qa-en', 'qa-style']
+    links = [ln for page in doc for ln in page.get_links()
+             if ln.get('nameddest', '').startswith('cite.')]
+    if [ln['nameddest'] for ln in links] != ['cite.'+key for key in expected]:
+        raise AssertionError('citation links changed semantic key order')
+    names = doc.resolve_names()
+    for key, marker, number in [('qa-en', 'BIBEN', 1), ('qa-he', 'BIBHE', 2), ('qa-style', 'BIBSTYLE', 12)]:
+        target = names['cite.'+key]
+        page_num, body = _bib_marker(doc, marker)
+        if target['page'] != page_num:
+            raise AssertionError('citation target page differs from matching entry')
+        target_y = doc[page_num].rect.height-target['to'][1]
+        if abs(target_y-body.y0) > 25:
+            raise AssertionError('citation target is not adjacent to matching entry')
+    for link, number in zip(links, [2, 1, 12]):
+        digits = re.findall(r'\d+', doc[0].get_textbox(link['from']+(-.2,-.2,.2,.2)))
+        if digits != [str(number)]:
+            raise AssertionError('printed citation number no longer matches key identity')
+
+
+class BibliographyParagraphRuntime(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        retained = os.environ.get('HLLPDF_BIB_TEST_EVIDENCE_DIR')
+        cls.tmp = None if retained else tempfile.TemporaryDirectory(prefix='hll-bibparagraph-')
+        cls.root = Path(retained) if retained else Path(cls.tmp.name)
+        if retained:
+            cls.root.mkdir(parents=True, exist_ok=False)
+        fonts = str(font_dir()); cls.env = os.environ.copy()
+        cls.env.update(OSFONTDIR=fonts, TTFONTS=fonts+'//:', HEBREW_LATEX_FONT_DIR=fonts,
+                       SOURCE_DATE_EPOCH='1700000000', PYTHONDONTWRITEBYTECODE='1')
+        cls.env.pop('HEBREW_LATEX_PROJECT_ROOT', None)
+
+    @classmethod
+    def tearDownClass(cls):
+        if cls.tmp is not None:
+            cls.tmp.cleanup()
+
+    def compile_fixture(self, name, source):
+        directory = self.root/name; directory.mkdir()
+        for asset in ['preamble.tex', 'document_components.tex', 'reader_theme.tex']:
+            shutil.copyfile(ROOT/'assets'/asset, directory/asset)
+        (directory/'main.tex').write_text(source, encoding='utf-8')
+        for number in range(1, 4):
+            result = subprocess.run(['lualatex', '--no-shell-escape', '-halt-on-error',
+                                     '-interaction=nonstopmode', 'main.tex'], cwd=directory,
+                                    env=self.env, capture_output=True, text=True, timeout=120)
+            (directory/f'pass-{number}.txt').write_text(result.stdout+result.stderr)
+            self.assertEqual(result.returncode, 0, result.stdout[-3000:])
+        self.assertNotIn('undefined', (directory/'main.log').read_text())
+        return directory
+
+    def test_local_entry_paragraphs_keep_native_labels_styles_and_navigation(self):
+        profiles = [('hebrew','hebrew'),('english','english'),
+                    ('hebrew-with-english','hebrew'),('english-with-hebrew','english'),
+                    ('bilingual','hebrew'),('bilingual','english')]
+        for profile, main in profiles:
+            with self.subTest(profile=profile, main=main):
+                directory = self.compile_fixture(profile+'-'+main, bibliography_paragraph_fixture(profile, main))
+                with fitz.open(directory/'main.pdf') as doc:
+                    assert_bibliography_paragraph_geometry(doc)
+                    assert_bibliography_paragraph_navigation(doc)
+
+    def test_previous_inline_and_unsafe_prose_have_independent_geometry_failures(self):
+        source = bibliography_paragraph_fixture('hebrew-with-english', 'hebrew')
+        inline = source.replace(r'\bibentryprose{english}{BIBEN', r'\en{BIBEN')
+        directory = self.compile_fixture('negative-inline', inline)
+        with fitz.open(directory/'main.pdf') as doc:
+            assert_bibliography_paragraph_navigation(doc)
+            with self.assertRaisesRegex(AssertionError, 'English continuation'):
+                assert_bibliography_paragraph_geometry(doc)
+        unsafe = source.replace(r'\bibentryprose{english}{BIBEN', r'\begin{englishprose}BIBEN', 1)
+        unsafe = unsafe.replace(' ENEND.}', ' ENEND.\\end{englishprose}', 1)
+        directory = self.compile_fixture('negative-unsafe-environment', unsafe)
+        with fitz.open(directory/'main.pdf') as doc:
+            assert_bibliography_paragraph_navigation(doc)
+            with self.assertRaisesRegex(AssertionError, 'pending native label'):
+                assert_bibliography_paragraph_geometry(doc)
+        good = self.compile_fixture('navigation-control', source)
+        mutation = good/'wrong-valid-citation.pdf'
+        with fitz.open(good/'main.pdf') as doc:
+            link = next(ln for ln in doc[0].get_links() if ln.get('nameddest') == 'cite.qa-en')
+            action = doc.xref_object(link['xref'])
+            self.assertEqual(action.count('(cite.qa-en)'), 1)
+            doc.update_object(link['xref'], action.replace('(cite.qa-en)', '(cite.qa-style)'))
+            doc.save(mutation)
+        with fitz.open(mutation) as doc:
+            assert_bibliography_paragraph_geometry(doc)
+            with self.assertRaisesRegex(AssertionError, 'semantic key order'):
+                assert_bibliography_paragraph_navigation(doc)
+
+
+
 if __name__ == '__main__': unittest.main(verbosity=2)

@@ -417,6 +417,12 @@ def write_fixture(root: Path, project: Path, family: str, language: str) -> dict
                  + r'\toprule\en{ID}&\en{N}&\en{Mean}&\en{SD}&\en{State}\\'
                  + r'\midrule\en{001}&\en{12}&\en{1.25}&$x^2$&\en{Observed.}\\\bottomrule'
                  + '\n' + r'\end{semanticframedtable}' + '\n')
+    if family == 'source-links':
+        body += (r'\cite{qa-bib-en,qa-bib-he}' + '\n'
+                 + r'\begin{thebibliography}{9}' + '\n'
+                 + r'\bibitem{qa-bib-en}\bibentryprose{english}{BIBEN Synthetic source. A complete English entry preserves its local reading edge (2026).}' + '\n'
+                 + r'\bibitem{qa-bib-he}\bibentryprose{hebrew}{רשומה סינתטית. גוף הרשומה בעברית שומר על קצה הקריאה המקומי.}' + '\n'
+                 + r'\end{thebibliography}' + '\n')
     pre += r'\hypersetup{pdftitle={Synthetic component QA},pdfauthor={}}' + '\n'
     source = pre + r'\begin{document}' + '\n' + body + r'\end{document}' + '\n'
     if any(ord(char) < 32 and char not in '\n\t' for char in source):
@@ -438,6 +444,7 @@ def write_fixture(root: Path, project: Path, family: str, language: str) -> dict
     expected = {'required_tokens': [], 'uri_links': [], 'minimum_pages': 1}
     if family == 'source-links':
         expected['uri_links'] = ['https://example.org/control?first=1&second=2#part', 'https://example.org/local']
+        expected.update(required_tokens=['BIBEN'], named_destinations=['cite.qa-bib-en', 'cite.qa-bib-he'])
     elif family == 'deferred-notes':
         expected.update(required_tokens=['NOTENATIVE', 'NOTEREUSE'], minimum_pages=2,
                         named_destinations=['hllnote.native', 'hllnote.minority'])
