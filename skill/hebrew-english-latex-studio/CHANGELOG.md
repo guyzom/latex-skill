@@ -3,6 +3,9 @@
 ## v5.4.7
 
 Parenthetical subcaption labels remain intact before digit-leading Hebrew text.
+Their Latin direction is selected before constructing the label box, including
+older Babel/LuaHBTeX where selecting the language inside an RTL box reverses
+the drawn parentheses. CI retains focused caption PDFs for actual visual review.
 Optional subcaption defaults are applied when the package loads, preserving
 explicit package options and preamble styling. Default captions retain a smaller
 local body size and baseline instead of enlarging compact reference typography.

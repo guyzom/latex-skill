@@ -534,7 +534,7 @@ See \autoref{ch:en} and \autoref{app:en}.
             self.assertEqual(navigation.returncode, 0, navigation.stdout+navigation.stderr)
             broken, mutant = self.compile(source, 'subcaption-unisolated-'+main, passes=3,
                 mutate=lambda tex: tex.replace(
-                    r'\DeclareCaptionLabelFormat{lakit-sub}{\mbox{\lakitcaptionlabelstyle{\en{(#2)}}}}',
+                    r'\DeclareCaptionLabelFormat{lakit-sub}{\en{\mbox{\lakitcaptionlabelstyle{(#2)}}}}',
                     r'\DeclareCaptionLabelFormat{lakit-sub}{(#2)}'))
             self.assertEqual(broken.returncode, 0, broken.stdout[-6000:])
             hebrew_marker = 'SUBBASE' if main == 'hebrew' else 'SUBMINORITY'

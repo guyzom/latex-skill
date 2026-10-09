@@ -977,9 +977,10 @@
 \DeclareCaptionLabelSeparator{lakit}{\lakitcaptionpunctuation\enspace}
 \captionsetup{font=lakit,labelfont={},textfont={},labelformat=lakit,
   labelsep=lakit,justification=centering}
-% Parenthetical Latin sub-labels are one directional island. Without this
-% capsule Hebrew descriptions starting with digits can steal the opening `('.
-\DeclareCaptionLabelFormat{lakit-sub}{\mbox{\lakitcaptionlabelstyle{\en{(#2)}}}}
+% Select the Latin direction BEFORE constructing the atomic label box. Older
+% Babel/LuaHBTeX keeps an enclosing RTL box direction when \en is only inside
+% it, reversing the drawn parentheses even though the Latin glyphs are intact.
+\DeclareCaptionLabelFormat{lakit-sub}{\en{\mbox{\lakitcaptionlabelstyle{(#2)}}}}
 \makeatletter
 % Supply optional-package defaults early, rather than overwriting an explicit
 % template's \captionsetup[sub] at begin-document. Previously passed options
