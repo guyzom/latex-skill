@@ -586,7 +586,16 @@ run_latex() {
 }
 
 run_index_stage() {
-  [ "$INDEX_PROCESSOR" = makeindex ] || return 0
+  if [ "$INDEX_PROCESSOR" = none ]; then
+    # A current private .idx proves the document enabled its index writer.
+    # Disabling both settings must not turn that requested index into a clean
+    # PDF with no index, even when no entries were written.
+    if [ -f "$BASE.idx" ]; then
+      echo "✗ managed index: current .idx requires INDEX_PROCESSOR=makeindex."
+      return 1
+    fi
+    return 0
+  fi
   if ! python3 "$SCRIPT_DIR/build_contract.py" --index-base "$BASE" \
       --project-root "$PROJECT_ROOT" --index-style "$INDEX_STYLE"; then
     # Retain the processor's exact diagnostic in the normal failed-build log.

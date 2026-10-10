@@ -2535,7 +2535,8 @@ class IndexRuntime(unittest.TestCase):
     expensive setup. Retained PDFs are measurements, not claims of pixel review.
     """
 
-    def build_index_case(self, name, source, *, early_capture=False, seed=None):
+    def build_index_case(self, name, source, *, early_capture=False, seed=None,
+                         env_overrides=None):
         directory = self.root/name
         directory.mkdir()
         for asset in INDEX_ASSETS:
@@ -2552,9 +2553,11 @@ class IndexRuntime(unittest.TestCase):
             shutil.copyfile(seed, directory/'main.pdf')
         evidence = directory/'index-evidence'
         self.assertFalse(evidence.exists(), 'each build requires a new evidence leaf')
+        env = dict(self.env, HLLPDF_INDEX_EVIDENCE_DIR=str(evidence))
+        env.update(env_overrides or {})
         result = subprocess.run(
             ['bash', str(ROOT/'scripts/build.sh'), str(directory/'main.tex')],
-            cwd=directory, env=dict(self.env, HLLPDF_INDEX_EVIDENCE_DIR=str(evidence)),
+            cwd=directory, env=env,
             capture_output=True, text=True, timeout=240)
         (directory/'build.log').write_text(result.stdout+result.stderr)
         return directory, result
@@ -2784,6 +2787,11 @@ class IndexRuntime(unittest.TestCase):
         proof.append(measured)
         seed = self.root/(f'{INDEX_PROFILES[0][0]}-{INDEX_PROFILES[0][1]}-{INDEX_PROFILES[0][2]}')/'main.pdf'
         seeded_digest = index_runtime_digest(seed)
+        disabled, result = self.build_index_case(
+            'disabled-processor', index_runtime_fixture(profile, base, columns), seed=seed,
+            env_overrides={'INDEX_PROCESSOR': 'none', 'INDEX_STYLE': ''})
+        self.assert_failed_index_keeps_deliverable(
+            disabled, result, seeded_digest, 'current .idx requires INDEX_PROCESSOR=makeindex')
         omitted_source = index_runtime_fixture(profile, base, columns).replace(r'\printindex', '', 1)
         omitted, result = self.build_index_case('omitted-printindex', omitted_source, seed=seed)
         self.assert_failed_index_keeps_deliverable(
@@ -2802,7 +2810,8 @@ class IndexRuntime(unittest.TestCase):
         (self.root/'index-runtime-measurements.json').write_text(json.dumps(
             {'positive_profiles': proof[:6], 'early_capture_control': proof[6],
              'annotation_only_wrong_page_control': annotation_control,
-             'pipeline_controls': [{'case': str(omitted), 'seed_pdf_sha256': seeded_digest},
+             'pipeline_controls': [{'case': str(disabled), 'seed_pdf_sha256': seeded_digest},
+                                   {'case': str(omitted), 'seed_pdf_sha256': seeded_digest},
                                    {'case': str(rejected), 'seed_pdf_sha256': seeded_digest}],
              'scope': 'fresh managed PDF measurements; no visual-review claim'},
             ensure_ascii=False, indent=2)+'\n')

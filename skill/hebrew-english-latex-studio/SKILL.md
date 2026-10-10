@@ -206,6 +206,16 @@ Use complete LuaLaTeX, Python 3.10+, Poppler, and the verified external font bun
 
 Compile generated or inspected trusted TeX. LuaLaTeX can run Lua with shell escape disabled; that flag is not a sandbox. Keep local inputs inside the declared project root.
 
+For a generated project, use its build wrapper so recipe defaults, including an
+explicitly selected index processor and style, reach the managed builder:
+
+```bash
+HEBREW_LATEX_SKILL_ROOT=/path/to/skill bash /absolute/path/to/project/build.sh
+```
+
+For an existing project without that wrapper, declare its build configuration
+explicitly and invoke the managed builder directly:
+
 ```bash
 bash /path/to/skill/scripts/build.sh /absolute/path/to/project/main.tex
 ```
@@ -235,17 +245,18 @@ Diagnose failures. Do not label partial or skipped checks as passes. Document in
 Render all pages into a fresh directory:
 
 ```bash
-python3 /path/to/skill/scripts/render_review.py render main.pdf --output review
+python3 /path/to/skill/scripts/render_review.py render \
+  /absolute/path/to/project/main.pdf --output /absolute/path/to/new-review
 ```
 
 View every page at readable resolution. Check content, language boundaries, headings, punctuation, math, tables, code, captions, page numbers, clipping, spacing, and hierarchy. Compare facts and structure against inputs. Sparse pages can be intentional. A contact sheet is an index, not full review. Record only pages actually viewed:
 
 ```bash
-python3 /path/to/skill/scripts/render_review.py record main.pdf \
-  --review review/review.json --pages 1 --reviewer "Reviewer" \
+python3 /path/to/skill/scripts/render_review.py record /absolute/path/to/project/main.pdf \
+  --review /absolute/path/to/new-review/review.json --pages 1 --reviewer "Reviewer" \
   --notes "Record concrete observations from the actual page."
-python3 /path/to/skill/scripts/render_review.py verify main.pdf \
-  --review review/review.json --rerender
+python3 /path/to/skill/scripts/render_review.py verify /absolute/path/to/project/main.pdf \
+  --review /absolute/path/to/new-review/review.json --rerender
 ```
 
 Complete all pages and rerender after edits. Use `--renderer mupdf` for an explicit second renderer where useful. Pixel differences alone are not defects. Check critical navigation in target viewers when available; state untested viewer limits. `/Lang` metadata is not PDF tagging or PDF/UA compliance.
@@ -254,36 +265,20 @@ Complete all pages and rerender after edits. Use `--renderer mupdf` for an expli
 
 Deliver PDF and editable TeX with required local assets. Record toolchain, external dependencies, customizations, and material limitations. Keep logs, temporary outputs, and test evidence out of the installable skill.
 
-For skill maintenance, update `VERSION`, metadata, owning records, generated guards, compatibility assets and glossary terms before freezing. Run the existing regressions and relevant negative checks; never lower corpus counts to hide failures. Freeze a candidate outside the installable source, then build the complete retained catalog matrix:
+For skill maintenance, update `VERSION`, metadata, owning records, generated guards,
+compatibility assets and glossary terms before freezing. Run the existing
+regressions and relevant negative checks; never lower corpus counts to hide
+failures. Follow the authoritative [release workflow](references/catalog-development.md#release-workflow)
+for candidate creation with `scripts/package_skill.py`, the complete retained
+matrix, actual primary-page review, sealing and candidate-bound FULL verification.
+Keep candidate source bytes, modes and file population unchanged; the final
+archive must have the candidate's exact SHA-256. Any source change requires a new
+candidate and renewed affected evidence.
 
-```bash
-python3 scripts/doctor.py
-python3 scripts/template_registry.py validate --json
-python3 scripts/generate_studio_docs.py --check
-python3 scripts/test_download_fonts.py
-python3 scripts/check_package_hygiene.py
-python3 scripts/package_skill.py --output /path/to/candidate.skill
-STUDIO_RELEASE_CANDIDATE_SHA="$(python3 scripts/hash_file.py /path/to/candidate.skill)"
-python3 scripts/test_studio_matrix.py --jobs 4 \
-  --evidence-dir /path/to/new-matrix-evidence \
-  --candidate-sha "$STUDIO_RELEASE_CANDIDATE_SHA"
-```
-
-View every unique primary page from the matrix at readable resolution, and record concrete observations only after viewing. Its case records identify each PDF and `renders.mupdf.review` manifest; use the existing `render_review.py record` API. Compilation and rendering leave human review pending. After complete primary review, seal the evidence with a fresh same-renderer replay, then run FULL against that exact candidate and seal:
-
-```bash
-python3 scripts/test_studio_matrix.py --seal /path/to/new-matrix-evidence \
-  --candidate-sha "$STUDIO_RELEASE_CANDIDATE_SHA"
-HEBREW_LATEX_CATALOG_MATRIX_EVIDENCE=/path/to/new-matrix-evidence \
-HEBREW_LATEX_CATALOG_CANDIDATE_SHA="$STUDIO_RELEASE_CANDIDATE_SHA" \
-  bash scripts/test_all.sh
-FAST=1 bash scripts/test_all.sh
-python3 scripts/check_package_hygiene.py
-python3 scripts/package_skill.py --output /path/to/release/hebrew-english-latex-studio.skill
-python3 scripts/hash_file.py /path/to/release/hebrew-english-latex-studio.skill
-```
-
-The final archive must have the candidate's exact SHA-256. Keep source bytes, modes and file population unchanged after freezing; any source change requires a new candidate and affected evidence. FULL requires current sealed matrix evidence and its candidate identity; a selected-theme subset or source-only preview cannot satisfy it. A regression run that is not a release declares `HEBREW_LATEX_CATALOG_VISUAL=routine` and leaves out only that gate ([routine runs](references/catalog-development.md#release-workflow)). FAST checks contracts and is not runtime matrix approval. The deterministic packager checks static release contracts and refuses conflicting outputs; package creation alone does not prove that FULL, rendering or human review ran. Full tests need the TeX toolchain; FAST still needs fonts, Python QA dependencies, and Poppler. See [catalog development](references/catalog-development.md#release-workflow) for evidence paths and the complete release order.
+A non-release FULL run declares `HEBREW_LATEX_CATALOG_VISUAL=routine` as described
+in that workflow. FAST and package creation do not approve the runtime matrix or
+human review. Full tests need the TeX toolchain; FAST still needs fonts, Python QA
+dependencies and Poppler.
 
 ## Reference routes
 

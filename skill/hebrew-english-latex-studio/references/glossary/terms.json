@@ -2007,7 +2007,7 @@
       "updated_in": "5.4.9"
     }
   ],
-  "skill_version": "5.4.9",
+  "skill_version": "5.4.10",
   "paths": {
     "records": "references/glossary/terms.json",
     "markdown": "references/glossary-he-en.md"

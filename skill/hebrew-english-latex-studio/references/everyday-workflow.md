@@ -14,8 +14,8 @@ and maintained examples. The [Hebrew–English glossary](glossary-he-en.md) expl
 the terms. Inspect a selection before creating a project:
 
 ```bash
-python3 scripts/template_registry.py list
-python3 scripts/template_registry.py resolve --kind paper --language english --json
+python3 /path/to/skill/scripts/template_registry.py list
+python3 /path/to/skill/scripts/template_registry.py resolve --kind paper --language english --json
 ```
 
 These commands read the canonical registry and create no project. Resolution
@@ -41,12 +41,12 @@ not infer language percentages or prohibit the other language. A conflicting
 English source, not a Hebrew document enclosed in one English environment.
 
 ```bash
-python3 scripts/new_document.py --kind general --language english \
+python3 /path/to/skill/scripts/new_document.py --kind general --language english \
   --theme custom --package microtype --directory /path/to/new-project
 ```
 
 ```bash
-python3 scripts/new_document.py --kind report --language bilingual \
+python3 /path/to/skill/scripts/new_document.py --kind report --language bilingual \
   --main-language hebrew --theme reader --directory /path/to/bilingual-report
 ```
 
@@ -114,9 +114,9 @@ always override the default. For a
 native paper in either language:
 
 ```bash
-python3 scripts/new_document.py --kind paper --language english \
+python3 /path/to/skill/scripts/new_document.py --kind paper --language english \
   --directory /path/to/english-paper
-python3 scripts/new_document.py --kind paper --language hebrew \
+python3 /path/to/skill/scripts/new_document.py --kind paper --language hebrew \
   --directory /path/to/hebrew-paper
 ```
 
@@ -156,9 +156,9 @@ an explicit option rather than a default topic family. See
 [reference sheets](reference-sheets.md).
 
 ```bash
-python3 scripts/new_document.py --kind formula-sheet --language english \
+python3 /path/to/skill/scripts/new_document.py --kind formula-sheet --language english \
   --layout reference-readable --directory /path/to/english-reference
-python3 scripts/new_document.py --kind formula-sheet --language hebrew \
+python3 /path/to/skill/scripts/new_document.py --kind formula-sheet --language hebrew \
   --layout reference-compact --directory /path/to/hebrew-reference
 ```
 
@@ -267,7 +267,8 @@ size merely to fill a page or improve a density score.
 ## Review actual rendered pages
 
 ```bash
-python3 scripts/render_review.py render main.pdf --output review
+python3 /path/to/skill/scripts/render_review.py render \
+  /path/to/new-project/main.pdf --output /path/to/new-review
 ```
 
 The result includes an image per page, an HTML index, and `review.json`. Pages
@@ -275,7 +276,8 @@ start as `pending`; compilation and rendering do not approve them. Inspect every
 page at a readable scale. Record only pages actually reviewed, for example:
 
 ```bash
-python3 scripts/render_review.py record main.pdf --review review/review.json \
+python3 /path/to/skill/scripts/render_review.py record /path/to/new-project/main.pdf \
+  --review /path/to/new-review/review.json \
   --pages 1 --reviewer "Reviewer name" --notes "Actual findings on this page"
 ```
 
@@ -287,7 +289,8 @@ not collaborative locking or authentication of the reviewer.
 After reviewing every page:
 
 ```bash
-python3 scripts/render_review.py verify main.pdf --review review/review.json --rerender
+python3 /path/to/skill/scripts/render_review.py verify /path/to/new-project/main.pdf \
+  --review /path/to/new-review/review.json --rerender
 ```
 
 Without `--rerender`, verification checks matching hashes and review status.

@@ -2,7 +2,7 @@
 
 The recovery below is historical. Current releases use the unified public
 identifier `hebrew-english-latex-studio`; the publication safeguards continue
-to apply. Use the current workflow in [the release recipe](recipe.md#שחרור-ואריזה-דטרמיניסטית).
+to apply. Use the authoritative [release workflow](catalog-development.md#release-workflow).
 
 ## Observed problem and recovery
 
@@ -46,19 +46,13 @@ semantics; if unsupported, the tool fails rather than silently falling back to
 an overwriting rename. Temporary files are removed on success or failure.
 
 For a real new release, update `VERSION`, add the first matching CHANGELOG
-heading and choose a new versioned pathname. Prefer a fresh output directory:
-
-```bash
-python3 scripts/doctor.py
-FAST=1 bash scripts/test_all.sh
-bash scripts/test_all.sh
-python3 scripts/test_download_fonts.py
-python3 scripts/test_studio_matrix.py --jobs 4 --evidence-dir /tmp/studio-matrix-review
-python3 scripts/check_package_hygiene.py
-STUDIO_VERSION="$(cat VERSION)"
-python3 scripts/package_skill.py \
-  --output "/tmp/release-new/hebrew-english-latex-studio-v${STUDIO_VERSION}.skill"
-```
+heading and choose a fresh output directory and new versioned pathname. Follow
+the [release workflow](catalog-development.md#release-workflow) for candidate
+creation, complete matrix execution, actual primary-page review, evidence
+sealing and candidate-bound FULL verification. Keep source bytes, modes and
+file population unchanged after freezing; the final archive must match the
+candidate's SHA-256. Any source change requires a new candidate and renewed
+affected evidence. A routine FULL run or FAST pass is not release approval.
 
 Intentional scratch replacement only:
 

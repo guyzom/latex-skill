@@ -92,8 +92,10 @@ requires separate reviewed and sealed catalog evidence.
 ## Limitations
 
 The tested document classes are `article` and `report`. Extra packages and
-custom classes need compatibility checks. The builder does not run Biber,
-BibTeX, indexing, or other external processors. Byte equality depends on the
+custom classes need compatibility checks. The builder supports an explicit
+single-index MakeIndex stage with `INDEX_PROCESSOR=makeindex`; selecting the
+optional index component supplies that default. It does not run Biber, BibTeX,
+or other external processors. Byte equality depends on the
 same toolchain and fonts. Some engine-specific negative controls require
 LuaHBTeX 1.18+ and report skips on older engines.
 
