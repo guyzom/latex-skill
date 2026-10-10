@@ -929,8 +929,16 @@ def dest_landing(doc, hard, soft, caption_color=CAP_COLOR, caption_label_weight=
         if pno not in frame_cache:
             frame_cache[pno] = frames(page)
         host = None
+        caption_center = fitz.Point((crect.x0 + crect.x1) / 2,
+                                    (crect.y0 + crect.y1) / 2)
         for fr in frame_cache[pno]:
-            if fr.y0 <= (crect.y0 + crect.y1) / 2 <= fr.y1:
+            # The label must belong to this frame in both axes. A framed
+            # table in a neighboring column can share the caption's baseline
+            # without owning its destination; vertical overlap alone pairs
+            # an open table with that unrelated frame. The prefix's center
+            # tolerates ordinary glyph bearings at the frame edge while
+            # retaining the existing innermost/last-frame ownership rule.
+            if fr.contains(caption_center):
                 host = fr                      # innermost/last wins
         if host is None:
             continue                           # frameless: R6b already judged it

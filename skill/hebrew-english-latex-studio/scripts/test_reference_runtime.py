@@ -27,6 +27,7 @@ import unittest
 
 sys.dont_write_bytecode = True
 import fitz
+import check_bidi_figures as bidi
 import check_pdf_render as render
 import heading_source
 import render_review
@@ -180,6 +181,67 @@ def local_callout_fixture(profile, main):
             source += r'\node[below] at(0,0){\en{TICKZERO}};'
             source += r'\node[below] at(3,0){\en{TICKONE}};\end{tikzpicture}\end{tikzpic}'+'\n'
     return source+r'\end{referencecolumns}\end{document}'+'\n'
+
+
+def local_caption_fixture(main, body_size, *, old_size=False):
+    """Bare and opt-in frame captions must follow the authored local type size."""
+    layers = ('document_components.tex',) + ASSETS[1:]
+    source = header(main+'-with-'+('hebrew' if main=='english' else 'english'), main,
+                    options='12pt,a4paper', layers=layers,
+                    body_font_size=str(body_size), body_baseline=str(body_size*1.25))
+    if old_size:
+        source += r'\renewcommand{\lakitcaptionstyle}{\normalfont\small\color{black}\hypersetup{allcolors=black}}'+'\n'
+    caption = (r'A wrapped caption with \h{עברית}, the model $x^2$ and '
+               if main=='english' else
+               r'כיתוב ארוך עם \en{English}, המודל \en{$x^2$} ועם ')
+    source += r'\begin{document}\section{'+('Local caption controls' if main=='english' else 'בדיקת כיתובים מקומיים')+r'}\begin{referencecolumns}[3]'+'\n'
+    source += prose(main,'BODYLOCAL')
+    source += r'\begin{center}\begin{otherlanguage}{english}\begin{tabular}{rr}\toprule OPENROWS & Value\\\midrule 001 & -12.50\\\bottomrule\end{tabular}\end{otherlanguage}'+'\n'
+    source += r'\tabcap[Open short]{\label{tbl:local-open}'+caption+r'\en{CAPOPEN} '+('a sufficiently long explanation that wraps within the column.' if main=='english' else 'הסבר נוסף שנשבר באופן טבעי בתוך הטור.')+r'}\end{center}'+'\n'
+    source += r'\begin{referencefigure}\begin{tikzpic}\begin{tikzpicture}\draw(0,0)rectangle(2,.6);\node at(1,.3){\en{FIGLOCAL}};\end{tikzpicture}\end{tikzpic}'+'\n'
+    source += r'\figcap[Figure short]{\label{fig:local}'+caption+r'\en{CAPFIG} '+('a second line of descriptive text.' if main=='english' else 'שורה נוספת של טקסט תיאורי.')+r'}\end{referencefigure}\par\columnbreak'+'\n'
+    source += r'\begin{framedtable}[Fit short]{2}{rr}{'+caption+r'\en{CAPFIT} '+('a sufficiently long explanation that wraps within the column.' if main=='english' else 'הסבר נוסף שנשבר באופן טבעי בתוך הטור.')+r'}{tbl:local-fit}\toprule FITROWS & Value\\\midrule 001 & -12.50\\\bottomrule\end{framedtable}\par\columnbreak'+'\n'
+    source += r'\begin{semanticframedtable}[Semantic short]{2}{rr}{'+caption+r'\en{CAPSEM} '+('a sufficiently long explanation that wraps within the column.' if main=='english' else 'הסבר נוסף שנשבר באופן טבעי בתוך הטור.')+r'}{tbl:local-semantic}\toprule SEMROWS & Value\\\midrule 001 & -12.50\\\bottomrule\end{semanticframedtable}'+'\n'
+    references = r'\ref{tbl:local-open}, \ref{fig:local}, \ref{tbl:local-fit}, \ref{tbl:local-semantic}'
+    if main=='hebrew':
+        references = r'\en{'+references+'}'
+    source += r'\end{referencecolumns}\par '+('See ' if main=='english' else 'ראו ')+references+r'.\clearpage\listoftables\listoffigures\end{document}'+'\n'
+    return source
+
+
+def assert_local_caption_size(pdf, declared_size, main):
+    """Measure actual caption prose glyphs, independent of TeX macro spelling."""
+    for token in ('CAPOPEN','CAPFIG','CAPFIT','CAPSEM'):
+        page_index, token_box = exact_occurrence(pdf,token)
+        spans = [span for block in pdf[page_index].get_text('dict')['blocks']
+                 for line in block.get('lines',[]) for span in line['spans']
+                 if fitz.Rect(span['bbox']).intersects(token_box)]
+        if not spans or any(abs(span['size']-declared_size)>.1 for span in spans):
+            raise AssertionError(('caption enlarged beyond local body',token,
+                                  declared_size,[span['size'] for span in spans]))
+        if any(span['color']!=0 or any(weight in span['font'].lower()
+                                     for weight in ('bold','italic')) for span in spans):
+            raise AssertionError(('caption prose style differs',token,spans))
+    # A local size restoration must restore the raw NFSS baseline. Capturing
+    # effective \baselineskip and feeding it to \fontsize applies linespread
+    # twice, visibly inflating the same paragraph despite correct glyph sizes.
+    page_index,token_box = exact_occurrence(pdf,'CAPFIT')
+    page = pdf[page_index]
+    prose_font = next(span['font'] for block in page.get_text('dict')['blocks']
+        for line in block.get('lines',[]) for span in line['spans']
+        if 'CAPFIT' in span['text'])
+    start = next(site.y0 for kind,number,site in render.caption_sites(page,0,'normal')
+                 if (kind,number)==('tbl','2'))
+    baselines = sorted({round(span['origin'][1],2)
+        for block in page.get_text('dict')['blocks']
+        for line in block.get('lines',[]) for span in line['spans']
+        if span['font']==prose_font and span['text'].strip()
+        and abs(span['size']-declared_size)<.1 and span['bbox'][1]>=start-.2
+        and column_index(page,fitz.Rect(span['bbox']),3,main)==1})
+    expected = declared_size*1.25*1.3*72/72.27
+    gaps = [after-before for before,after in zip(baselines,baselines[1:])]
+    if not gaps or any(abs(gap-expected)>.2 for gap in gaps):
+        raise AssertionError(('caption baseline differs from local body',expected,gaps))
 
 
 def occurrences(pdf, token):
@@ -1568,6 +1630,145 @@ class ReferenceRuntime(unittest.TestCase):
                 'target_background':list(box),'target_language':note['language']})
         return records
 
+    def test_bare_and_framed_captions_keep_local_reference_size_and_navigation(self):
+        assets = ASSETS + ('document_components.tex',)
+        for main in ('english','hebrew'):
+            for size in (9,6.3):
+                name = f'local-captions-{main}-{size}'
+                directory,result = self.compile(name,local_caption_fixture(main,size),
+                                                passes=3,assets=assets)
+                with self.subTest(main=main,size=size):
+                    self.assertEqual(result.returncode,0,result.stdout[-3000:])
+                    self.assertNotIn('Overfull ',result.stdout)
+                    self.assertNotIn('Missing character:',result.stdout)
+                    self.assertEqual(bidi.scan_file(str(directory/'main.tex')), [])
+                    if main=='hebrew':
+                        sequence = r'\ref{tbl:local-open}, \ref{fig:local}, \ref{tbl:local-fit}, \ref{tbl:local-semantic}'
+                        unsafe = directory/'unsafe-reference-sequence.tex'
+                        unsafe.write_text(local_caption_fixture(main,size).replace(
+                            r'\en{'+sequence+'}', sequence), encoding='utf-8')
+                        self.assertIn('REF-RANGE-REORDER',
+                                      {code for _,code,_ in bidi.scan_file(str(unsafe))})
+                    aux = (directory/'main.aux').read_text()
+                    with fitz.open(directory/'main.pdf') as pdf:
+                        assert_local_caption_size(pdf,size,main)
+                        # Search rectangles may split a single RTL word into
+                        # glyph segments. Require its unique complete word box
+                        # before checking the following paragraph's placement.
+                        tail_page,tail = exact_occurrence(pdf,'See' if main=='english' else 'ראו')
+                        self.assertEqual(tail_page,0)
+                        column_ink_bottom = max(span['bbox'][3]
+                            for block in pdf[0].get_text('dict')['blocks']
+                            for line in block.get('lines',[]) for span in line['spans']
+                            if abs(span['size']-size)<.1)
+                        self.assertGreaterEqual(tail.y0,column_ink_bottom)
+                        body_links = [link for link in pdf[0].get_links()
+                            if link.get('nameddest') in ('tbl.1','fig.1','tbl.2','tbl.3')
+                            and fitz.Rect(link['from']).y0>=tail.y0]
+                        self.assertEqual([link['nameddest'] for link in sorted(
+                            body_links,key=lambda link:fitz.Rect(link['from']).x0)],
+                            ['tbl.1','fig.1','tbl.2','tbl.3'],
+                            'the complete numeric reference sequence must read LTR in both locales')
+                        for label,token in (('tbl:local-open','OPENROWS'),
+                                            ('fig:local','FIGLOCAL'),
+                                            ('tbl:local-fit','FITROWS'),
+                                            ('tbl:local-semantic','SEMROWS')):
+                            fields = label_fields(aux,label)
+                            page_index,object_box = exact_occurrence(pdf,token)
+                            target,_,y = pdf.resolve_link('#nameddest='+fields[4])
+                            self.assertEqual(target,page_index)
+                            self.assertLess(y,object_box.y1)
+                            self.assertGreaterEqual(y,0)
+                            links = [(page,link) for page in pdf for link in page.get_links()
+                                     if link.get('nameddest')==fields[4]]
+                            self.assertGreaterEqual(len(links),2)  # body reference and native list
+                            for page,link in links:
+                                self.assertEqual(link.get('page',target),target)
+                        for suffix,short in (('lot','Open short'),('lot','Fit short'),
+                                             ('lot','Semantic short'),('lof','Figure short')):
+                            self.assertEqual((directory/f'main.{suffix}').read_text().count(short),1)
+                    self.assert_caption_frame_ownership_controls(directory)
+        # The old \small preset is a real compiled negative witness: navigation
+        # remains valid, but the identical PDF typography policy rejects it.
+        directory,result = self.compile('local-captions-old-size',
+            local_caption_fixture('english',6.3,old_size=True),passes=3,assets=assets)
+        self.assertEqual(result.returncode,0,result.stdout[-3000:])
+        with fitz.open(directory/'main.pdf') as pdf:
+            with self.assertRaisesRegex(AssertionError,'caption enlarged beyond local body'):
+                assert_local_caption_size(pdf,6.3,'english')
+        inflated = local_caption_fixture('english',9).replace(r'\begin{document}',
+            r'\makeatletter\renewcommand{\lakitcaptionstyle}{%'
+            +'\n'+r'\edef\qaCaptionSize{\f@size}\edef\qaCaptionBaseline{\the\baselineskip}%'
+            +'\n'+r'\normalfont\small\fontsize{\qaCaptionSize}{\qaCaptionBaseline}\selectfont\color{black}\hypersetup{allcolors=black}}'
+            +r'\makeatother\begin{document}')
+        directory,result = self.compile('local-captions-inflated-baseline',inflated,
+                                        passes=3,assets=assets)
+        self.assertEqual(result.returncode,0,result.stdout[-3000:])
+        with fitz.open(directory/'main.pdf') as pdf:
+            with self.assertRaisesRegex(AssertionError,'caption baseline differs from local body'):
+                assert_local_caption_size(pdf,9,'english')
+
+    def assert_caption_frame_ownership_controls(self,directory):
+        """An adjacent frame is unrelated; an anchor inside its own frame fails."""
+        positive = directory/'main.pdf'
+        negative = directory/'own-frame-anchor-below-top.pdf'
+        with fitz.open(positive) as pdf:
+            page = pdf[0]
+            captions = {(kind,number):box for kind,number,box in
+                        render.caption_sites(page,0,'normal')}
+            open_caption,own_caption = captions[('tbl','1')],captions[('tbl','2')]
+            own_center = fitz.Point((own_caption.x0+own_caption.x1)/2,
+                                    (own_caption.y0+own_caption.y1)/2)
+            hosts = [frame for frame in render.frames(page) if frame.contains(own_center)]
+            self.assertEqual(len(hosts),1)
+            frame = hosts[0]
+            self.assertLessEqual(frame.y0,(open_caption.y0+open_caption.y1)/2)
+            self.assertGreaterEqual(frame.y1,(open_caption.y0+open_caption.y1)/2)
+            self.assertLessEqual(min(frame.x1,open_caption.x1)
+                                 -max(frame.x0,open_caption.x0),0,
+                                 'the positive control must reproduce unrelated same-height columns')
+            _,_,open_y = render.caption_dests(pdf)['tbl.1']
+            self.assertGreater(open_y-frame.y0,render.FRAME_TOL,
+                               'the old vertical-only frame pairing must falsely reject this positive')
+            self.assertGreater(open_caption.y0-open_y,render.CAPTION_FLOOR)
+            hard,soft = [],[]
+            self.assertEqual(render.dest_landing(pdf,hard,soft,0,'normal'),4)
+            self.assertEqual((hard,soft),([],[]))
+            target,dx,original_y = render.caption_dests(pdf)['tbl.2']
+            self.assertEqual(target,0)
+            self.assertLessEqual(original_y,frame.y0+render.FRAME_TOL)
+            bad_y = frame.y0+5
+            self.assertGreater(own_caption.y0-bad_y,render.CAPTION_FLOOR)
+            # Mutate the actual fresh LuaLaTeX named destination, retaining all
+            # page ink and links. R6b remains healthy, so only real ownership
+            # can reject the five-point jump into the object's own frame.
+            references = [int(match.group(1)) for xref in range(1,pdf.xref_length())
+                for match in re.finditer(r'\(tbl\.2\)\s+(\d+)\s+0\s+R',pdf.xref_object(xref))]
+            self.assertEqual(len(references),1)
+            pdf.xref_set_key(references[0],'D',
+                f'[ {page.xref} 0 R /XYZ {dx:.6f} {page.cropbox.y1-bad_y:.6f} null ]')
+            pdf.save(negative)
+        with fitz.open(negative) as broken,fitz.open(positive) as clean:
+            self.assertEqual([page.get_pixmap(dpi=96).samples for page in broken],
+                             [page.get_pixmap(dpi=96).samples for page in clean],
+                             'the negative changes navigation, not page pixels')
+            self.assertAlmostEqual(render.caption_dests(broken)['tbl.2'][2],bad_y,places=3)
+            hard,soft = [],[]
+            self.assertEqual(render.dest_landing(broken,hard,soft,0,'normal'),4)
+            self.assertEqual(len(hard),1,hard)
+            self.assertEqual(hard[0][1],'DEST-INSIDE-TABLEBOX')
+            self.assertIn("'tbl.2'",hard[0][2])
+            self.assertEqual(soft,[])
+        (directory/'caption-frame-ownership-controls.json').write_text(json.dumps({
+            'open_caption':list(open_caption),'own_caption':list(own_caption),
+            'own_frame':list(frame),'original_anchor_y':original_y,'negative_anchor_y':bad_y,
+            'positive_pdf_sha256':hashlib.sha256(positive.read_bytes()).hexdigest(),
+            'negative_pdf_sha256':hashlib.sha256(negative.read_bytes()).hexdigest(),
+            'positive_outcome':'accepted-unrelated-same-height-column-frame',
+            'negative_outcome':'rejected-own-frame-anchor-five-points-below-top',
+            'negative_code':'DEST-INSIDE-TABLEBOX','page_pixels_unchanged':True},
+            ensure_ascii=False,indent=2)+'\n')
+
     def test_actual_pdf_render_gate_accepts_reference_layout_with_declared_caption_contract(self):
         for (profile, main), directory in self.directories.items():
             with self.subTest(profile=profile, main=main), contextlib.redirect_stdout(io.StringIO()) as capture:
@@ -2159,6 +2360,452 @@ class ReferenceHeadingRuntime(unittest.TestCase):
                 self.assertTrue(any(gap>=.7*size for gap in old['gaps'])
                     or any(word.endswith('-') for word in old['words']),
                     'negative must actually show stretched word gaps or automatic splits: '+str(old))
+
+
+# Optional alphabetical index: independent of ReferenceRuntime.setUpClass.
+INDEX_ASSETS = ('preamble.tex', 'reader_theme.tex', 'index_components.tex', 'index.ist')
+INDEX_PROFILES = [('hebrew', 'hebrew', 1), ('english', 'english', 2), ('hebrew-with-english', 'hebrew', 2), ('english-with-hebrew', 'english', 1), ('bilingual', 'hebrew', 1), ('bilingual', 'english', 2)]
+INDEX_EN_TERMS = [('010000', 'Alpha AX101'), ('020000', 'Beta AX102 with \\h{בקרה} and a longer explanation containing control (CPU), \\en{001} and $-12.50$, with further contextual wording that remains locally English across wrapped lines')] + [(f'{i:02d}0000', 'Gamma AX' + f'{100 + i:03d}') for i in range(3, 11)]
+INDEX_HE_TERMS = [('010000', 'אור \\en{AX001}'), ('020000', '\\en{CPU AX002} הבקרה בעברית עם תיאור ארוך הנשבר באופן טבעי ובו \\en{001} והערך \\en{$-12.50$}, וכן פרטים נוספים כדי שהפרוזה תישבר במספר שורות בלי שינוי בגודל הגופן ובלי מתיחה')] + [(f'{i:02d}0000', 'מונח \\en{AX' + f'{i:03d}' + '}') for i in range(3, 11)]
+
+def index_runtime_digest(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def index_runtime_fixture(profile, base, columns):
+    out = f'\\def\\lakitlanguageprofile{{{profile}}}\\def\\lakitmainlanguage{{{base}}}\\def\\lakitindexcolumns{{{columns}}}' + '\n'
+    out += '\\def\\lakitdocumentclass{report}\\def\\lakitclassoptions{12pt,a4paper}\\def\\lakitgeometryoptions{margin=2.3cm,headheight=14pt}\\input{preamble.tex}\\input{reader_theme.tex}\\input{index_components.tex}' + '\n'
+    out += '\\lakithead{\\en{Index semantics probe}}\\hypersetup{pdftitle={Private synthetic index semantics}}' + '\n'
+    out += '\\begin{document}' + '\n'
+    for n in (12, 23, 24, 104):
+        out += f'\\setcounter{{page}}{{{n}}}\\section{{\\en{{Target {n}}}}}\\noindent\\en{{BODYTARGET{n}}}\\par' + '\n'
+        out += ('\\noindent הסבר סינתטי פרטי של מונחי האינדקס.' if base == 'hebrew' else '\\noindent Private synthetic explanation of index terms.') + '\n'
+        if n == 12:
+            for locale, terms in [('english', INDEX_EN_TERMS), ('hebrew', INDEX_HE_TERMS)]:
+                for rank, display in terms:
+                    out += f'\\lakitindex{{{locale}}}{{{rank}}}{{{display}}}' + '\n'
+            out += '\\begin{figure}[p]\\centering\\en{FLOATLATE}\\par\\rule{1cm}{1cm}\\lakitindex{english}{900000}{Latefloat AX901}\\end{figure}' + '\n'
+        else:
+            name = 'lakitindexrangebegin' if n == 23 else 'lakitindexrangeend' if n == 24 else 'lakitindex'
+            for locale, terms in [('english', INDEX_EN_TERMS), ('hebrew', INDEX_HE_TERMS)]:
+                rank, display = terms[0]
+                out += f'\\{name}{{{locale}}}{{{rank}}}{{{display}}}' + '\n'
+        out += '\\clearpage' + '\n'
+    out += '\\printindex\\end{document}' + '\n'
+    return out
+
+
+def index_runtime_inspect(d, profile, base, columns, *, early_capture=False):
+    with fitz.open(d / 'main.pdf') as pdf:
+        labels = declared_labels(pdf)
+        targets = {str(n): next((p.number for p in pdf if f'BODYTARGET{n}' in p.get_text())) for n in (12, 23, 24, 104)}
+        targets['13'] = next((p.number for p in pdf if 'FLOATLATE' in p.get_text()))
+        indexpages = [p for p in pdf if p.search_for('AX901')]
+        assert len(indexpages) == 1
+        ip = indexpages[0]
+        assert all((len([a for p in pdf[5:] for a in p.search_for(marker)]) == 1 for marker in ['AX' + f'{i:03d}' for i in list(range(1, 11)) + list(range(101, 111)) + [901]]))
+        a = ip.search_for('AX901')[0]
+        col = lambda box: int(box.x0 > ip.rect.width / 2) if columns == 2 else 0
+        links = [l for l in ip.get_links() if abs(l['from'].y0 - a.y0) < 4 and col(l['from']) == col(a)]
+        assert len(links) == 1, links
+        actual = links[0]['page']
+        correct = actual == targets['13']
+        assert correct != early_capture, ('INDEX-SEMANTIC-DESTINATION', str(d), actual + 1, targets['13'] + 1)
+        if early_capture:
+            assert actual == targets['12'], ('INDEX-EARLY-CAPTURE-CONTROL', actual, targets)
+        expected_labels = ['12', '13', '23', '24', '104'] + ['105']
+        assert labels == expected_labels, labels
+        footers = [[w[4] for w in p.get_text('words') if w[1] > p.rect.height - 70 and w[4].isdigit()] for p in pdf]
+        assert footers == [[label] for label in labels], footers
+        allindextext = '\n'.join((p.get_text() for p in pdf[5:]))
+        assert 'English' in allindextext and 'עברית' in allindextext
+        rangeproof = []
+        for marker in ('AX101', 'AX001'):
+            p = next((p for p in pdf[5:] if p.search_for(marker)))
+            box = p.search_for(marker)[0]
+            ls = [l for l in p.get_links() if abs(l['from'].y0 - box.y0) < 4 and col(l['from']) == col(box)]
+            ordered = sorted(ls, key=lambda l: l['from'].x0)
+            assert [l['nameddest'] for l in ordered] == ['page.12', 'page.23', 'page.24', 'page.104'], (marker, ordered)
+            assert [l['page'] for l in ordered] == [targets[n] for n in ('12', '23', '24', '104')]
+            rangeproof.append({'marker': marker, 'destinations_physical_order': [l['nameddest'] for l in ordered]})
+        edgeproof = []
+        g = []
+        for p in pdf[5:]:
+            for b in p.get_text('dict')['blocks']:
+                for line in b.get('lines', []):
+                    spans = line['spans']
+                    text = ''.join((s['text'] for s in spans))
+                    if any((re.search('AX\\d{3}', s['text']) for s in spans)):
+                        edgeproof.append({'page': p.number + 1, 'text': text, 'box': list(line['bbox']), 'spans': [{'text': s['text'], 'font': s['font'], 'size': s['size'], 'color': s['color'], 'box': list(s['bbox'])} for s in spans]})
+                    for s in spans:
+                        if re.search('AX\\d{3}|\\b(?:12|23|24|104)\\b', s['text']):
+                            assert abs(s['size'] - 11.955) < 0.1, (s['size'], s['text'])
+                            assert s['color'] == 0 and 'Bold' not in s['font'] and ('Mono' not in s['font']), s
+        margin = 2.3 / 2.54 * 72
+        gap = 35 * 72 / 72.27
+        columnwidth = (ip.rect.width - 2 * margin - gap * (columns - 1)) / columns
+        edge_assertions = []
+        for row in edgeproof:
+            match = re.search('AX(\\d{3})', row['text'])
+            number = int(match[1])
+            locale = 'hebrew' if number < 100 else 'english'
+            box = fitz.Rect(row['box'])
+            ci = int(box.x0 > ip.rect.width / 2) if columns == 2 else 0
+            left = margin + ci * (columnwidth + gap)
+            right = left + columnwidth
+            edgeactual = box.x1 if locale == 'hebrew' else box.x0
+            expected = right if locale == 'hebrew' else left
+            assert abs(edgeactual - expected) < 1.0, (profile, locale, number, edgeactual, expected)
+            edge_assertions.append({'marker': match[0], 'locale': locale, 'physical_start_edge': edgeactual, 'expected_column_edge': expected})
+        continuationproof = []
+        for marker, nextmarker, locale in [('AX102', 'AX103', 'english'), ('AX002', 'AX003', 'hebrew')]:
+            p = next((p for p in pdf[5:] if p.search_for(marker)))
+            first = p.search_for(marker)[0]
+            end = p.search_for(nextmarker)[0]
+            ci = int(first.x0 > p.rect.width / 2) if columns == 2 else 0
+            left = margin + ci * (columnwidth + gap)
+            right = left + columnwidth
+
+            def marker_baseline(rect):
+                values = [c[2][1] for sp in p.get_texttrace() for c in sp['chars'] if rect.contains(fitz.Point((c[3][0] + c[3][2]) / 2, (c[3][1] + c[3][3]) / 2))]
+                assert values and max(values) - min(values) < 0.1
+                return values[0]
+            firstbaseline = marker_baseline(first)
+            endbaseline = marker_baseline(end)
+            candidates = []
+            for b in p.get_text('dict')['blocks']:
+                for line in b.get('lines', []):
+                    text = ''.join((span['text'] for span in line['spans']))
+                    box = fitz.Rect(line['bbox'])
+                    linebaseline = line['spans'][0]['origin'][1]
+                    if linebaseline > firstbaseline + 2 and linebaseline < endbaseline - 2 and (box.x0 >= left - 1) and (box.x1 <= right + 1) and re.search('[A-Za-z\\u0590-\\u05ff]{3}', text):
+                        candidates.append((box, text))
+            assert candidates, (profile, marker, 'no wrapping')
+            for box, text in candidates:
+                actualedge = box.x0 if locale == 'english' else box.x1
+                expectededge = left + 1.25 * 11.955 if locale == 'english' else right - 1.25 * 11.955
+                assert abs(actualedge - expectededge) < 1.0, (profile, marker, text, actualedge, expectededge)
+            continuationproof.append({'marker': marker, 'locale': locale, 'continuation_lines': [{'text': text, 'box': list(box)} for box, text in candidates]})
+        physicaltokenproof = []
+        for p in pdf[5:]:
+            glyphs = [{'c': chr(c[0]), 'origin': c[2], 'bbox': c[3]} for span in p.get_texttrace() if span['type'] == 0 for c in span['chars']]
+            for token, rtl in [('CPU', False), ('001', False), ('אור', True), ('הבקרה', True)]:
+                found = p.search_for(token)
+                assert found, (profile, token)
+                merged = []
+                for rect in found:
+                    if merged and abs(rect.y0 - merged[-1].y0) < 0.1 and (rect.x0 <= merged[-1].x1 + 0.1) and (rect.x1 >= merged[-1].x0 - 0.1):
+                        merged[-1] |= rect
+                    else:
+                        merged.append(fitz.Rect(rect))
+                for rect in merged:
+                    selected = [c for c in glyphs if rect.contains(fitz.Point((c['bbox'][0] + c['bbox'][2]) / 2, (c['bbox'][1] + c['bbox'][3]) / 2))]
+                    physical = ''.join((c['c'] for c in sorted(selected, key=lambda c: c['bbox'][0], reverse=rtl)))
+                    assert physical == token, (profile, token, physical)
+                    ordered = sorted(selected, key=lambda c: c['bbox'][0])
+                    gaps = [b['bbox'][0] - a['bbox'][2] for a, b in zip(ordered, ordered[1:])]
+                    assert all((-0.2 < gap < 0.2 for gap in gaps)), (profile, token, 'unexpected interletter gap', gaps)
+                    physicaltokenproof.append({'token': token, 'reading': 'RTL' if rtl else 'LTR', 'physical_string': physical, 'box': list(rect), 'encoded_glyphs': True, 'adjacent_gaps': gaps})
+            for rect in p.search_for('12.50'):
+                digits = [c for c in glyphs if rect.contains(fitz.Point((c['bbox'][0] + c['bbox'][2]) / 2, (c['bbox'][1] + c['bbox'][3]) / 2))]
+                assert ''.join((c['c'] for c in sorted(digits, key=lambda c: c['bbox'][0]))) == '12.50'
+                signs = [c for c in glyphs if c['c'] in ('−', '-') and c['bbox'][2] <= rect.x0 + 1 and (rect.x0 - c['bbox'][2] < 7) and (abs(c['origin'][1] - digits[0]['origin'][1]) < 1)]
+                assert len(signs) == 1, (profile, rect, signs)
+                physicaltokenproof.append({'token': '−12.50', 'reading': 'LTR', 'sign_left_of_digits': True, 'box': list(rect)})
+        assert len([row for row in physicaltokenproof if row['token'] == '−12.50']) == 2
+        markerpositions = []
+        for p in pdf[5:]:
+            for marker in ['AX' + f'{i:03d}' for i in list(range(101, 111)) + [901] + list(range(1, 11))]:
+                found = p.search_for(marker)
+                if found:
+                    box = found[0]
+                    ci = int(box.x0 > p.rect.width / 2) if columns == 2 else 0
+                    logicalci = columns - 1 - ci if base == 'hebrew' else ci
+                    markerpositions.append((p.number, logicalci, round(box.y0, 1), marker))
+        physically_ordered = [m[-1] for m in sorted(markerpositions)]
+        expected_order = ['AX' + f'{i:03d}' for i in range(101, 111)] + ['AX901'] + ['AX' + f'{i:03d}' for i in range(1, 11)]
+        assert physically_ordered == expected_order, (profile, physically_ordered)
+        return {'profile': profile, 'base': base, 'columns': columns, 'role': 'negative' if early_capture else 'positive', 'pages': len(pdf), 'labels': labels, 'printed_footers': footers, 'late_float': {'expected_printed': '13', 'actual_target_physical': targets['13'] + 1, 'linked_physical': actual + 1, 'semantic_correct': correct}, 'rangeproof': rangeproof, 'physical_edge_assertions': edge_assertions, 'wrapped_continuation_assertions': continuationproof, 'physical_bidi_tokens': physicaltokenproof, 'physical_term_order': physically_ordered, 'physical_entry_lines': edgeproof, 'source_sha256': index_runtime_digest(d / 'main.tex'), 'pdf_sha256': index_runtime_digest(d / 'main.pdf'), 'assets_sha256': {a: index_runtime_digest(d / a) for a in INDEX_ASSETS}, 'review_path': str(d / 'render/review.json'), 'bookmarks': pdf.get_toc()}
+
+
+class IndexRuntime(unittest.TestCase):
+    """Fresh managed indices, physical language policy and semantic locators.
+
+    This class deliberately does not inherit ReferenceRuntime or trigger its
+    expensive setup. Retained PDFs are measurements, not claims of pixel review.
+    """
+
+    def build_index_case(self, name, source, *, early_capture=False, seed=None):
+        directory = self.root/name
+        directory.mkdir()
+        for asset in INDEX_ASSETS:
+            shutil.copyfile(ROOT/'assets'/asset, directory/asset)
+        if early_capture:
+            component = directory/'index_components.tex'
+            current = component.read_text()
+            deferred_hook = r'\let\hllpdf@indexrawpage\relax '
+            self.assertEqual(current.count(deferred_hook), 1,
+                             'early-capture control must remove only the deferred locator hook')
+            component.write_text(current.replace(deferred_hook, '', 1))
+        (directory/'main.tex').write_text(source)
+        if seed is not None:
+            shutil.copyfile(seed, directory/'main.pdf')
+        evidence = directory/'index-evidence'
+        self.assertFalse(evidence.exists(), 'each build requires a new evidence leaf')
+        result = subprocess.run(
+            ['bash', str(ROOT/'scripts/build.sh'), str(directory/'main.tex')],
+            cwd=directory, env=dict(self.env, HLLPDF_INDEX_EVIDENCE_DIR=str(evidence)),
+            capture_output=True, text=True, timeout=240)
+        (directory/'build.log').write_text(result.stdout+result.stderr)
+        return directory, result
+
+    def assert_index_receipt(self, directory):
+        evidence = directory/'index-evidence'
+        receipt = json.loads((evidence/'index-evidence.json').read_text())
+        self.assertEqual(receipt['schema'], 1)
+        self.assertEqual(receipt['processor'], 'makeindex')
+        self.assertEqual(receipt['style'], 'index.ist')
+        self.assertEqual((receipt['accepted'], receipt['rejected']), (27, 0))
+        self.assertIs(receipt['managed_ind_consumed'], True)
+        self.assertEqual(set(receipt['artifacts']),
+                         {'main.idx', 'main.ind', 'main.ilg', 'main.fls', 'main.aux', 'main.log'})
+        for name, expected in receipt['artifacts'].items():
+            self.assertEqual(index_runtime_digest(evidence/name), expected, name)
+        self.assertEqual(index_runtime_digest(directory/'main.pdf'), receipt['pdf_sha256'])
+        self.assertEqual(index_runtime_digest(directory/'index.ist'), receipt['style_sha256'])
+        self.assertIn('INPUT '+receipt['managed_ind_original_path'],
+                      (evidence/'main.fls').read_text().splitlines(),
+                      'the final recorder must name this managed index, not an adjacent stale file')
+        processor_log = (evidence/'main.ilg').read_text()
+        self.assertIn('(27 entries accepted, 0 rejected)', processor_log)
+        self.assertNotIn('Warning', processor_log)
+        return receipt
+
+    def assert_index_navigation(self, directory):
+        result = subprocess.run(
+            [sys.executable, str(ROOT/'scripts/check_pdf_navigation.py'),
+             str(directory/'main.pdf')], capture_output=True, text=True, env=self.env,
+            timeout=60)
+        (directory/'navigation.log').write_text(result.stdout+result.stderr)
+        self.assertEqual(result.returncode, 0, result.stdout+result.stderr)
+
+    def assert_failed_index_keeps_deliverable(self, directory, result, seeded_digest, diagnostic):
+        self.assertNotEqual(result.returncode, 0, 'an invalid managed index must fail the build')
+        self.assertIn(diagnostic, result.stdout+result.stderr)
+        self.assertEqual(index_runtime_digest(directory/'main.pdf'), seeded_digest,
+                         'failure must retain the earlier verified deliverable byte for byte')
+        for suffix in ('log', 'aux', 'pdf'):
+            failed = directory/('main.failed.'+suffix)
+            self.assertTrue(failed.is_file() and failed.stat().st_size > 0, str(failed))
+        self.assertNotEqual(index_runtime_digest(directory/'main.failed.pdf'), seeded_digest)
+        with fitz.open(directory/'main.failed.pdf') as pdf:
+            self.assertGreater(len(pdf), 0)
+        self.assertFalse((directory/'index-evidence').exists(),
+                         'failed builds cannot produce a successful current-index receipt')
+
+    def assert_annotation_only_wrong_page_control(self, positive, profile, base, columns):
+        directory = self.root/'valid-wrong-page-negative'
+        directory.mkdir()
+        for name in (*INDEX_ASSETS, 'main.tex'):
+            shutil.copyfile(positive/name, directory/name)
+        with fitz.open(positive/'main.pdf') as pdf:
+            links = [(page, link) for page in pdf for link in page.get_links()
+                     if link.get('nameddest') == 'page.13']
+            self.assertEqual(len(links), 1, 'the delayed float has one locator link')
+            page, link = links[0]
+            self.assertEqual(page.get_textbox(link['from']).strip(), '13')
+            annotation = link['xref']
+            page_number = page.number
+            self.assertEqual(pdf.xref_get_key(annotation, 'A/D'), ('string', 'page.13'))
+            # The valid replacement destination resolves elsewhere in this PDF.
+            # Retain the authored source, visible locator, rectangle and content.
+            pdf.xref_set_key(annotation, 'A/D', fitz.get_pdf_str('page.24'))
+            pdf.save(directory/'main.pdf')
+        with fitz.open(positive/'main.pdf') as before, fitz.open(directory/'main.pdf') as after:
+            self.assertEqual(declared_labels(before), declared_labels(after))
+            self.assertEqual(before.get_toc(), after.get_toc())
+            for old_page, new_page in zip(before, after):
+                self.assertEqual([before.xref_stream(x) for x in old_page.get_contents()],
+                                 [after.xref_stream(x) for x in new_page.get_contents()])
+            new_link = next(link for page in after for link in page.get_links()
+                            if link['xref'] == annotation)
+            self.assertEqual(new_link['nameddest'], 'page.24')
+            self.assertEqual(after[page_number].get_textbox(new_link['from']).strip(), '13')
+            self.assertEqual(new_link['from'], link['from'])
+        self.assert_index_navigation(directory)
+        with self.assertRaisesRegex(AssertionError, 'INDEX-SEMANTIC-DESTINATION'):
+            index_runtime_inspect(directory, profile, base, columns)
+        render_review.render(directory/'main.pdf', directory/'render', dpi=144, backend='mupdf')
+        original_render = json.loads((positive/'render/review.json').read_text())
+        mutated_render = json.loads((directory/'render/review.json').read_text())
+        self.assertEqual(original_render['page_count'], mutated_render['page_count'])
+        original_pixels = [page['sha256'] for page in original_render['pages']]
+        mutated_pixels = [page['sha256'] for page in mutated_render['pages']]
+        self.assertEqual(original_pixels, mutated_pixels,
+                         'annotation-only semantic mutation must preserve all page pixels')
+        proof = {'control': 'valid destination to wrong page; annotation-only mutation',
+                 'visible_locator': '13', 'original_destination': 'page.13',
+                 'mutated_destination': 'page.24', 'annotation_xref': annotation,
+                 'generic_navigation_passed': True,
+                 'semantic_rejection': 'INDEX-SEMANTIC-DESTINATION',
+                 'source_sha256': index_runtime_digest(directory/'main.tex'),
+                 'original_pdf_sha256': index_runtime_digest(positive/'main.pdf'),
+                 'mutated_pdf_sha256': index_runtime_digest(directory/'main.pdf'),
+                 'unchanged_page_image_sha256': mutated_pixels}
+        (directory/'proof.json').write_text(json.dumps(proof, ensure_ascii=False, indent=2)+'\n')
+        return proof
+
+    def assert_index_folio_formatter_contract(self):
+        # Exercise the actual writer with both zero-argument macro prefix forms.
+        # These are controlled legacy semantics on the installed engine, not a
+        # claim that a different TeX Live distribution ran here.
+        core = r'\foreignlanguage{english}{\arabic{page}}'
+        reset = r'\foreignlanguage{english}{\csname @arabic\endcsname\c@page}'
+        cases = [(name, before, after, accepted, diagnostic) for name, before, after, accepted, diagnostic in (
+            ('core-short', r'\def\thepage{' + core + '}', '', True, ''),
+            ('core-long', r'\long\def\thepage{' + core + '}', '', True, ''),
+            ('reset-short', r'\def\thepage{' + reset + '}', '', True, ''),
+            ('reset-long', r'\long\def\thepage{' + reset + '}', '', True, ''),
+            ('roman-body', r'\def\thepage{\foreignlanguage{english}{\roman{page}}}', '', False, 'core Arabic folio contract'),
+            ('literal-current-page', r'\def\thepage{\foreignlanguage{english}{12}}', '', False, 'core Arabic folio contract'),
+            ('wrong-counter', r'\def\thepage{\foreignlanguage{english}{\arabic{section}}}', '', False, 'core Arabic folio contract'),
+            ('missing-direction', r'\def\thepage{\arabic{page}}', '', False, 'core Arabic folio contract'),
+            ('late-author-override', '', r'\def\thepage{\foreignlanguage{english}{12}}', False, 'core Arabic folio contract'),
+            ('roman-numbering', '', r'\pagenumbering{Roman}', False, 'Arabic page numbering'),
+        )]
+        proof = []
+        for name, before, after, accepted, diagnostic in cases:
+            with self.subTest(folio_formatter=name):
+                directory = self.root / ('folio-' + name)
+                directory.mkdir()
+                for asset in INDEX_ASSETS:
+                    shutil.copyfile(ROOT / 'assets' / asset, directory / asset)
+                source = (r'\def\lakitlanguageprofile{english}\input{preamble.tex}' + '\n'
+                          + r'\makeatletter' + before + r'\makeatother' + '\n'
+                          + r'\input{index_components.tex}\hypersetup{pdftitle={Arabic formatter probe}}' + '\n'
+                          + r'\begin{document}\makeatletter' + after + r'\makeatother\setcounter{page}{12}' + '\n'
+                          + r'\en{BODYFORMAT12}\lakitindex{english}{000001}{Body AX001}' + '\n'
+                          + r'\begin{figure}[p]\centering\en{FLOATFORMAT13}\lakitindex{english}{000002}{Float AX901}\end{figure}' + '\n'
+                          + r'\clearpage\end{document}' + '\n')
+                (directory / 'main.tex').write_text(source)
+                result = subprocess.run(['lualatex', '-interaction=nonstopmode', '-halt-on-error',
+                                         '-no-shell-escape', 'main.tex'], cwd=directory,
+                                        env=self.env, capture_output=True, text=True, timeout=120)
+                log = result.stdout + result.stderr
+                (directory / 'engine.log').write_text(log)
+                if accepted:
+                    self.assertEqual(result.returncode, 0, log[-6000:])
+                    entries = (directory / 'main.idx').read_text()
+                    self.assertRegex(entries, r'AX001.*\}\{12\}')
+                    self.assertRegex(entries, r'AX901.*\}\{13\}')
+                    with fitz.open(directory / 'main.pdf') as pdf:
+                        self.assertEqual(len(pdf), 2)
+                        self.assertEqual(declared_labels(pdf), ['12', '13'])
+                        self.assertIn('BODYFORMAT12', pdf[0].get_text())
+                        self.assertIn('FLOATFORMAT13', pdf[1].get_text())
+                        for page, folio in zip(pdf, ('12', '13')):
+                            self.assertTrue(any(word[4] == folio and word[1] > .85 * page.rect.height
+                                                for word in page.get_text('words')), (name, folio))
+                    proof.append({'case': name, 'accepted': True,
+                                  'idx_sha256': index_runtime_digest(directory / 'main.idx'),
+                                  'pdf_sha256': index_runtime_digest(directory / 'main.pdf'),
+                                  'printed_folios': ['12', '13'], 'body_locator': 12,
+                                  'delayed_float_locator': 13})
+                else:
+                    self.assertNotEqual(result.returncode, 0, name)
+                    self.assertIn(diagnostic, log)
+                    proof.append({'case': name, 'accepted': False,
+                                  'diagnostic': diagnostic, 'actual_exit': result.returncode})
+        (self.root / 'folio-format-contract.json').write_text(json.dumps(
+            {'cases': proof, 'scope': 'installed engine with controlled modern/legacy formatter definitions; no visual-review claim'},
+            ensure_ascii=False, indent=2) + '\n')
+
+    def test_managed_index_local_languages_shipout_locators_and_failure_controls(self):
+        preserve = os.environ.get('HLLPDF_INDEX_RUNTIME_EVIDENCE_DIR')
+        if preserve:
+            self.root = Path(preserve).resolve()
+            if self.root == ROOT or ROOT in self.root.parents:
+                raise ValueError('index runtime evidence must be outside the skill')
+            self.root.mkdir(parents=True, exist_ok=False)
+        else:
+            temporary = tempfile.TemporaryDirectory(prefix='studio-index-runtime-')
+            self.addCleanup(temporary.cleanup)
+            self.root = Path(temporary.name)
+        self.assertIsNotNone(shutil.which('lualatex'), 'LuaLaTeX is required')
+        self.assertIsNotNone(shutil.which('makeindex'), 'makeindex is required')
+        self.env = dict(os.environ, HEBREW_LATEX_FONT_DIR=str(font_dir()),
+                        SOURCE_DATE_EPOCH='1700000000', TZ='UTC',
+                        INDEX_PROCESSOR='makeindex', INDEX_STYLE='index.ist',
+                        PYTHONDONTWRITEBYTECODE='1')
+        self.env.pop('HEBREW_LATEX_PROJECT_ROOT', None)
+        self.assert_index_folio_formatter_contract()
+        proof = []
+        for profile, base, columns in INDEX_PROFILES:
+            with self.subTest(profile=profile, base=base, columns=columns):
+                directory, result = self.build_index_case(
+                    f'{profile}-{base}-{columns}', index_runtime_fixture(profile, base, columns))
+                self.assertEqual(result.returncode, 0, (result.stdout+result.stderr)[-6000:])
+                receipt = self.assert_index_receipt(directory)
+                self.assert_index_navigation(directory)
+                measured = index_runtime_inspect(directory, profile, base, columns)
+                self.assertEqual(measured['pages'], 6)
+                self.assertEqual(measured['labels'], ['12', '13', '23', '24', '104', '105'])
+                self.assertEqual(measured['late_float']['linked_physical'], 2)
+                measured['receipt'] = receipt
+                render_review.render(directory/'main.pdf', directory/'render',
+                                                dpi=144, backend='mupdf')
+                rendered = json.loads((directory/'render/review.json').read_text())
+                self.assertEqual(rendered['page_count'], 6)
+                self.assertEqual(rendered['pdf_sha256'], receipt['pdf_sha256'])
+                for page in rendered['pages']:
+                    self.assertEqual(index_runtime_digest(directory/'render'/page['image']), page['sha256'])
+                (directory/'proof.json').write_text(json.dumps(measured, ensure_ascii=False, indent=2)+'\n')
+                proof.append(measured)
+        self.assertEqual(len(proof), len(INDEX_PROFILES),
+                         "dependent index controls require all six successful positive PDFs")
+        annotation_control = self.assert_annotation_only_wrong_page_control(
+            self.root/'hebrew-with-english-hebrew-2', 'hebrew-with-english', 'hebrew', 2)
+        # A valid destination can still refer to the authoring page instead of
+        # the page where a delayed float actually appeared. Generic nav passes;
+        # the independent BODYTARGET/FLOATLATE oracle rejects that semantic error.
+        profile, base, columns = 'hebrew-with-english', 'hebrew', 2
+        negative, result = self.build_index_case(
+            'early-capture-negative', index_runtime_fixture(profile, base, columns),
+            early_capture=True)
+        self.assertEqual(result.returncode, 0, (result.stdout+result.stderr)[-6000:])
+        self.assert_index_receipt(negative)
+        self.assert_index_navigation(negative)
+        with self.assertRaisesRegex(AssertionError, 'INDEX-SEMANTIC-DESTINATION'):
+            index_runtime_inspect(negative, profile, base, columns)
+        measured = index_runtime_inspect(negative, profile, base, columns, early_capture=True)
+        self.assertEqual(measured['late_float']['linked_physical'], 1)
+        render_review.render(negative/'main.pdf', negative/'render', dpi=144, backend='mupdf')
+        (negative/'proof.json').write_text(json.dumps(measured, ensure_ascii=False, indent=2)+'\n')
+        proof.append(measured)
+        seed = self.root/(f'{INDEX_PROFILES[0][0]}-{INDEX_PROFILES[0][1]}-{INDEX_PROFILES[0][2]}')/'main.pdf'
+        seeded_digest = index_runtime_digest(seed)
+        omitted_source = index_runtime_fixture(profile, base, columns).replace(r'\printindex', '', 1)
+        omitted, result = self.build_index_case('omitted-printindex', omitted_source, seed=seed)
+        self.assert_failed_index_keeps_deliverable(
+            omitted, result, seeded_digest, r'current index was not included; use \printindex')
+        rejected_source = (r'\def\lakitlanguageprofile{hebrew-with-english}'
+                           r'\input{preamble.tex}\input{reader_theme.tex}'
+                           r'\usepackage{imakeidx}\makeindex[noautomatic,intoc]'
+                           '\n'+r'\begin{document}\setcounter{page}{12}\en{REJECTTARGET}\par'+'\n')
+        rejected_source += ''.join(fr'\index{{E{n:06d}@Term{n:02d}|hyperpage}}'+'\n'
+                                   for n in range(42))
+        rejected_source += r'\clearpage\printindex\end{document}'+'\n'
+        rejected, result = self.build_index_case('bare-imakeidx-rejected', rejected_source, seed=seed)
+        self.assert_failed_index_keeps_deliverable(
+            rejected, result, seeded_digest, '0/42 accepted, 42 rejected')
+        self.assertIn('42 rejected', (rejected/'main.failed.log').read_text())
+        (self.root/'index-runtime-measurements.json').write_text(json.dumps(
+            {'positive_profiles': proof[:6], 'early_capture_control': proof[6],
+             'annotation_only_wrong_page_control': annotation_control,
+             'pipeline_controls': [{'case': str(omitted), 'seed_pdf_sha256': seeded_digest},
+                                   {'case': str(rejected), 'seed_pdf_sha256': seeded_digest}],
+             'scope': 'fresh managed PDF measurements; no visual-review claim'},
+            ensure_ascii=False, indent=2)+'\n')
 
 
 if __name__ == '__main__':

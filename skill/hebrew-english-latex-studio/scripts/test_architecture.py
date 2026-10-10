@@ -108,8 +108,12 @@ try:
         errors.append("unknown generated source did not return a schema diagnostic")
 finally:
     architecture_module.ASSET_SPECS = original_specs
-if ARCHITECTURE_SCHEMA_VERSION != 4:
+if ARCHITECTURE_SCHEMA_VERSION != 5:
     errors.append(f"unexpected architecture schema version {ARCHITECTURE_SCHEMA_VERSION}; review consumer compatibility")
+if not {"INDEX_PROCESSOR", "INDEX_STYLE"} <= set(BUILD_ONLY_KEYS):
+    errors.append("managed index processor/style are missing from canonical build-only identity")
+if "HLLPDF_INDEX_EVIDENCE_DIR" in BUILD_ONLY_KEYS:
+    errors.append("diagnostic index export destination must not change semantic build identity")
 
 # The new flow role and scoped style hooks have explicit boundaries. Mutated
 # declarations must fail before executable layers or downstream consumers run.

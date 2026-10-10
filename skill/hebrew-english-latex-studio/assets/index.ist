@@ -1,0 +1,8 @@
+% Single managed index: E/H groups, authored rank keys, locale-local paragraphs.
+headings_flag 1
+heading_prefix "\n  \\LakitIndexGroup{"
+heading_suffix "}\n"
+delim_0 " \\LakitIndexLocators{\\en{"
+delim_1 " \\LakitIndexLocators{\\en{"
+delim_2 " \\LakitIndexLocators{\\en{"
+delim_t "}}\\LakitIndexEnd\\end{otherlanguage}"

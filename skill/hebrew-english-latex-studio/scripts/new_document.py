@@ -128,6 +128,17 @@ package, check its documentation, installed availability, load order and collisi
 with direction, fonts, headings, references, tables, and the chosen theme. Record
 manual changes in the project manifest, then compile and review the affected pages.
 
+Optional semantic components require explicit selection. `--component study`
+adds keyed exercises and solutions; `--component index` adds a language-local
+index with authored six-digit sort ranks. Repeat the option to combine them.
+Unselected projects copy and load neither component. The small emitted specimens
+are original editing examples, not complete study material. Replace them with
+your actual content. The index route copies `index.ist` and supplies unset-only
+`INDEX_PROCESSOR=makeindex` / `INDEX_STYLE=index.ist` defaults; it does not infer
+Hebrew collation or install optional dependencies. Review display order, locators,
+links and every affected page after editing. See the component guides in the
+installed skill for supported identities, index formats and limitations.
+
 After installing the skill's pinned fonts and required TeX dependencies:
 
 ```bash
@@ -366,6 +377,9 @@ def main_source(kind: str, language: str, main_language: str, theme: str,
     header = header.replace('\\input{preamble.tex}\n', '\\input{preamble.tex}\n' + extension_lines)
     theme_line = ('\\input{' + recipe.presentation_input + '}\n'
                   if recipe.presentation_input else '')
+    selected_components = {item.id: item for item in CATALOG.components}
+    header += ''.join('\\input{' + Path(selected_components[name].asset_path).name + '}\n'
+                      for name in recipe.components)
     header += theme_line
     hooks = f'\\def\\lakitlanguageprofile{{{language}}}\n\\def\\lakitmainlanguage{{{main_language}}}\n'
     if language == 'bilingual':
@@ -406,6 +420,8 @@ def main_source(kind: str, language: str, main_language: str, theme: str,
                             header, count=1)
             # A standard article has one title and one shared bibliography. Both
             # abstracts precede the paired bodies; references share the real key.
+            # Preserve each starter entry's explicit local paragraph scope;
+            # ending the secondary body must not turn English continuations RTL.
             title_pattern = r'(?m)^\\title\{([^{}]+)\}$'
             second_title = re.search(title_pattern, second_header)
             if not second_title:
@@ -473,7 +489,31 @@ It does not determine which penalty is appropriate for real observations.
 \end{englishprose}
 '''
         body = compose_minority_body(body, 'english', extension, recipe.minority_composer_id)
+    body += optional_component_body(tuple(selected_components[name].specimen_id for name in recipe.components), main_language)
     return hooks + header + '\\begin{document}\n' + body.lstrip() + '\\end{document}\n', templates
+
+
+def optional_component_body(components: tuple[str, ...], main_language: str) -> str:
+    """Small original editable specimens, emitted only by explicit selection."""
+    if any(name not in ('study', 'index') for name in components):
+        raise ValueError('unknown closed optional specimen composer')
+    body = ''
+    if 'study' in components:
+        title = 'A worked derivative' if main_language == 'english' else 'נגזרת לדוגמה'
+        question = 'Find the derivative of $f(x)=x^2$.' if main_language == 'english' else 'מצאו את הנגזרת של $f(x)=x^2$.'
+        solution = "Apply the power rule: $f'(x)=2x$." if main_language == 'english' else "לפי כלל החזקה: $f'(x)=2x$."
+        lead = 'Exercise and solution' if main_language == 'english' else 'תרגיל ופתרון'
+        body += ('\n\\clearpage\n\\section{' + lead + '}\n'
+                 + '\\begin{studyexercise}{starter-derivative}{' + title + '}\n'
+                 + question + '\n\\end{studyexercise}\n'
+                 + '\\begin{studysolution}{starter-derivative}\n' + solution + '\n\\end{studysolution}\n')
+    if 'index' in components:
+        lead = 'Index specimen' if main_language == 'english' else 'דוגמת מפתח'
+        body += ('\n\\clearpage\n\\section{' + lead + '}\n'
+                 + '\\begin{englishprose}\nCompiler\\lakitindex{english}{000001}{Compiler} translates source code.\n\\end{englishprose}\n'
+                 + '\\begin{hebrewprose}\nמהדר\\lakitindex{hebrew}{000001}{מהדר} מתרגם קוד מקור.\n\\end{hebrewprose}\n'
+                 + '\\printindex\n')
+    return body
 
 
 def publish_no_replace(stage: Path, destination: Path) -> None:
@@ -511,9 +551,9 @@ def publish_no_replace(stage: Path, destination: Path) -> None:
 
 def create(kind: str, destination: Path, *, language: str = 'hebrew',
            main_language: str | None = None, theme: str | None = None,
-           packages: Iterable[str] = (), layout: str = 'standard') -> None:
+           packages: Iterable[str] = (), layout: str = 'standard', components: tuple[str, ...] | list[str] = ()) -> None:
     recipe = resolve_recipe(kind, language=language, main_language=main_language,
-                            theme=theme, layout=layout, root=ROOT, catalog=CATALOG)
+                            theme=theme, layout=layout, components=components, root=ROOT, catalog=CATALOG)
     theme = recipe.theme
     main_language = recipe.main_language
     destination = Path(destination).expanduser().absolute()
@@ -588,10 +628,12 @@ def main() -> int:
                    help='page layout; reference presets require formula-sheet; standard preserves genre defaults')
     p.add_argument('--package', action='append', default=[], metavar='NAME',
                    help='optional TeX package name; repeat for several; no options or paths')
+    p.add_argument('--component', action='append', default=[], metavar='ID',
+                   help='explicit optional semantic component; repeat to combine')
     a = p.parse_args()
     try:
         create(a.kind, a.directory, language=a.language, main_language=a.main_language,
-               theme=a.theme, packages=a.package, layout=a.layout)
+               theme=a.theme, packages=a.package, layout=a.layout, components=a.component)
     except (OSError, ValueError) as exc:
         print(f'✗ project creation failed: {exc}', file=sys.stderr)
         return 2

@@ -56,7 +56,8 @@ class RegistryTests(unittest.TestCase):
         self.assertEqual(kinds["report"], ("starter_report.tex", "report"))
         self.assertEqual(presets["reference-readable"], {"columns": 2, "body_font_size": "9", "body_baseline": "11", "math_font_size": "8.75", "math_script_size": "6.125", "math_scriptscript_size": "4.375"})
         self.assertEqual(len({starter.asset_path for item in self.catalog.templates for starter in item.starters}.union({starter.asset_path for item in self.catalog.layouts for starter in item.starter_overrides})), 20)
-        self.assertEqual(len(self.catalog.examples), 12)
+        self.assertEqual(len(self.catalog.examples), 14)
+        self.assertEqual(tuple(item.id for item in self.catalog.components), ("study", "index"))
 
     def test_every_supported_request_resolves_with_original_requests(self):
         requests = tuple(registry.iter_supported_requests(self.catalog))
@@ -114,8 +115,8 @@ class RegistryTests(unittest.TestCase):
         self.assertNotEqual(recipe.hooks[0].value, "bad")
         self.assertIsNone(recipe.requested.theme)
 
-    def test_hook_inventory_all_30_have_explicit_owners_and_scopes(self):
-        self.assertEqual(len(architecture.HOOK_SPECS), 30)
+    def test_hook_inventory_all_32_have_explicit_owners_and_scopes(self):
+        self.assertEqual(len(architecture.HOOK_SPECS), 32)
         self.assertFalse(architecture.validate_contract())
         owners = {item.path for item in architecture.ASSET_SPECS}
         for hook in architecture.HOOK_SPECS:
@@ -174,7 +175,10 @@ class RegistryTests(unittest.TestCase):
     def test_duplicate_json_keys_and_ids_are_rejected(self):
         root = self.fixture()
         path = root / registry.CATALOG_PATH
-        path.write_text(path.read_text().replace('"schema_version": 1,', '"schema_version": 1,"schema_version": 1,', 1))
+        needle = f'"schema_version": {registry.CATALOG_SCHEMA_VERSION},'
+        mutated = path.read_text().replace(needle, needle + needle, 1)
+        self.assertNotEqual(mutated, path.read_text())
+        path.write_text(mutated)
         with self.assertRaisesRegex(ValueError, "duplicate JSON key"):
             registry.load_catalog(root)
         self.invalid(lambda data: data["templates"].append(data["templates"][0]), "duplicate IDs")
@@ -183,7 +187,10 @@ class RegistryTests(unittest.TestCase):
         for constant in ("NaN", "Infinity", "-Infinity"):
             root = self.fixture()
             path = root / registry.CATALOG_PATH
-            path.write_text(path.read_text().replace('"schema_version": 1', '"schema_version": ' + constant, 1))
+            needle = f'"schema_version": {registry.CATALOG_SCHEMA_VERSION}'
+            mutated = path.read_text().replace(needle, '"schema_version": ' + constant, 1)
+            self.assertNotEqual(mutated, path.read_text())
+            path.write_text(mutated)
             with self.assertRaisesRegex(ValueError, "nonfinite JSON number"):
                 registry.load_catalog(root)
         for literal in ("NaN", "Infinity", "-Infinity", "1e3", "nan", "inf"):
@@ -216,6 +223,66 @@ class RegistryTests(unittest.TestCase):
         self.invalid(lambda data: data["templates"][0].update(bilingual_composer_id="exec-python"), "closed content composer")
         self.invalid(lambda data: data["templates"][0]["source_handlers"].append("eval-tex"), "closed source handler")
         self.invalid(lambda data: data["layouts"][1]["components"].append("assets/starter_note.tex"), "unknown architecture asset")
+
+    def test_optional_components_are_explicit_and_preserve_default_population(self):
+        for request in registry.iter_supported_requests(self.catalog):
+            recipe = registry.resolve_recipe(**request.as_dict(), catalog=self.catalog)
+            self.assertEqual(recipe.components, ())
+            self.assertNotIn("components", request.as_dict())
+            for component in self.catalog.components:
+                self.assertNotIn(component.asset_path, recipe.copy_plan)
+                self.assertNotIn(component.asset_path, recipe.load_plan)
+                self.assertTrue(set(component.supporting_files).isdisjoint(recipe.copy_plan))
+        for language, base in (("hebrew", None), ("english", None), ("hebrew-with-english", None),
+                               ("english-with-hebrew", None), ("bilingual", "hebrew"), ("bilingual", "english")):
+            recipe = registry.resolve_recipe("report", language=language, main_language=base,
+                                             components=["study", "index"], catalog=self.catalog)
+            self.assertEqual(recipe.components, ("study", "index"))
+            self.assertEqual(recipe.requested.as_dict()["components"], ["study", "index"])
+            self.assertIn("assets/index.ist", recipe.copy_plan)
+            self.assertNotIn("assets/index.ist", recipe.load_plan)
+            self.assertNotIn("assets/index.ist", recipe.package_scan_plan)
+            for component in self.catalog.components:
+                self.assertGreater(recipe.load_plan.index(component.asset_path), recipe.load_plan.index("assets/preamble.tex"))
+                self.assertLess(recipe.load_plan.index(component.asset_path), recipe.load_plan.index("assets/reader_theme.tex"))
+            self.assertEqual(dict(recipe.build_defaults)["INDEX_PROCESSOR"], "makeindex")
+            self.assertEqual(dict(recipe.build_defaults)["INDEX_STYLE"], "index.ist")
+
+    def test_optional_selection_and_catalog_drift_are_rejected(self):
+        for selection in ("study", [False], {}, None, ["study", "study"], ["unowned"]):
+            with self.subTest(selection=selection), self.assertRaises(ValueError):
+                registry.resolve_recipe("general", components=selection, catalog=self.catalog)
+        self.invalid(lambda data: data["components"][0].update(execute="shell"), "unknown fields")
+        self.invalid(lambda data: data["components"][0].update(specimen_id="exec-python"), "closed optional specimen")
+        self.invalid(lambda data: data["components"][0].update(specimen_id="index"), "semantic owner's public API")
+        self.invalid(lambda data: data["components"][0].update(asset_path="assets/reader_theme.tex"), "semantic extension")
+        self.invalid(lambda data: data["components"][1].update(supporting_files=["assets/../VERSION"]), "unsafe owned path")
+        self.invalid(lambda data: data["components"][1].update(supporting_files=[]), "missing from supporting files")
+        self.invalid(lambda data: data["components"][1].update(build_defaults=[["INDEX_PROCESSOR", "none"], ["INDEX_STYLE", "index.ist"]]), "requires the makeindex")
+        for defaults in ([], [["INDEX_PROCESSOR", "makeindex"]]):
+            self.invalid(lambda data, defaults=defaults: data["components"][1].update(build_defaults=defaults), "managed makeindex and an owned style")
+        self.invalid(lambda data: data["components"][1].update(build_defaults=[["INDEX_PROCESSOR", "makeindex"], ["INDEX_STYLE", ""]]), "expected a literal string")
+        self.invalid(lambda data: data["components"][0].update(language_profiles=["inferred"]), "component language")
+        restricted = replace(self.catalog.components[0], allowed_kinds=("paper",))
+        catalog = replace(self.catalog, components=(restricted, self.catalog.components[1]))
+        with self.assertRaisesRegex(ValueError, "does not support"):
+            registry.resolve_recipe("report", components=("study",), catalog=catalog)
+
+    def test_optional_supporting_style_matches_flat_project_copy_contract(self):
+        root = self.fixture()
+        nested = root / "assets/nested/index.ist"
+        nested.parent.mkdir()
+        nested.write_bytes((root / "assets/index.ist").read_bytes())
+        path = root / registry.CATALOG_PATH
+        data = json.loads(path.read_text())
+        data["components"][1]["supporting_files"] = ["assets/nested/index.ist"]
+        data["components"][1]["build_defaults"] = [["INDEX_PROCESSOR", "makeindex"], ["INDEX_STYLE", "nested/index.ist"]]
+        path.write_text(json.dumps(data, ensure_ascii=False) + "\n")
+        # This is a real existing, project-contained style file. Reject the
+        # incompatible copy destination instead of relying on a missing-file gate.
+        self.assertTrue(nested.is_file())
+        with self.assertRaisesRegex(ValueError, "flat owned index style assets"):
+            registry.load_catalog(root)
 
     def test_paths_reject_absolute_parent_ambiguous_and_missing_files(self):
         for path in ("/etc/passwd", "../VERSION", "assets/../VERSION", "assets//preamble.tex", "assets/./preamble.tex", "assets\\preamble.tex", "assets/missing.tex"):

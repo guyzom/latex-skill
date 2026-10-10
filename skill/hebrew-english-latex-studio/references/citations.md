@@ -6,6 +6,8 @@
 BibTeX או Biber, ואינו מבטיח תאימות ל־biblatex, natbib או חבילות שמחליפות
 את מנגנון הציטוט. אין להציג את התיקון כאן כתמיכה מלאה במערכות האלה.
 דוגמה מלאה נמצאת ב־[example_bibliography.tex](../assets/example_bibliography.tex).
+`\bibentryprose` מוגדרת ברכיב [document_components.tex](../assets/document_components.tex),
+שטוענים אחרי `preamble.tex`. היא מתאימה ל־`thebibliography` המקומית, לא למעבד ביבליוגרפי חיצוני.
 
 ```latex
 הפניה אחת \cite{source-a}. שתי הפניות יחד \cite{source-a,source-b}.
@@ -13,10 +15,22 @@ BibTeX או Biber, ואינו מבטיח תאימות ל־biblatex, natbib או 
 הערה באנגלית \cite[p.~25]{source-a}.
 
 \begin{thebibliography}{9}
-\bibitem{source-a}\en{Author. Verified title (2026).}
-\bibitem{source-b}מחבר. כותרת שנבדקה, 2026.
+\bibitem{source-a}\bibentryprose{english}{Author. Verified title (2026).}
+\bibitem{source-b}\bibentryprose{hebrew}{מחבר. כותרת שנבדקה, 2026.}
 \end{thebibliography}
 ```
+
+רשומה מלאה היא פסקה, ולא אי קצר: `\bibentryprose{english}{...}`
+או `\bibentryprose{hebrew}{...}` נכתבת מיד אחרי `\bibitem`, בתוך
+`thebibliography`, ובוחרת את שפת גוף הרשומה ואת קצה הקריאה המקומי.
+שורות ההמשך באנגלית מתחילות משמאל, ובעברית מימין. הכותרת ומספור
+הרשימה נשארים בשפת המעטפת; תיבת המספר המקורית נשארת במקומה בלי
+לחפוף לגוף הרשומה. הפסקה יכולה לעבור עמוד; אין תיבה שאינה ניתנת
+לשבירה, שינוי גופן או כיווץ. שומרים פיסוק סופי בתוך גוף הרשומה,
+ואיים קצרים בשפה השנייה עדיין נכתבים ב־`\h{...}` או `\en{...}`.
+אין לעטוף את כל הרשומה ב־`\en`, ואין להחליף אותה בבלוק `englishprose`
+אחרי מספר ממתין של רשימה: מעבר כזה לבדו עלול להציב את המספר מעל הטקסט.
+סגנון ביבליוגרפי מפורש של כתב עת נשאר בחירת המחבר.
 
 הרשומות ומספרי העמודים בקטע זה הם מצייני מקום בלבד. מחליפים אותם בפרטים
 שנבדקו מול המקור, ולא מצטטים אותם כאילו היו מקורות אמיתיים. השתמש ב־`{99}`

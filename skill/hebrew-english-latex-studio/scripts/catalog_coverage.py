@@ -33,9 +33,11 @@ ASSET_COVERAGE = {
     'assets/reference_shell.tex': ('reference-all', 'scripts/test_reference_runtime.py'),
     'assets/reference_components.tex': ('reference-all', 'scripts/test_reference_runtime.py'),
     'assets/reference_theme.tex': ('reference-all', 'scripts/test_reference_runtime.py', 'scripts/test_editorial_boxes.py'),
-    'assets/document_components.tex': ('source-links', 'scripts/test_generated_runtime.py'),
+    'assets/document_components.tex': ('source-links', 'scripts/test_generated_runtime.py', 'scripts/test_v491_runtime.py'),
     'assets/deferred_notes.tex': ('deferred-notes', 'scripts/test_deferred_notes_runtime.py'),
     'assets/flow_tables.tex': ('flow-tables', 'scripts/test_language_runtime.py'),
+    'assets/study_components.tex': ('study', 'scripts/test_language_runtime.py'),
+    'assets/index_components.tex': ('index', 'scripts/test_reference_runtime.py'),
     'assets/clean_variant.tex': ('legacy-clean', 'scripts/test_language_runtime.py'),
 }
 
@@ -48,9 +50,11 @@ PUBLIC_API_COVERAGE = {
     'assets/reference_columns.tex': ('referencecolumns', 'referencewide', 'ReferenceColumnCount', 'ReferenceColumnGap', 'ReferenceColumnRule', 'ReferenceColumnSkip', 'ReferenceBodyFontSize', 'ReferenceBodyBaseline', 'ReferenceSelectBodyFont', 'ReferenceMathFontSize', 'ReferenceMathScriptSize', 'ReferenceMathScriptScriptSize'),
     'assets/reference_shell.tex': ('ReferenceTitle', 'ReferenceShortTitle', 'ReferenceSubtitle', 'ReferenceAuthor', 'ReferenceDate', 'makereferencetitle'),
     'assets/reference_components.tex': ('referenceentry', 'referencenote', 'referencewarning', 'referenceformula', 'referenceqa', 'referenceqaseries', 'referencesolutionpart', 'referencequestion', 'referencesolution', 'referencepurpose', 'referenceconditions', 'referencefigcap', 'referencetabcap', 'referencefigure', 'referencetable'),
-    'assets/document_components.tex': ('sourcelink', 'glossaryentry', 'framedtable', 'semanticframedtable', 'framedtablewidth'),
+    'assets/document_components.tex': ('sourcelink', 'glossaryentry', 'bibentryprose', 'framedtable', 'semanticframedtable', 'framedtablewidth'),
     'assets/deferred_notes.tex': ('DeclareDocNote', 'DocNoteMark', 'PrintDocNotes'),
     'assets/flow_tables.tex': ('flowtable',),
+    'assets/study_components.tex': ('studyexercise', 'studysolution', 'studyexerciseref', 'studysolutionref', 'studyheadingstyle'),
+    'assets/index_components.tex': ('lakitindex', 'lakitindexrangebegin', 'lakitindexrangeend', 'lakitindexcolumns'),
 }
 
 # The exact names below are a QA coverage contract. Architectural ownership and
@@ -69,16 +73,18 @@ HOOK_FAMILIES = {
     **dict.fromkeys(('lakitcaptionstyle', 'lakitcaptionlabelstyle', 'lakitcaptionpunctuation'), 'core'),
     **dict.fromkeys(('referencenotestyle', 'referencewarningstyle', 'referenceformulastyle',
                      'referenceqastyle'), 'reference-all'),
+    'studyheadingstyle': 'study',
+    'lakitindexcolumns': 'index',
 }
 
 def acceptance_contract(catalog) -> dict:
     """Closed meanings for catalog IDs; declarations alone are not execution."""
     records, errors, seen = [], [], set()
-    for collection in ('templates', 'layouts', 'themes', 'examples'):
+    for collection in ('templates', 'layouts', 'themes', 'examples', 'components'):
         for record in getattr(catalog, collection):
             modes = ('native', 'mixed', 'bilingual') if collection == 'templates' else ('runtime',)
             prefix = {'templates': 'template', 'layouts': 'layout',
-                      'themes': 'theme', 'examples': 'example'}[collection]
+                      'themes': 'theme', 'examples': 'example', 'components': 'component'}[collection]
             expected = tuple(f'{prefix}:{record.id}:{mode}' for mode in modes)
             if record.acceptance != expected:
                 errors.append(f'{collection}:{record.id}: unknown or missing closed acceptance IDs')
@@ -118,7 +124,9 @@ def acceptance_coverage(root: Path, catalog, plan: list[dict], results: list[dic
     source_hashes = {}
     theme_by_id = {theme.id: theme for theme in catalog.themes}
     example_by_id = {example.id: example for example in catalog.examples}
+    component_by_id = {component.id: component for component in catalog.components}
     owned_sources = {spec.path for spec in ASSET_SPECS} | {example.asset_path for example in catalog.examples}
+    owned_sources.update(path for component in catalog.components for path in component.supporting_files)
     generator_themes = {theme.id for theme in catalog.themes if theme.exposure == 'generator-supported'}
     valid_filter = theme_filter is None or isinstance(theme_filter, str) and theme_filter in generator_themes
     if not valid_filter:
@@ -192,6 +200,13 @@ def acceptance_coverage(root: Path, catalog, plan: list[dict], results: list[dic
                 errors.append(ident + ': acceptance example source/owners differ')
                 continue
             owned_inputs(row, (example.asset_path, *example.architecture_assets))
+            for component in catalog.components:
+                if component.asset_path in example.architecture_assets:
+                    owned_inputs(row, component.supporting_files)
+                    expected_defaults = {key: 'assets/' + value if key == 'INDEX_STYLE' and value else value
+                                         for key, value in component.build_defaults}
+                    if any(row.get('build_settings', {}).get(key) != value for key, value in expected_defaults.items()):
+                        errors.append(ident + ': acceptance example optional component build contract differs')
             tags[ident].add(('examples', example.id, 'runtime'))
         elif category == 'component':
             theme = theme_by_id.get(row.get('family'))
@@ -202,6 +217,14 @@ def acceptance_coverage(root: Path, catalog, plan: list[dict], results: list[dic
                 if theme.id == 'custom' and 'theme.tex' not in inputs:
                     errors.append(ident + ': acceptance custom overlay input is missing')
                 tags[ident].add(('themes', theme.id, 'runtime'))
+            component = component_by_id.get(row.get('family'))
+            if component is not None:
+                if component.asset_path not in row.get('architecture_assets', []):
+                    errors.append(ident + ': acceptance optional component owner is not exercised')
+                owned_inputs(row, (component.asset_path, *component.supporting_files))
+                if any(row.get('build_settings', {}).get(key) != value for key, value in component.build_defaults):
+                    errors.append(ident + ': acceptance optional component build contract differs')
+                tags[ident].add(('components', component.id, 'runtime'))
         else:
             errors.append(ident + ': unknown acceptance case category')
 
@@ -311,7 +334,7 @@ def hook_coverage() -> list[dict]:
     result = []
     for hook in HOOK_SPECS:
         positive = ['scripts/test_component_fixtures.py:test_every_configuration_hook_is_declared_in_native_fixtures',
-                    'scripts/test_template_registry.py:test_hook_inventory_all_30_have_explicit_owners_and_scopes']
+                    'scripts/test_template_registry.py:test_hook_inventory_all_32_have_explicit_owners_and_scopes']
         negative = ['scripts/test_component_fixtures.py:test_hook_claim_without_declaration_is_rejected']
         runtime = []
         if hook.scope == 'reference-layout':
@@ -342,6 +365,10 @@ def hook_coverage() -> list[dict]:
             negative += ['scripts/test_caption_styles.py:test_rgb_contract_and_api_bounds']
             runtime += ['scripts/test_academic_runtime.py']
         elif hook.scope == 'reference-presentation':
+            runtime += ['scripts/test_reference_runtime.py']
+        elif hook.scope == 'study-presentation':
+            runtime += ['scripts/test_language_runtime.py']
+        elif hook.scope == 'index-layout':
             runtime += ['scripts/test_reference_runtime.py']
         result.append({'name': hook.name, 'owner': hook.owner, 'scope': hook.scope,
                        'fixture_family': HOOK_FAMILIES.get(hook.name, ''),

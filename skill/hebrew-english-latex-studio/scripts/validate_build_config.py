@@ -21,6 +21,8 @@ from build_contract import (
     FOLIO_LAYOUTS,
     FOLIO_BANDS,
     CAPTION_LABEL_WEIGHTS,
+    INDEX_PROCESSORS,
+    validate_index_style,
     parse_rgb_hex,
     PAPERS_MM,
     normalize_section_macros,
@@ -49,9 +51,19 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--folio-band", default="footer")
     parser.add_argument("--caption-color", default="000000")
     parser.add_argument("--caption-label-weight", default="normal")
+    parser.add_argument("--index-processor", default="none")
+    parser.add_argument("--index-style", default="")
     args = parser.parse_args(argv)
 
     errors: list[str] = []
+    if args.index_processor not in INDEX_PROCESSORS:
+        errors.append("INDEX_PROCESSOR must be one of: " + ", ".join(INDEX_PROCESSORS))
+    try:
+        validate_index_style(args.index_style)
+    except ValueError as exc:
+        errors.append(str(exc))
+    if args.index_style and args.index_processor == "none":
+        errors.append("INDEX_STYLE requires INDEX_PROCESSOR=makeindex")
     if args.caption_label_weight not in CAPTION_LABEL_WEIGHTS:
         errors.append("PDF_CAPTION_LABEL_WEIGHT must be one of: "
                       + ", ".join(CAPTION_LABEL_WEIGHTS)

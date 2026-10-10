@@ -45,6 +45,37 @@ class ProjectGeneratorTests(unittest.TestCase):
         self.assertIn(r'\def\lakitmainlanguage{hebrew}', source)
         self.assertIn('העברת משימה', source)
 
+    def test_optional_components_copy_load_and_emit_only_when_selected(self):
+        plain, source, manifest = self.make('plain', kind='report', language='english')
+        for component in generator.CATALOG.components:
+            self.assertFalse((plain / Path(component.asset_path).name).exists())
+            self.assertNotIn('\\input{' + Path(component.asset_path).name + '}', source)
+        self.assertNotIn('INDEX_PROCESSOR', (plain / 'build.sh').read_text())
+        for language, base in (("hebrew", None), ("english", None), ("hebrew-with-english", None),
+                               ("english-with-hebrew", None), ("bilingual", "hebrew"), ("bilingual", "english")):
+            choices = dict(kind='report', language=language, main_language=base, components=['study', 'index'])
+            project, source, manifest = self.make('optional-' + language + '-' + str(base), **choices)
+            self.assertEqual(manifest['recipe']['components'], ['study', 'index'])
+            self.assertIn(r'\begin{studyexercise}{starter-derivative}', source)
+            self.assertIn(r'\begin{studysolution}{starter-derivative}', source)
+            self.assertIn(r'\lakitindex{english}{000001}{Compiler}', source)
+            self.assertIn(r'\lakitindex{hebrew}{000001}{מהדר}', source)
+            self.assertEqual(source.count(r'\printindex'), 1)
+            for name in ('study_components.tex', 'index_components.tex', 'index.ist'):
+                self.assertEqual((project / name).read_bytes(), (generator.ROOT / 'assets' / name).read_bytes())
+                self.assertEqual(manifest['copied_assets'][name], generator.digest(project / name))
+            self.assertLess(source.index(r'\input{index_components.tex}'), source.index(r'\input{reader_theme.tex}'))
+            wrapper = (project / 'build.sh').read_text()
+            self.assertIn('export INDEX_PROCESSOR="${INDEX_PROCESSOR-makeindex}"', wrapper)
+            self.assertIn('export INDEX_STYLE="${INDEX_STYLE-index.ist}"', wrapper)
+
+    def test_invalid_component_fails_before_creating_a_destination(self):
+        for components in (['study', 'study'], ['execute'], 'index', [False]):
+            destination = self.root / 'never-created'
+            with self.subTest(components=components), self.assertRaises(ValueError):
+                generator.create('report', destination, components=components)
+            self.assertFalse(destination.exists())
+
     def test_schema3_records_requested_resolved_recipe_and_catalog_snapshot(self):
         cases = [dict(kind='paper', language='english'),
                  dict(kind='formula-sheet', language='bilingual', main_language='hebrew',
@@ -358,6 +389,19 @@ PY
                 self.assertIn(r'\autoref{secondary-fig:quadratic}', source)
                 self.assertIn(r'\author{}', source)
                 self.assertIn(r'\date{}', source)
+
+    def test_paper_bibliography_retains_local_entry_paragraph_in_all_profiles(self):
+        for profile, main in [('hebrew', None), ('english', None),
+                              ('hebrew-with-english', None), ('english-with-hebrew', None),
+                              ('bilingual', 'hebrew'), ('bilingual', 'english')]:
+            with self.subTest(profile=profile, main=main):
+                _, source, _ = self.make('bib-' + profile + '-' + str(main), kind='paper',
+                                        language=profile, main_language=main)
+                bibliography = source[source.index(r'\begin{thebibliography}'):]
+                self.assertEqual(bibliography.count(r'\bibitem{boyd2004}'), 1)
+                self.assertIn(r'\bibentryprose{english}{Stephen Boyd', bibliography)
+                self.assertNotIn(r'\en{Stephen Boyd', bibliography)
+                self.assertNotIn(r'\begin{englishprose}', bibliography)
 
     def test_paper_numbers_cited_and_central_equations_and_leaves_working_unnumbered(self):
         for language in ('english', 'hebrew'):

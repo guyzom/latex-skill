@@ -5,6 +5,12 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+    inputs:
+      validation_scope:
+        description: Full regressions or focused caption/table PDFs for visual diagnosis
+        type: choice
+        default: full
+        options: [full, caption, table]
 
 permissions:
   contents: read
@@ -50,7 +56,24 @@ jobs:
       - name: Verify source resolution against LuaLaTeX
         run: python scripts/test_source_graph_runtime.py 2>&1 | tee ../../test-results/source-graph-runtime.log
       - name: Run full build and render regressions
+        if: github.event_name != 'workflow_dispatch' || inputs.validation_scope == 'full'
         run: bash scripts/test_all.sh 2>&1 | tee ../../test-results/harness.log
+      - name: Run focused caption runtime with retained PDF evidence
+        if: github.event_name == 'workflow_dispatch' && inputs.validation_scope == 'caption'
+        env:
+          HLLPDF_LANGUAGE_EVIDENCE_DIR: ${{ github.workspace }}/test-results/caption-runtime
+        run: |
+          python scripts/test_language_runtime.py \
+            LanguageRuntime.test_subcaption_rtl_labels_and_explicit_preamble_styles \
+            2>&1 | tee ../../test-results/caption-runtime.log
+      - name: Run focused table runtime with retained PDF evidence
+        if: github.event_name == 'workflow_dispatch' && inputs.validation_scope == 'table'
+        env:
+          HLLPDF_LANGUAGE_EVIDENCE_DIR: ${{ github.workspace }}/test-results/table-runtime
+        run: |
+          python scripts/test_language_runtime.py \
+            LanguageRuntime.test_gallery_keeps_unframed_examples_prominent_and_content_sized \
+            2>&1 | tee ../../test-results/table-runtime.log
       - name: Save test logs
         if: always()
         uses: actions/upload-artifact@v4

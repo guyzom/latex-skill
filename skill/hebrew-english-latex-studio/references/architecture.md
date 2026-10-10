@@ -41,7 +41,7 @@ evidence boundaries, and the [glossary](glossary-he-en.md) for stable terminolog
 | Role | Shipped owner(s) | Responsibility |
 |---|---|---|
 | `mechanism-core` | `assets/preamble.tex` | Language resolution, direction islands, math, caption/anchor mechanisms, baseline presentation and public shell hooks |
-| `semantic-extension` | `exam_components.tex`, `document_components.tex`, `deferred_notes.tex`, `flow_tables.tex`, `reference_components.tex` | Meaningful document features independent of a theme |
+| `semantic-extension` | `exam_components.tex`, `document_components.tex`, `deferred_notes.tex`, `flow_tables.tex`, `reference_components.tex`, `study_components.tex`, `index_components.tex` | Meaningful document features independent of a theme |
 | `layout-extension` | `reference_columns.tex` | Local column count, flow, gaps, body typography and wide-block boundaries |
 | `page-shell-extension` | `topicrail.tex`, `reference_shell.tex` | Optional running headers, title shell and folios |
 | `presentation-theme` | `clean_theme.tex`, `reader_theme.tex`, `academic_theme.tex`, `reference_theme.tex` | Optional shipped presentation policies |
@@ -348,6 +348,8 @@ filename substrings such as `myclean_theme.tex` do not activate clean policies.
 | `semantic.deferred-note-api` | `deferred_notes.tex` | — |
 | `semantic.flow-table-api` | `flow_tables.tex` | — |
 | `semantic.reference-api` | `reference_components.tex` | — |
+| `semantic.study-api` | `study_components.tex` | — |
+| `semantic.index-api` | `index_components.tex` | — |
 | `layout.reference-columns` | `reference_columns.tex` | — |
 | `page-shell.topicrail` | `topicrail.tex` | — |
 | `page-shell.reference` | `reference_shell.tex` | — |
@@ -390,8 +392,10 @@ can keep `\input{clean_variant.tex}` after core.
 The academic and reference themes are also incompatible with the clean carrier,
 in either load order; choose one presentation policy.
 
-The architecture JSON schema is version **4**: version 5.4 of the skill adds
-typed configuration-hook contracts and completes reference mathematical-size
+The architecture JSON schema is version **5**: optional study and index
+semantic owners add keyed identities and explicit index-language/rank APIs,
+including a pre-input index-column hook and local study-heading formatter.
+Version 4 added typed configuration-hook contracts and reference mathematical-size
 ownership. Version 5.3 introduced the layout-extension role and scoped reference
 style-hook inventory; the existing language-policy and asset fields remain.
 Consumers should read `schema_version`; do not confuse it with the skill
@@ -404,7 +408,10 @@ no maintenance sync and no density exemption until explicitly declared.
 page sizes and section-macro parsing. `validate_build_config.py` rejects bad
 configuration before the compiler runs. `CONTENT_PROFILE`, `SECTION_MACROS`,
 `EXPECTED_PAPER`, `REPRO`, `MAX_CROSS_PAGE_DESTINATIONS`, and
-`SOURCE_DATE_EPOCH` are build-only settings, not TeX theme inputs.
+`SOURCE_DATE_EPOCH`, `INDEX_PROCESSOR`, and `INDEX_STYLE` are build-only settings,
+not TeX theme inputs. The index processor and style participate in the semantic
+build identity. `HLLPDF_INDEX_EVIDENCE_DIR` is an optional diagnostic export
+destination and does not change that identity.
 
 `CONTENT_PROFILE` selects advisory density/rhythm checks. It does not select a
 theme or translate prose. A sparse page can be intentional; never insert
@@ -426,13 +433,13 @@ hashes; that snapshot does not claim the files remain unchanged after editing.
 requires review of the current output, not reuse of stale approvals. See
 [Everyday workflow](everyday-workflow.md).
 
-Acceptance governance connects the catalog's current 49 closed IDs to retained
+Acceptance governance connects the catalog's 53 closed IDs (the existing 49 plus two optional components and their examples) to retained
 execution evidence through [catalog_coverage.py](../scripts/catalog_coverage.py).
 `acceptance_contract(catalog)` owns their allowed meanings;
 `acceptance_coverage(root, catalog, plan, results=None, theme_filter=None)` binds
 required declarations to derived requests, canonical cases/aliases,
 input-inventory hashes and build fingerprints. The keyword-only theme filter
-defaults to the complete catalog, where all 49 IDs are required. An explicit
+defaults to the complete catalog, where all 53 IDs are required. An explicit
 supported theme preserves the local CLI subset: only unmatched, unselected
 generator-theme IDs may be `not-requested`; examples and native components
 remain required. Unknown or uncovered required IDs and invalid populations or

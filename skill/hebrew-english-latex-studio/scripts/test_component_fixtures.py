@@ -63,6 +63,28 @@ class ComponentFixtureTests(unittest.TestCase):
         self.assertIn('assets/document_components.tex:sourcelink: loaded-only API claim lacks actual use',
                       validate_fixture_source(metadata, mutated))
 
+    def test_optional_component_claim_without_authored_use_is_rejected(self):
+        controls = (("study", "studyexercise", r'\begin{studyexercise}', r'\begin{removedexercise}'),
+                    ("index", "lakitindexrangeend", r'\lakitindexrangeend', r'\RemovedIndexRangeEnd'))
+        for family, symbol, original, replacement in controls:
+            for language in ('hebrew', 'english'):
+                metadata, source = next(item for item in self.fixtures
+                                        if item[0]['family'] == family and item[0]['language'] == language)
+                mutated = source.replace(original, replacement)
+                self.assertNotEqual(mutated, source)
+                self.assertIn(f'assets/{family}_components.tex:{symbol}: loaded-only API claim lacks actual use',
+                              validate_fixture_source(metadata, mutated))
+
+    def test_index_columns_must_be_declared_before_loading_the_optional_owner(self):
+        declaration = r'\def\lakitindexcolumns{1}'
+        owner = r'\input{index_components.tex}'
+        for language in ('hebrew', 'english'):
+            metadata, source = next(item for item in self.fixtures
+                                    if item[0]['family'] == 'index' and item[0]['language'] == language)
+            mutated = source.replace(declaration, '', 1).replace(owner, owner + '\n' + declaration, 1)
+            self.assertIn('lakitindexcolumns: authored hook declaration does not precede its owner',
+                          validate_fixture_source(metadata, mutated))
+
     def test_hook_claim_without_declaration_is_rejected(self):
         # This guards provenance for every declared hook. It deliberately
         # does not invent universally invalid TeX content/style values or

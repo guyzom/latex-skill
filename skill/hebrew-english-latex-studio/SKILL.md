@@ -74,6 +74,13 @@ python3 /path/to/skill/scripts/new_document.py --kind report \
   --directory /path/to/bilingual-project
 ```
 
+For a guide with paired exercises and end solutions, explicitly select
+`--component study`. For a subject index, select `--component index`; its
+generated build wrapper declares the managed makeindex stage and local style.
+Selections are optional and repeatable; inspect and replace the short editable
+specimens. See [exercise identities](references/exercises-and-solutions.md) and
+[indexes](references/indexes.md) before migrating existing book sources.
+
 Choose `paper`, `note`, `technical`, `formula-sheet`, `data-report`, `annotated-note`, `general`, `letter`, or `report`. Choose `academic`, `reference`, `reader`, `core`, or `custom` independently of language. With the default `--layout standard`, omitting the theme selects `academic` for `paper` and preserves `reader` for the other kinds; an explicit theme always wins. Use `--package NAME` for additional packages; inspect availability and compatibility before relying on them. See [everyday workflow](references/everyday-workflow.md).
 
 For a professional article, read [academic articles](references/academic-articles.md). Its shared academic theme works in all five language profiles:
@@ -127,13 +134,19 @@ Read [architecture](references/architecture.md) before modifying an interface. U
 
 `registry/studio-catalog.json` owns template recipes and defaults; the architecture and build contracts retain their existing ownership. A new content structure usually needs a starter, and new preset values need a catalog record. Add a runtime component only for a new semantic, layout, page-shell or presentation responsibility. Follow [catalog development](references/catalog-development.md), update the relevant glossary terms and add current acceptance evidence with each public change.
 
-Load semantic extensions only when needed: `document_components.tex` for source annotations; `exam_components.tex` for exam helpers; `flow_tables.tex` for supported multipage tables; `deferred_notes.tex` for deferred notes from boxes/tables; `reference_components.tex` for reference-sheet blocks. Column flow belongs to `reference_columns.tex`; reference-page title/header/folio presentation belongs to `reference_shell.tex`. Compose core, semantic extensions, layout extension, page shell and one theme in that order. `topicrail.tex` is an alternative running-header component, not a second shell to load alongside `reference_shell.tex`.
+Load semantic extensions only when needed: `document_components.tex` for source annotations, terminology paragraphs and manual bibliography entries; `exam_components.tex` for exam helpers; `flow_tables.tex` for supported multipage tables; `deferred_notes.tex` for deferred notes from boxes/tables; `reference_components.tex` for reference-sheet blocks; `study_components.tex` for paired exercises/end solutions; `index_components.tex` with `index.ist` for an explicitly managed subject index. Column flow belongs to `reference_columns.tex`; reference-page title/header/folio presentation belongs to `reference_shell.tex`. Compose core, semantic extensions, layout extension, page shell and one theme in that order. `topicrail.tex` is an alternative running-header component, not a second shell to load alongside `reference_shell.tex`.
 
 Select presentation separately. `reader_theme.tex` preserves heading semantics. `academic_theme.tex` keeps visible headings and uses selective equation numbering with regular black caption labels. `reference_theme.tex` supplies black ruled headings, gray reference notes, regular black caption labels and selective equations; selecting it alone does not create columns. `clean_theme.tex` intentionally hides section numbering and uses selective equation numbering. Choose one theme. `clean_variant.tex` is a generated legacy bundle; do not combine it with its source components or a competing theme.
 
 Custom designs and additional packages are allowed. Keep them in local project files, respecting load order and avoiding option clashes. Pass options for already-loaded packages before core input when required; load compatible new packages after the core. Use documented APIs for palette, local typography, and box styling. A theme must not redefine direction primitives, equation-reference repair, font observation, or build checks. Arbitrary document classes and package combinations are not automatically supported: isolate a new combination in a representative document, build and render it, then integrate it.
 
-Do not add needless packages. For an external processor such as Biber, BibTeX, indexing, or shell execution, arrange and validate that pipeline explicitly; `build.sh` does not run those processors. Never silently weaken a check to accommodate a package. See [recipe](references/recipe.md).
+Do not add needless packages. `build.sh` runs makeindex only under the explicit
+`INDEX_PROCESSOR=makeindex` contract, with an optional project-local
+`INDEX_STYLE` path. The index component supplies its own style and supports the
+documented single-index Arabic-folio route. Biber, BibTeX, other indexing routes
+and shell execution require separately arranged and validated pipelines. Never
+silently weaken a check to accommodate a package. See [indexes](references/indexes.md)
+and [recipe](references/recipe.md).
 
 ## 4. Write directionally correct content
 
@@ -156,7 +169,34 @@ The source gate rejects `PGFPLOTS-CONTOUR-EXTERNAL`: precompute contours and plo
 
 Choose the number of columns, widths, alignment, headers, order and structure from the actual content. There is no required two- or three-column schema: gallery and starter layouts illustrate adaptable choices, and a list, prose or another structure can fit better. Short numeric/lookup tables use natural `l/r/c` columns; authored `p/m` columns wrap prose. The default is an unframed table. For an optional content-fit atomic frame use `framedtable` from `document_components.tex`; for an outer box matching the active semantic boxes' actual width and insets use `semanticframedtable`. In semantic-width mode natural inner columns remain compact rather than stretching to fill the outer box. Both honor live theme geometry, padding, readable type and uniform captions. Optional table frames use neutral gray (`767676`) with white fill, independently of the semantic category colors; captions remain black. The gallery begins with varied unframed examples in Hebrew and English before presenting opt-in frames. Existing `tablebox` remains available for a requested grouped panel. None is a multipage table. Use `flowtable` for genuinely multipage records. Inspect column order, safe margins, typography and navigation after rendering. Never impose one percentage or one column count on every table, shrink fonts or use `resizebox` to hide overflow. See [tables and captions](references/tables-and-captions.md).
 
-The default caption is `Figure 1: Description` / `איור 1: תיאור` (and Table / טבלה), with the document's existing numbering policy. Apply `\lakitcaptionstyle` to the complete paragraph: regular black text at one local size, including label, number and separator. Keep authored mathematics and language islands; avoid incidental label-only color, weight or font changes. Native `caption`, `captionof`, optional `subcaption` and `flowtable` share that presentation. Honor explicitly requested template styling. For terminology paragraphs load `document_components.tex` and use `\glossaryentry{term}{definition}` with a spaced em dash; sentence punctuation remains authored.
+Treat semantic column order, cell language/direction and physical alignment as independent choices. In a short table explicitly ordered with `otherlanguage{english}`, the first declared column is physically leftmost: normally put a Hebrew key/symbol last at the right and an English key/symbol first at the left, retaining an explicitly requested order. In that table use `r` for short Hebrew prose and `>{\raggedleft\arraybackslash}p{...}` for wrapping Hebrew prose; use `l` and `>{\raggedright\arraybackslash}p{...}` respectively for English. Keep numbers right-aligned and math/code LTR; centering is an explicit math/grid design choice. `\h`/`\en` isolate language, not the cell edge: minority terms do not change the surrounding paragraph's alignment. The separate `flowtable` H/E/N types already adapt physical alignment to the enclosing direction; do not invert them or reverse all columns to repair one cell. Inspect actual word/sign order and short/wrapped line edges independently of key position, and retain independent negative controls for each defect. Preserve authored sentence punctuation. See the [paired notation examples](references/tables-and-captions.md#paired-notation-examples).
+
+The default caption is `Figure 1: Description` / `איור 1: תיאור` (and Table / טבלה), with the document's existing numbering policy. Apply `\lakitcaptionstyle` to the complete paragraph: regular black text at one local size, including label, number and separator. The default small size never enlarges a smaller local body, including reference columns. Keep authored mathematics and language islands; avoid incidental label-only color, weight or font changes. Native `caption`, `captionof`, optional `subcaption` and `flowtable` share that presentation. Load optional `subcaption` after the core; explicitly requested package options or `captionsetup` remain authoritative. Check digit-leading Hebrew subcaptions and mixed-language figure/table list entries in the actual PDF. Preserve the core subcaption label wrapper: it selects the Latin direction before making the atomic label box so older engines also draw `(a)` correctly. Choose one caption API per object kind in a new document; custom and native caption counters retain their existing independent ownership. Honor explicitly requested template styling.
+
+For terminology paragraphs load `document_components.tex` and use
+`\glossaryentry[hebrew]{\en{blob}}{הגדרה בעברית.}` or its English counterpart.
+The optional definition language inherits the current prose locale when absent.
+The definition determines paragraph direction and physical alignment; isolate
+the minority-language term separately. All four language pairs use one natural
+spaced em dash, without an automatic dot, fixed label column or stretched gap.
+Allow long terms and definitions to wrap; preserve authored sentence punctuation.
+Check the actual line edges, separators, math and links at the intended width.
+
+For complete bibliography entries load `document_components.tex` and write
+`\bibentryprose{english}{entry body}` (choose `hebrew` for a Hebrew entry)
+immediately after native `\bibitem` inside `thebibliography`. Isolate short minority-language names with `\h` or
+`\en`; whole entries need the paragraph helper so continuation lines and native
+pending labels retain their correct edges. Keep requested bibliography styles
+and authored typography. See [citations](references/citations.md).
+
+An exercise with a deferred solution needs a stable semantic key and its origin
+identity. Use the optional study component or an equally verified local route;
+never derive a solution heading from the chapter counter at the end of the book.
+Print meaningful forward/backlink text including the original exercise number,
+and verify that each link reaches its matching body, even when several solutions
+share a page. An index likewise needs verified locators at the actual explanation
+or practice, not the chapter opening. Review sort/display keys, language groups,
+local physical edges, whole LTR locator sequences and actual page destinations.
 
 Use `tikzpic`/`qcirc` as direction/centering wrappers; place an actual `tikzpicture`/`quantikz` environment inside. Put `\figcap{\label{...}...}` immediately after the object; use `\tabcap` for short tables. `flowtable` owns its caption and label. Put an actual `lstlisting` inside `asmblock`, with its code body starting on a new line; `asmblock` itself only switches language and does not typeset code. Use `codebox` for framed numbered code. Keep atomic `tablebox` shorter than a page. Do not shrink text into unreadability.
 
@@ -180,6 +220,13 @@ The build validates configuration, dependencies, font identity, source hazards, 
 - `PDF_CAPTION_COLOR=RRGGBB` and `PDF_CAPTION_LABEL_WEIGHT=bold|normal` must match the actual caption paragraph (defaults `000000` and `normal`). All shipped themes use black (`000000`) captions of normal weight; explicit caller settings remain authoritative.
 - `PDF_REQUIRE_TITLE`, `PDF_MIN_BOOKMARKS`, `PDF_MIN_BOOKMARK_DEPTH` express actual project requirements; do not invent quotas.
 - `REPRO=1` adds exact-byte rebuilding under the same environment.
+- `INDEX_PROCESSOR=none|makeindex` selects the explicit single-index stage;
+  `INDEX_STYLE` names an optional safe project-relative `.ist` file. Managed
+  processing requires accepted nonempty entries and inclusion of the current
+  index in the converged PDF. Exit zero alone does not satisfy this contract.
+- `HLLPDF_INDEX_EVIDENCE_DIR` optionally retains private processor diagnostics
+  in a fresh absolute directory after verified publication; it does not replace
+  PDF page or semantic locator review.
 - `SECTION_MACROS` declares custom section macros for content analysis.
 - `DIRECT_NAVIGATION_DESTINATIONS` targets specific navigation paths needing stricter viewer compatibility.
 
@@ -259,6 +306,7 @@ Read the guide relevant to the task, not the entire directory:
 | References and citations | [Bilingual references](references/bilingual-references.md), [citations](references/citations.md) |
 | Headings, code, contents | [Headings](references/heading-and-short-code.md), [contents](references/measured-contents.md) |
 | Content and optional features | [Content style](references/content-style.md), [features](references/optional-features.md) |
+| Exercises, end solutions and subject indexes | [Exercises](references/exercises-and-solutions.md), [indexes](references/indexes.md) |
 | Fonts and reproducibility | [Runtime fonts](references/runtime-fonts.md), [environment](references/environment-report.md) |
 | Renderers, geometry, folios | [Renderers](references/pdf-strings-and-renderers.md), [geometry](references/pdf-geometry-review.md), [folios](references/pdf-folios.md) |
 | Parsing edge cases | [Literal boundaries](references/literal-source-boundaries.md), [quotes](references/quote-source-boundaries.md), [listing quotes](references/listing-smart-quotes.md) |

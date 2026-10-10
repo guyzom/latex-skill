@@ -80,15 +80,19 @@ $\det A\neq0$; אז $A^{-1}A=I$ ו־$\det(A^{-1})=1/\det A$.
 \setlength{\arrayrulewidth}{0.4pt}
 \setlength{\tabcolsep}{4pt}
 \renewcommand{\arraystretch}{1.05}
+% Hebrew lookup: the function key is physically right; derivatives are left.
+% Explicit English table order keeps all mathematics LTR within each cell.
+\begin{otherlanguage}{english}
 \begin{tabular}{|c|c|}
 \hline
 \rowcolor{black!10}
-$\boldsymbol{f(x)}$ & $\boldsymbol{f'(x)}$\\\hline
-$x^n$ & $nx^{n-1}$\\\hline
-$\mathrm e^{ax}$ & $a\mathrm e^{ax}$\\\hline
-$\sin(ax)$ & $a\cos(ax)$\\\hline
-$\log x$ & $1/x,\ x>0$\\\hline
+$\boldsymbol{f'(x)}$ & $\boldsymbol{f(x)}$\\\hline
+$nx^{n-1}$ & $x^n$\\\hline
+$a\mathrm e^{ax}$ & $\mathrm e^{ax}$\\\hline
+$a\cos(ax)$ & $\sin(ax)$\\\hline
+$1/x,\ x>0$ & $\log x$\\\hline
 \end{tabular}
+\end{otherlanguage}
 \end{referencetable}
 \subsection{קירוב מקומי}
 לפונקציה חלקה $f$ ליד $x_0$, נסמן $h=x-x_0$:
@@ -146,14 +150,18 @@ p_i\geq0,\quad\sum_i p_i=1,\quad\mu=\sum_i p_i x_i,
 \setlength{\arrayrulewidth}{0.4pt}
 \setlength{\tabcolsep}{4pt}
 \renewcommand{\arraystretch}{1.05}
-\begin{tabular}{|l|c|c|}
+% Hebrew quantity keys are physically right and right aligned; units and
+% dimensions stay centered mathematical islands in explicit LTR table order.
+\begin{otherlanguage}{english}
+\begin{tabular}{|c|c|r|}
 \hline
 \rowcolor{black!10}
-\textbf{גודל} & \textbf{יחידה} & \textbf{ממדים}\\\hline
-כוח & $\mathrm N$ & $\mathrm{kg\,m\,s^{-2}}$\\\hline
-אנרגיה & $\mathrm J$ & $\mathrm{kg\,m^2\,s^{-2}}$\\\hline
-תדירות & $\mathrm{Hz}$ & $\mathrm{s^{-1}}$\\\hline
+\h{\textbf{ממדים}} & \h{\textbf{יחידה}} & \h{\textbf{גודל}}\\\hline
+$\mathrm{kg\,m\,s^{-2}}$ & $\mathrm N$ & \h{כוח}\\\hline
+$\mathrm{kg\,m^2\,s^{-2}}$ & $\mathrm J$ & \h{אנרגיה}\\\hline
+$\mathrm{s^{-1}}$ & $\mathrm{Hz}$ & \h{תדירות}\\\hline
 \end{tabular}
+\end{otherlanguage}
 \end{referencetable}
 זוויות בנוסחאות אנליטיות נמדדות ברדיאנים. יחידות עקביות הן תנאי
 הכרחי, אך אינן מוכיחות שמודל נכון.

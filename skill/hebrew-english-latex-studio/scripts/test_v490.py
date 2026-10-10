@@ -109,21 +109,47 @@ class Release490Tests(unittest.TestCase):
         data['pages'][0]['status'] = 'automatic-pass'; path.write_text(json.dumps(data))
         with self.assertRaisesRegex(ValueError, 'status'): self.attest(pdf, path)
 
-    def test_flow_table_is_counted_as_structure_not_emphasis(self):
+    def test_tables_count_once_without_emphasis_or_style_quotas(self):
         source = self.root / 'density.tex'
-        source.write_text(r"""\section{א} 
-\begin{flowtable}{1}{H{5cm}}{כותרת}{tab:a}{תא}
+        bodies = [r'''\begin{flowtable}{1}{H{5cm}}{כותרת}{tab:a}{תא}
 ערך\\
-\end{flowtable}
+\end{flowtable}''']
+        for wrapper in ('framedtable', 'semanticframedtable'):
+            for rows in (r'A&B\\', r'\begin{tabular}{ll}A&B\\\end{tabular}'):
+                bodies.append(fr'\begin{{{wrapper}}}{{2}}{{ll}}{{Data}}{{tab:data}}'
+                              + rows + fr'\end{{{wrapper}}}')
+        for body in bodies:
+            with self.subTest(body=body):
+                source.write_text(r'''\section{א}
+פסקה ראשונה.
+
+פסקה שנייה.
+
+פסקה שלישית.
+
+''' + body + r'''
+
+פסקה מסכמת.
 \section{ב}
 טקסט.
-""")
-        out = io.StringIO()
-        with contextlib.redirect_stdout(out):
-            result = check_content_density.main([str(source)], 'report', [])
-        self.assertEqual(result, 0)
-        self.assertIn('1 tables', out.getvalue())
-        self.assertIn('0% of body content sits inside EMPHASIS', out.getvalue())
+''')
+                out = io.StringIO()
+                with contextlib.redirect_stdout(out):
+                    result = check_content_density.main([str(source)], 'report', [])
+                self.assertEqual(result, 0)
+                output = out.getvalue()
+                self.assertIn('1 tables', output)
+                self.assertIn('0% of body content sits inside EMPHASIS', output)
+                # The existing 1.2 threshold still warns at 0.5 elements per
+                # section; its advice cannot prescribe frames or callout quotas.
+                self.assertIn('THIN:', output)
+                self.assertIn('heuristic reference 1.2', output)
+                self.assertIn('prose and zero callouts can be appropriate', output)
+                self.assertIn('tables (unframed by default)', output)
+                self.assertNotIn('gray tables', output)
+                # Each genuine table breaks the prose-only run, including a
+                # captured table with no literal tabular and nested implementation.
+                self.assertNotIn('RHYTHM:', output)
 
     def test_flow_layer_only_copied_when_requested(self):
         for kind in ['note', 'technical', 'formula-sheet', 'data-report']:

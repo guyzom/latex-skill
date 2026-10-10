@@ -75,8 +75,9 @@ evidence; test a fresh extraction and compare it with that inventory.
 ## Coverage ownership
 
 - `test_v4160.py`: 52 language/physical-size/review controls from the last build.
-- `test_toc_layout.py`: 13 geometry controls; `--runtime` runs 10 real-engine
-  controls, including nine valid fixture variants and an old-layout mutation.
+- `test_toc_layout.py`: 13 geometry controls; `--runtime` runs 13 real-engine
+  controls, including native mixed-language caption lists and historical
+  layout/direction mutations alongside the retained fixture variants.
 - `test_v4170.py`: 21 publication, golden-process-status and cross-path continuity controls.
 - `test_packaging.py`: real CLI archive creation, identical retry, changed-source
   conflict, explicit replacement, cleanup, and earlier hygiene mutations.

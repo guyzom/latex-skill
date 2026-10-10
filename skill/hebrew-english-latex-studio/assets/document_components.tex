@@ -23,11 +23,65 @@
   \endgroup\addvspace{6pt}}
 
 
-% \glossaryentry{term}{definition}: an ordinary paragraph, not a caption.
-% The spaced em dash is a relation separator; sentence punctuation belongs to
-% the authored definition. Isolate minority-language terms with \en or \h.
-\newcommand{\glossaryentry}[2]{%
-  \par\noindent #1\nobreak\hspace{.35em}—\hspace{.35em}#2\par}
+% \bibentryprose{english|hebrew}{complete bibliography entry}
+% Use immediately after native \bibitem. The outer bibliography retains its
+% heading, list spacing, label/counter and cite target. Only this breakable
+% entry paragraph changes language; no box, font reset or size reduction.
+% A label pending in the outer list must stay on its original physical side
+% when the paragraph direction changes. Shift its native label box
+% across the live list body width, preserving its width and custom label spacing.
+\makeatletter
+\newcommand{\bibentryprose}[2]{%
+  \par\begingroup
+  \def\hllpdf@bibliographyenv{thebibliography}%
+  \ifx\@currenvir\hllpdf@bibliographyenv\else
+    \PackageError{hllpdf}{bibentryprose requires thebibliography}%
+      {Place it immediately after the native bibitem command.}%
+  \fi
+  \if@inlabel\else
+    \PackageError{hllpdf}{bibentryprose requires a pending bibitem label}%
+      {Use one complete entry paragraph immediately after bibitem.}%
+  \fi
+  \edef\hllpdf@bibentrydir{\the\pardirection}%
+  \ifstrequal{#1}{english}{\selectlanguage{english}}{%
+    \ifstrequal{#1}{hebrew}{\selectlanguage{hebrew}}{%
+      \PackageError{hllpdf}{bibentryprose language '#1' must be english or hebrew}%
+        {Choose the actual language of this complete bibliography entry.}%
+    }%
+  }%
+  \@tempdima=\wd\@labels
+  \ifnum\pardirection=\hllpdf@bibentrydir\relax\else
+    \@tempdima=\wd\@labels
+    \ifnum\pardirection=0
+      \global\setbox\@labels\hbox dir TLT to\@tempdima{\kern\linewidth\box\@labels\hss}%
+    \else
+      \global\setbox\@labels\hbox dir TLT to\@tempdima{\kern-\linewidth\box\@labels\hss}%
+    \fi
+  \fi
+  #2\par
+  \endgroup}
+\makeatother
+
+% \glossaryentry[definition language]{term}{definition}: a local paragraph.
+% An omitted locale inherits the surrounding paragraph; english/hebrew are
+% explicit choices. Minority-language terms still require \en or \h.
+% Logical raggedright follows Babel's active reading direction: physically
+% left in English and right in Hebrew. Its scope ends with this paragraph.
+% Keep the term, dash and first definition word connected without fixed columns.
+% Sentence punctuation remains authored; a signed quantity belongs in math.
+\newcommand{\glossaryentry}[3][]{%
+  \par\begingroup
+  \ifblank{#1}{}{%
+    \ifstrequal{#1}{english}{\selectlanguage{english}}{%
+      \ifstrequal{#1}{hebrew}{\selectlanguage{hebrew}}{%
+        \PackageError{hllpdf}{glossaryentry language '#1' must be english or hebrew}%
+          {Omit the optional argument to inherit the local paragraph language.}%
+      }%
+    }%
+  }%
+  \raggedright%
+  \noindent #2\nobreak\hspace{.35em}—\nobreak\hspace{.35em}#3\par
+  \endgroup}
 
 % Two optional atomic modes: framedtable fits content; semanticframedtable
 % matches the active semantic-box geometry. Neither chooses a table schema.

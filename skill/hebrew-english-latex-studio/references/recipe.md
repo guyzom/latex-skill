@@ -39,6 +39,12 @@ babel, mathtools ו־hyperref; לכן שינוי גרסה מחייב smoke test 
 חבילות AMS, TikZ/pgfplots/quantikz ותלותו
 `ctablestack`, listings, mdframed, hyperref, Python 3.10+ עם PyMuPDF ו־fontTools,
 וכלי Poppler.
+לרכיב האינדקס האופציונלי נדרשים גם imakeidx בגרסה המתועדת ו־makeindex.
+המסלול המנוהל מופעל רק עם `INDEX_PROCESSOR=makeindex`; סגנון הרכיב נבחר
+באמצעות `INDEX_STYLE=index.ist`. שלב זה רץ בין מעברי LuaLaTeX ובודק שכל
+הרשומות התקבלו, שאין אזהרות טווח ושפלט האינדקס הנוכחי נכלל במסמך.
+כשל קלט, אינדקס ריק או יציאה תקינה עם רשומות שנדחו אינם בנייה תקינה.
+מסלולי אינדקס ומספור אחרים דורשים שילוב נפרד; ראו [אינדקסים](indexes.md).
 גרסאות ה־Python QA שעליהן נבדק השחרור מוצמדות ב־`requirements-qa.txt`.
 
 אפשר להתקין חבילות גם בעצים המקומיים התקניים של TeX. הבנייה מכבדת את
@@ -256,16 +262,18 @@ escaped מתחיל comment ומוחק את יתר השורה.
 ## ביבליוגרפיה והפניות
 
 ה־pipeline אינו מריץ BibTeX/Biber. למסמך עצמאי השתמש ב־
-`thebibliography`:
+`thebibliography`. לרשומות מקומיות טען `document_components.tex` אחרי הפרמבול:
 
 ```latex
 \begin{thebibliography}{9}
 \bibitem{knuth}
-\en{Donald E. Knuth. \emph{The TeXbook}. Addison-Wesley, 1984.}
+\bibentryprose{english}{Donald E. Knuth. \emph{The TeXbook}. Addison-Wesley, 1984.}
 \end{thebibliography}
 ```
 
-הנקודה הסוגרת של רשומה לטינית נשארת בתוך אותו אי LTR. הפניות למשוואה
+רשומה מלאה נכתבת בפסקת `\bibentryprose` בשפתה, כולל הפיסוק הסופי.
+שורות המשך באנגלית מתחילות משמאל; הכותרת והמספור נשארים במעטפת המקורית.
+ראו [מדריך הסימוכין](citations.md); איים קצרים עדיין משתמשים ב־`\en` ו־`\h`. הפניות למשוואה
 בפרוזה הן `\eqref{...}` ללא `$...$`:
 
 ```latex

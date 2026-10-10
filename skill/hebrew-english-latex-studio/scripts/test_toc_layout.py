@@ -33,6 +33,73 @@ LABELS = [('chapter','1000','CHAPTER'), ('section','1.1','ALPHA'),
 HE = {'CHAPTER':'פרק הבדיקה', 'ALPHA':'הפרדה ראשונה', 'BETA':'הפרדה שנייה',
       'GAMMA':'הפרדה שלישית', 'DELTA':'הפרדה רביעית', 'EPSILON':'הפרדה חמישית',
       'FIGURE':'איור בדיקה', 'TABLE':'טבלת בדיקה'}
+LIST_LANGUAGE_START = '% <hllpdf:caption-list-language>'
+LIST_LANGUAGE_END = '% </hllpdf:caption-list-language>'
+NATIVE_LIST_ROWS = [('figure', '1', 'English figure entry'),
+                    ('figure', '2', 'איור עברי לבדיקה'),
+                    ('table', '1', 'English table entry'),
+                    ('table', '2', 'טבלה עברית לבדיקה')]
+
+
+def native_list_number(label):
+    return f'100.100.100.{label}'
+
+
+def native_page_column(page, title_box, number='37'):
+    """Page labels can follow a dot leader with no text-layer space."""
+    hits = []
+    for block in page.get_text('rawdict')['blocks']:
+        for line in block.get('lines', []):
+            chars = [c for span in line['spans'] for c in span['chars']]
+            text = ''.join(c['c'] for c in chars)
+            for match in re.finditer(r'(?<!\d)' + re.escape(number) + r'(?!\d)', text):
+                run = chars[match.start():match.end()]
+                if not title_box[1] <= run[0]['origin'][1] <= title_box[3]:
+                    continue
+                rect = fitz.Rect(run[0]['bbox'])
+                for char in run[1:]:
+                    rect |= fitz.Rect(char['bbox'])
+                physical = ''.join(c['c'] for c in sorted(run, key=lambda c: c['origin'][0]))
+                hits.append((tuple(rect), physical))
+    if len(hits) != 1:
+        raise ValueError(f'page column {number!r}: expected one row hit, got {len(hits)}')
+    return hits[0]
+
+
+def native_list_fixture(main_language, list_language):
+    """Native captions write their real Babel records, not synthetic entries."""
+    profile = 'english-with-hebrew' if main_language == 'english' else 'hebrew-with-english'
+    text = fr'''\def\lakitlanguageprofile{{{profile}}}
+\def\lakitdocumentclass{{article}}
+\def\lakitclassoptions{{11pt,a4paper}}
+\input{{preamble.tex}}
+\renewcommand\thefigure{{100.100.100.\arabic{{figure}}}}
+\renewcommand\thetable{{100.100.100.\arabic{{table}}}}
+\hypersetup{{pdftitle={{Native mixed caption lists}},pdfauthor={{}}}}
+\begin{{document}}
+\setcounter{{page}}{{37}}
+'''
+    for kind, number, title in NATIVE_LIST_ROWS:
+        language = 'english' if number == '1' else 'hebrew'
+        text += fr'''\begin{{{language}prose}}
+\begin{{center}}
+\rule{{3cm}}{{1cm}}
+\captionof{{{kind}}}[{title}]{{{title}.}}
+\label{{{kind}:{number}}}
+\end{{center}}
+\end{{{language}prose}}
+'''
+    text += fr'''\clearpage
+\begin{{{list_language}prose}}
+\typeout{{HLLLIST-LANGUAGE-BEFORE=\languagename}}
+\listoffigures
+\listoftables
+\typeout{{HLLLIST-LANGUAGE-AFTER=\languagename}}
+\end{{{list_language}prose}}
+\typeout{{HLLLIST-OUTER-LANGUAGE=\languagename}}
+\end{{document}}
+'''
+    return text
 
 
 def fixture(document_class='report', size=12, english=False, theme='', mixed=False):
@@ -156,6 +223,13 @@ class RuntimeTests(unittest.TestCase):
         cls.results[8]=cls.compile('8','article',12,False,'',mixed=True)
         cls.configs.append(('article',12,'mixed',''))
         cls.mutant=cls.compile('mutant','report',12,False,'',mutate=True)
+        cls.native_lists = {}
+        for main in ('hebrew', 'english'):
+            for local in ('hebrew', 'english'):
+                name = f'native-{main}-{local}'
+                cls.native_lists[(main, local)] = cls.compile_native_list(name, main, local)
+        cls.native_list_mutant = cls.compile_native_list(
+            'native-historical', 'hebrew', 'hebrew', mutate=True)
 
     @classmethod
     def tearDownClass(cls):
@@ -190,6 +264,108 @@ class RuntimeTests(unittest.TestCase):
         for i,(folder,rows,result) in self.results.items():
             self.assertEqual(result.returncode,0,f'{self.configs[i]}\n{result.stdout[-3000:]}')
             yield i,folder,rows
+
+    @classmethod
+    def compile_native_list(cls, name, main_language, list_language, mutate=False):
+        folder = cls.root / name
+        folder.mkdir()
+        core = (ROOT / 'assets/preamble.tex').read_text()
+        if mutate:
+            a = core.index(LIST_LANGUAGE_START)
+            b = core.index(LIST_LANGUAGE_END, a) + len(LIST_LANGUAGE_END)
+            core = core[:a] + core[b:]
+            core = core.replace(r'\hllpdf@listlanguage', '')
+        (folder / 'preamble.tex').write_text(core)
+        (folder / 'main.tex').write_text(native_list_fixture(main_language, list_language))
+        for _ in range(3):
+            result = subprocess.run(
+                ['lualatex', '--no-shell-escape', '-halt-on-error',
+                 '-interaction=nonstopmode', 'main.tex'], cwd=folder, env=cls.env,
+                capture_output=True, text=True, timeout=120)
+            if result.returncode:
+                break
+        cls.logs[name] = result.stdout
+        return folder, result
+
+    def native_list_documents(self):
+        for (main, local), (folder, result) in self.native_lists.items():
+            self.assertEqual(result.returncode, 0, result.stdout[-3000:])
+            with fitz.open(folder / 'main.pdf') as doc:
+                self.assertEqual(len(doc), 2)
+            log = (folder / 'main.log').read_text()
+            for warning in ('Missing character:', 'Overfull \\hbox',
+                            'Overfull \\vbox', 'destination with the same identifier'):
+                self.assertNotIn(warning, log)
+            yield main, local, folder
+
+    def test_native_mixed_lists_keep_the_invoking_number_page_columns(self):
+        for _, local, folder in self.native_list_documents():
+            direction = 'rtl' if local == 'hebrew' else 'ltr'
+            opposite = 'ltr' if direction == 'rtl' else 'rtl'
+            with fitz.open(folder / 'main.pdf') as doc:
+                for _, label, title in NATIVE_LIST_ROWS:
+                    expected = native_list_number(label)
+                    number = measure(doc[1], expected, title, direction)
+                    page_box, physical_page = native_page_column(doc[1], number.title_box)
+                    self.assertGreaterEqual(number.gap_pt, 3, (folder.name, number))
+                    self.assertGreater(horizontal_gap(page_box, number.title_box, opposite), 3)
+                    self.assertEqual(number.physical_label, expected)
+                    self.assertEqual(physical_page, '37')
+
+    def test_native_list_language_scope_fonts_and_navigation_survive(self):
+        for main, local, folder in self.native_list_documents():
+            log = self.logs[folder.name]
+            self.assertIn(f'HLLLIST-LANGUAGE-BEFORE={local}', log)
+            self.assertIn(f'HLLLIST-LANGUAGE-AFTER={local}', log)
+            self.assertIn(f'HLLLIST-OUTER-LANGUAGE={main}', log)
+            with fitz.open(folder / 'main.pdf') as doc:
+                names = doc.resolve_names()
+                links = doc[1].get_links()
+                self.assertEqual(len(links), 4)
+                for link in links:
+                    if 'nameddest' in link:
+                        self.assertIn(link['nameddest'], names)
+                        self.assertEqual(names[link['nameddest']]['page'], 0)
+                    else:
+                        self.assertEqual(link.get('page'), 0)
+                # Each title keeps its own caption language font, even though
+                # the structural number/page columns use the list language.
+                raw = doc[1].get_text('dict')
+                english = [s for b in raw['blocks'] for l in b.get('lines', [])
+                           for s in l['spans'] if 'English' in s['text']]
+                hebrew = [s for b in raw['blocks'] for l in b.get('lines', [])
+                          for s in l['spans'] if re.search('[א-ת]', s['text'])]
+                self.assertEqual(len(english), 2)
+                self.assertTrue(all('LMRoman' in s['font'] for s in english))
+                self.assertTrue(hebrew)
+                self.assertTrue(all('FrankRuhlLibre' in s['font'] for s in hebrew))
+            for ext, kind in (('lof', 'figure'), ('lot', 'table')):
+                records = (folder / f'main.{ext}').read_text()
+                for _, label, title in (r for r in NATIVE_LIST_ROWS if r[0] == kind):
+                    self.assertIn(fr'\numberline {{{native_list_number(label)}}}', records)
+                    self.assertIn(title, records)
+
+    def test_native_mixed_list_historical_control_reverses_only_local_row(self):
+        folder, result = self.native_list_mutant
+        self.assertEqual(result.returncode, 0, result.stdout[-3000:])
+        with fitz.open(folder / 'main.pdf') as doc:
+            for _, label, title in NATIVE_LIST_ROWS:
+                if label == '1':
+                    # Actual native English language records caused the row's
+                    # number/page columns to flip in an otherwise Hebrew list.
+                    with self.assertRaises(ValueError):
+                        measure(doc[1], native_list_number(label), title, 'rtl')
+                    number = measure(doc[1], native_list_number(label), title, 'ltr')
+                    self.assertGreater(number.gap_pt, 3)
+                    page_box, physical = native_page_column(doc[1], number.title_box)
+                    self.assertGreater(horizontal_gap(page_box, number.title_box, 'rtl'), 3)
+                    self.assertEqual(physical, '37')
+                else:
+                    number = measure(doc[1], native_list_number(label), title, 'rtl')
+                    self.assertGreater(number.gap_pt, 3)
+                    page_box, physical = native_page_column(doc[1], number.title_box)
+                    self.assertGreater(horizontal_gap(page_box, number.title_box, 'ltr'), 3)
+                    self.assertEqual(physical, '37')
 
     def test_all_nine_fixture_variants_compile(self):
         for _,folder,_ in self.documents():

@@ -41,13 +41,116 @@ ID & Value & State\\
 \end{center}
 ```
 
-Use this English example in an English context. In Hebrew, isolate Latin values
-and verify the physical key column at the right edge. Ordinary tabular and
-longtable can have different direction behavior across contexts/backends; do
-not infer column order from the prose language alone. A short table's natural
-rule width need not equal the paragraph or caption width. A frame is optional.
+Use this English example in an English context. A short table's natural rule
+width need not equal the paragraph or caption width. A frame is optional.
 `flowtable` deducts all outer/intercolumn padding from `\flowtablewidth`; its
-natural-width specifications are centered. Do not put it inside a frame/float.
+natural-width specifications are centered. Continuation notices have their own
+safe paragraph width rather than widening short data columns. Like a caption,
+a notice can be wider than the natural rules. Do not put it inside a frame/float.
+
+## Column order, cell direction and physical alignment
+
+Choose these three properties independently:
+
+1. **Semantic column order.** A Hebrew notation table normally puts the key or
+   symbol at the physical right, followed by its meaning to the left; an English
+   notation table normally starts with the key or symbol at the physical left.
+   Retain a different order when the data or requested template calls for it.
+2. **Cell language and direction.** In an English-ordered table, use `\h{...}`
+   for Hebrew prose and isolate its English terms with `\en{...}`. Keep a formula
+   in `\en{$...$}`, inline code in `\code{...}`, and a signed number in one
+   `\en{...}` island. Choose the prose language from the cell's meaning, not its
+   first character: a minority-language term does not change paragraph alignment.
+3. **Physical alignment.** Language wrappers control reading direction and
+   typography; they do not choose the cell's left or right edge. A correctly
+   rightmost symbol column can coexist with an incorrectly left-aligned Hebrew
+   meaning column. Set and inspect both properties.
+
+For a short `tabular`, an explicit `otherlanguage{english}` block around the
+table makes the first declared column physically leftmost. Declare the Hebrew
+key last and the English key first. End that block before the caption so the
+caption retains its intended surrounding language. The following specifications
+apply to this **English-ordered local table**:
+
+| Cell content | Physical alignment | Column specification |
+|---|---|---|
+| Short Hebrew prose | Right | `r`, with `\h{...}` cells |
+| Wrapping Hebrew prose | Right, including the last short line | `>{\raggedleft\arraybackslash}p{width}`, with `\h{...}` cells |
+| Short English prose | Left | `l`, with English or `\en{...}` cells |
+| Wrapping English prose | Left, including the last short line | `>{\raggedright\arraybackslash}p{width}` |
+| Numbers and signed values | Right | Natural `r`, with LTR islands where needed |
+| Mathematical symbols or code | LTR content; align to the key's chosen edge | `r` for a Hebrew key, `l` for an English key; `c` for an explicitly centered math/grid design |
+
+Ordinary `tabular` and `longtable` can differ across enclosing languages and
+backends; do not infer their physical order or alignment from prose language
+alone. Do not reverse every column to repair a text-alignment defect. The
+retained `example_references.tex` keeps its function input `x` at the Hebrew
+leading edge by declaring its short mathematical table in an explicit English
+column-order block, with `x` last. That block ends before the Hebrew caption.
+The English companion puts the input first. Check header and data-row positions
+together; a correct localized caption does not prove correct table order.
+
+The `flowtable` H/E/N types have a separate enclosing-direction contract: they
+already adapt Hebrew prose to the physical right, English prose to the physical
+left and numeric/token cells to the physical right. Do not invert their
+definitions or replace their direction-dependent alignment with the short-table
+specifications above. See [flow-table cell types](flow-tables.md).
+
+### Paired notation examples
+
+These two-column examples illustrate order and cell alignment; they do not
+prescribe a schema. The 6 cm prose allowance is an authored budget for these
+wrapping definitions. Fit it to the actual content and local `\linewidth`,
+including cell padding, rather than stretching every table or shrinking type.
+For genuinely short meanings use a natural `r` column in the Hebrew example
+and a natural `l` column in the English example.
+
+Use this first snippet in a Hebrew paragraph context. Its table has explicit
+English column order, Hebrew meanings aligned to their physical right edge,
+and an LTR symbol column declared last:
+
+```latex
+\begin{center}
+\begin{otherlanguage}{english}
+\begin{tabular}{@{}>{\raggedleft\arraybackslash}p{6cm}r@{}}
+\toprule
+\h{\textbf{משמעות}} & \h{\textbf{סימון}}\\
+\midrule
+\h{המספר השלם הגדול ביותר שאינו גדול מ־\en{$x$}.}
+  & \en{$\lfloor x\rfloor$}\\
+\h{שארית החלוקה של \en{$x$} ב־\en{$y$}.}
+  & \en{$x\bmod y$}\\
+\h{מכפלה פנימית של שני מצבים, בסימון \en{Dirac}.}
+  & \en{$\langle\psi\mid\phi\rangle$}\\
+\bottomrule
+\end{tabular}
+\end{otherlanguage}
+\tabcap{\label{tab:notation-he}מוסכמות סימון.}
+\end{center}
+```
+
+Use the paired snippet in an English paragraph context. The symbol comes first
+at the physical left, while the English meanings align to their physical left:
+
+```latex
+\begin{center}
+\begin{otherlanguage}{english}
+\begin{tabular}{@{}l>{\raggedright\arraybackslash}p{6cm}@{}}
+\toprule
+Symbol & Meaning\\
+\midrule
+\en{$\lfloor x\rfloor$}
+  & The greatest integer that is no larger than $x$.\\
+\en{$x\bmod y$}
+  & The remainder when $x$ is divided by $y$.\\
+\en{$\langle\psi\mid\phi\rangle$}
+  & The inner product of two states, in Dirac notation.\\
+\bottomrule
+\end{tabular}
+\end{otherlanguage}
+\tabcap{\label{tab:notation-en}Notation conventions.}
+\end{center}
+```
 
 ## Wide unframed prose table
 
@@ -160,6 +263,10 @@ explicit `continuous` policy. The complete caption uses `\lakitcaptionstyle`;
 `\lakitcaptionlabelstyle` is retained as an identity compatibility hook.
 Caption hyperlinks keep their actions while inheriting the paragraph color;
 the local default also sets hyperlink colors to black.
+The class's `\small` preset is capped at the surrounding body size: a caption in
+9 pt or 6.3 pt reference text retains that local size and baseline instead of
+growing to the class's larger preset. This is a local typography policy, not an
+overflow remedy. A deliberate whole-paragraph override remains possible.
 Choose a deliberate whole-paragraph override for a requested template rather
 than styling its label independently. Preserve math fonts and appropriate
 Hebrew/Latin faces within the same family/size policy.
@@ -170,8 +277,24 @@ caption argument. Frameless tables target the measured table top; the historical
 frame cushion applies only within `tablebox`. Check that a reference lands at its
 own table rather than above the preceding heading. Native `\caption` / `\captionof` use the caption package's
 own counters and anchors; optional subcaption inherits the paragraph font.
+For a new document, choose custom or native captions consistently for each
+object kind. They are distinct counter APIs; mixing them does not create one
+shared sequence. Preserve an existing project's declared numbering policy.
 Do not manually synchronize counters or duplicate labels/list entries.
 `flowtable` shares the custom table counter but retains its native top anchor.
+
+Load optional `subcaption` after the core. Its default `(a): Description` label
+is isolated as a complete Latin parenthetical sequence, so a digit-leading
+Hebrew description cannot collect a label parenthesis. Explicit package options
+and later `\captionsetup[sub]{...}` override defaults; the core does not reset
+them at document start. For a requested template, apply the font to the complete
+paragraph. Check both single-line and wrapping subcaptions, including mathematics.
+
+Figure/table lists follow the language of the list's paragraph shell. An English
+entry in a Hebrew list must keep its object number on the right and its page
+number on the left; a Hebrew entry in an English list retains the LTR shell.
+The entry's text still uses its authored language. Inspect both physical placement
+and clickable targets rather than inferring reading order from extracted text.
 
 Long captions wrap normally. Avoid manual line breaks, label-only colors,
 incidental `\textbf`/`\sffamily` or a second size in the description. Explicit
@@ -187,18 +310,44 @@ style is only supported as an explicitly declared compatibility override.
 \input{document_components.tex}
 ```
 
-After the document begins, in an English context:
+After the document begins, choose the definition's paragraph language. The
+optional language argument selects `english` or `hebrew` for this entry only;
+it does not infer a language from the term. Isolate minority-language terms:
 
 ```latex
-\glossaryentry{Compiler}{Translates source code into another representation.}
-\glossaryentry{\h{מהדר}}{The Hebrew term for a compiler.}
+\glossaryentry[english]{Compiler}{Translates source code into another representation.}
+\glossaryentry[english]{\h{מהדר}}{The Hebrew term for a compiler.}
+\glossaryentry[hebrew]{מהדר}{מתרגם קוד מקור לייצוג אחר.}
+\glossaryentry[hebrew]{\en{Compiler}}{המונח האנגלי למהדר.}
 ```
 
-Use `\en{Compiler}` in a Hebrew glossary. The helper joins the term and definition
-with a spaced em dash; it inserts no dot after the term. Author sentence
-punctuation in the definition. Native `description` lists remain available and
-are not globally restyled. Distinguish sentence punctuation, decimal points,
-numbering and URL dots from relation separators; never replace periods globally.
+Omitting the optional argument preserves the current local prose language:
+
+```latex
+\begin{hebrewprose}
+\glossaryentry{\en{Cache (L1)}}{מטמון ששומר נתונים לגישה חוזרת.}
+\end{hebrewprose}
+```
+
+Each entry is an ordinary paragraph aligned at its reading edge: English starts
+at the physical left, Hebrew at the physical right. Its opposite edge remains
+ragged so justification does not stretch the connection between a short term
+and its definition. Long terms and definitions can wrap without fixed columns,
+font shrinking or a forced width. The scoped language and alignment end with
+the entry; following prose keeps its own style. Use a definition-language
+paragraph, rather than wrapping a complete definition in an inline `\en`/`\h`.
+
+The helper joins the term and definition with a spaced em dash and keeps that
+seam connected; it inserts no dot after the term. Author sentence punctuation
+in the definition. A synonym dash inside a term does not replace the separator
+before its definition. Write signed quantities as mathematics, for example
+`$-12.50\,\mathrm{ms}$`, rather than expecting a breakable inline language island
+to keep a sign, number and unit together. Check long links at the actual local
+paragraph margins after rendering.
+
+Native `description` lists remain available and are not globally restyled.
+Distinguish sentence punctuation, decimal points, numbering and URL dots from
+relation separators; never replace periods globally.
 
 ## Review scope and older material
 
@@ -216,3 +365,17 @@ tables, Hebrew/English/mixed captions, long wrapped text, terminology paragraphs
 math and minority-language terms. Check cell padding, column order, clipping,
 line collisions, full paragraph typography, numbering and navigation. Compilation
 and glyph tests do not constitute visual review or PDF/UA certification.
+
+Check the actual ink edges and word order of each prose column independently
+of the symbol/key position. Include unequal-length short cells, wrapping cells
+and their last short lines: Hebrew meanings/notes must share the intended right
+edge, English meanings/notes the intended left edge. Mixed English terms in a
+Hebrew definition must retain their own word/sign order without moving the
+paragraph to the left edge. Retain authored sentence punctuation.
+
+Regression controls should fail separately for a swapped semantic key column,
+wrong word/sign direction, and wrong physical paragraph alignment. For example,
+changing only the Hebrew wrapped column to `\raggedright` in the English-ordered
+table must fail its right-edge check even when the symbol stays rightmost and
+the Hebrew words remain in the correct order. A successful compilation, source
+specification or extracted text order cannot replace these physical checks.

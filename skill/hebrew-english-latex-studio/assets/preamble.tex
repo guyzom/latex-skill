@@ -940,20 +940,59 @@
 % One paragraph style covers label, number, separator and description.
 % Explicit project/template overrides remain possible; the label hook is kept
 % for compatibility, with an identity default. Counters/anchors stay unchanged.
-\newcommand{\lakitcaptionstyle}{\normalfont\small\color{black}\hypersetup{allcolors=black}}
+\makeatletter
+% A class-level \small must never enlarge a deliberately smaller local layout.
+% Preserve the local body size/baseline when it is already below class-small;
+% this is a caption policy, not automatic scaling to make content fit.
+\newcommand{\lakitcaptionstyle}{%
+  \ifdefined\hllpdf@nativecaptionfontsize
+    \edef\hllpdf@captionfontsize{\hllpdf@nativecaptionfontsize}%
+    \edef\hllpdf@captionbaseline{\hllpdf@nativecaptionbaseline}%
+  \else
+    \edef\hllpdf@captionfontsize{\f@size}%
+    \edef\hllpdf@captionbaseline{\f@baselineskip}%
+  \fi
+  \normalfont\small
+  \ifdim\f@size pt>\hllpdf@captionfontsize pt
+    \fontsize{\hllpdf@captionfontsize}{\hllpdf@captionbaseline}\selectfont
+  \fi
+  \color{black}\hypersetup{allcolors=black}}
+\makeatother
 \newcommand{\lakitcaptionlabelstyle}[1]{#1}
 \newcommand{\lakitcaptionpunctuation}{:}
 % Native floats, captionof and longtable use the same presentation policy.
 % subcaption is optional and inherits the same font rather than a second size.
 \usepackage{caption}
+\makeatletter
+% Native caption paths reset class size before applying their font. Capture
+% the caller's typography after their own group opens, before that reset.
+% The public kernel command hook also covers captionof, subcaption and native
+% longtable captions, including their single-line measurement trials.
+\AddToHook{cmd/caption@begin/after}{%
+  \edef\hllpdf@nativecaptionfontsize{\f@size}%
+  \edef\hllpdf@nativecaptionbaseline{\f@baselineskip}}
+\makeatother
 \DeclareCaptionFont{lakit}{\lakitcaptionstyle}
 \DeclareCaptionLabelFormat{lakit}{\lakitcaptionlabelstyle{#1~\en{#2}}}
 \DeclareCaptionLabelSeparator{lakit}{\lakitcaptionpunctuation\enspace}
 \captionsetup{font=lakit,labelfont={},textfont={},labelformat=lakit,
   labelsep=lakit,justification=centering}
+% Select the Latin direction BEFORE constructing the atomic label box. Older
+% Babel/LuaHBTeX keeps an enclosing RTL box direction when \en is only inside
+% it, reversing the drawn parentheses even though the Latin glyphs are intact.
+\DeclareCaptionLabelFormat{lakit-sub}{\en{\mbox{\lakitcaptionlabelstyle{(#2)}}}}
 \makeatletter
-\AtBeginDocument{\@ifpackageloaded{subcaption}{%
-  \captionsetup[sub]{font=lakit,labelfont={},textfont={},labelsep=lakit}}{}}
+% Supply optional-package defaults early, rather than overwriting an explicit
+% template's \captionsetup[sub] at begin-document. Previously passed options
+% are replayed after defaults; subsequent package options/setup remain final.
+\let\hllpdf@subcaptionoptions\@empty
+\@ifundefined{opt@subcaption.sty}{}{%
+  \expandafter\let\expandafter\hllpdf@subcaptionoptions\csname opt@subcaption.sty\endcsname}
+\PassOptionsToPackage{font=lakit,labelfont={},textfont={},labelformat=lakit-sub,labelsep=lakit}{subcaption}
+\ifx\hllpdf@subcaptionoptions\@empty\else
+  \expandafter\PassOptionsToPackage\expandafter{\hllpdf@subcaptionoptions}{subcaption}
+\fi
+\let\hllpdf@subcaptionoptions\relax
 \makeatother
 % v3.64: OPT-IN list-of-figures/tables entry via an optional short caption.
 % \listoffigures and \listoftables are inherited from report.cls and LOOK available,
@@ -1946,7 +1985,12 @@
 \long\def\hllpdf@tocscanlanguage\babel@toc#1#2#3\hllpdf@tocstop{%
   % Babel records are declarations, not arbitrary code. Track the language
   % without executing the original directive or changing the surrounding list.
-  \def\hllpdf@toclanguage{#1}}
+  \def\hllpdf@toclanguage{#1}%
+  % Contents rows retain their own language. Figure/table structural columns
+  % use the invoking list language, so measure their numbers in that font.
+  \ifx\hllpdf@tocmeasureext\hllpdf@tocmeasuretoc
+    \def\hllpdf@tocnumberlanguage{#1}%
+  \fi}
 \long\def\hllpdf@tocscanline\contentsline#1#2#3#4#5\hllpdf@tocstop{%
   \def\hllpdf@toclevel{#1}%
   \ifcsname hllpdf@toc@#1\endcsname
@@ -1954,14 +1998,14 @@
   \fi
   % The page-number column needs its own measurement (including bold chapter
   % rows). Its extra clearance separates the page label from dot leaders.
-  \setbox\@tempboxa=\hbox{\foreignlanguage{\hllpdf@toclanguage}{\hllpdf@tocentryfont #3\kern.3em}}%
+  \setbox\@tempboxa=\hbox{\foreignlanguage{\hllpdf@tocnumberlanguage}{\hllpdf@tocentryfont #3\kern.3em}}%
   \ifdim\wd\@tempboxa>\hllpdf@tocpage
     \hllpdf@tocpage=\wd\@tempboxa
   \fi}
 \def\hllpdf@tocscantitle{%
   \@ifnextchar\numberline{\hllpdf@tocscanlabel}{\hllpdf@tocdiscard}}
 \long\def\hllpdf@tocscanlabel\numberline#1#2\hllpdf@tocstop{%
-  \setbox\@tempboxa=\hbox{\foreignlanguage{\hllpdf@toclanguage}{\hllpdf@tocentryfont #1\kern.5em}}%
+  \setbox\@tempboxa=\hbox{\foreignlanguage{\hllpdf@tocnumberlanguage}{\hllpdf@tocentryfont #1\kern.5em}}%
   \ifdim\wd\@tempboxa>\csname hllpdf@toc@\hllpdf@toclevel\endcsname
     \csname hllpdf@toc@\hllpdf@toclevel\endcsname=\wd\@tempboxa
   \fi}
@@ -1974,6 +2018,8 @@
 \def\hllpdf@tocmeasure#1{%
   \makeatletter
   \edef\hllpdf@toclanguage{\languagename}%
+  \let\hllpdf@tocnumberlanguage\hllpdf@toclanguage
+  \def\hllpdf@tocmeasureext{#1}\def\hllpdf@tocmeasuretoc{toc}%
   \hllpdf@tocdefaults
   \openin\hllpdf@tocstream=\jobname.#1\relax
   \hllpdf@tocread
@@ -1984,6 +2030,27 @@
   \ifdim\@tempdima>\@tocrmarg\relax
     \edef\@tocrmarg{\the\@tempdima}%
   \fi}
+% <hllpdf:caption-list-language>
+% A figure/table list keeps the number and page columns in the language in
+% which the list was requested. Babel's caption-language records still select
+% the title's local font and direction, without reversing the whole row.
+% Preserve the native contentsline/hyperref path and leave TOC rows unchanged.
+\long\def\hllpdf@listnumbered\numberline#1#2\hllpdf@liststop{%
+  \numberline{#1}\foreignlanguage{\hllpdf@listentrylanguage}{#2}}
+\long\def\hllpdf@listunnumbered#1\hllpdf@liststop{%
+  \foreignlanguage{\hllpdf@listentrylanguage}{#1}}
+\def\hllpdf@listtitle{%
+  \@ifnextchar\numberline{\hllpdf@listnumbered}{\hllpdf@listunnumbered}}
+\def\hllpdf@listlanguage{%
+  \edef\hllpdf@listshelllanguage{\languagename}%
+  \let\hllpdf@listcontentsline\contentsline
+  \long\def\contentsline##1##2##3##4{%
+    \begingroup
+      \edef\hllpdf@listentrylanguage{\languagename}%
+      \select@language{\hllpdf@listshelllanguage}%
+      \hllpdf@listcontentsline{##1}{\hllpdf@listtitle##2\hllpdf@liststop}{##3}{##4}%
+    \endgroup}}
+% </hllpdf:caption-list-language>
 \let\hllpdf@originalstarttoc\@starttoc
 \def\@starttoc#1{%
   \begingroup
@@ -1991,9 +2058,9 @@
     \def\hllpdf@tocwanted{toc}%
     \ifx\hllpdf@tocext\hllpdf@tocwanted \hllpdf@tocmeasure{#1}\else
       \def\hllpdf@tocwanted{lof}%
-      \ifx\hllpdf@tocext\hllpdf@tocwanted \hllpdf@tocmeasure{#1}\else
+      \ifx\hllpdf@tocext\hllpdf@tocwanted \hllpdf@tocmeasure{#1}\hllpdf@listlanguage\else
         \def\hllpdf@tocwanted{lot}%
-        \ifx\hllpdf@tocext\hllpdf@tocwanted \hllpdf@tocmeasure{#1}\fi
+        \ifx\hllpdf@tocext\hllpdf@tocwanted \hllpdf@tocmeasure{#1}\hllpdf@listlanguage\fi
       \fi
     \fi
     \hllpdf@originalstarttoc{#1}%

@@ -27,11 +27,14 @@ import build_contract as build
 
 ROOT = Path(__file__).resolve().parent.parent
 CATALOG_PATH = "registry/studio-catalog.json"
-CATALOG_SCHEMA_VERSION = 1
+CATALOG_SCHEMA_VERSION = 2
 BILINGUAL_COMPOSERS = ("paired-bodies", "paper-shared-frontmatter", "reference-paired-pages", "paired-full-pages")
 MINORITY_COMPOSERS = ("append-note", "paper-summary", "reference-topic-note", "letter-before-signature")
 SOURCE_HANDLERS = ("declare-note-language", "data-heading-guard")
-BUILD_DEFAULT_NAMES = ("EXPECTED_PAPER", "PDF_FOLIO_LAYOUT", "PDF_FOLIO_BAND", "PDF_CAPTION_COLOR", "PDF_CAPTION_LABEL_WEIGHT")
+OPTIONAL_SPECIMENS = ("study", "index")
+OPTIONAL_SPECIMEN_APIS = {"study": architecture.STUDY_COMPONENT_SYMBOLS,
+                          "index": architecture.INDEX_COMPONENT_SYMBOLS}
+BUILD_DEFAULT_NAMES = ("EXPECTED_PAPER", "PDF_FOLIO_LAYOUT", "PDF_FOLIO_BAND", "PDF_CAPTION_COLOR", "PDF_CAPTION_LABEL_WEIGHT", "INDEX_PROCESSOR", "INDEX_STYLE")
 IDENTIFIER = re.compile(r"[a-z][a-z0-9-]*\Z")
 NUMBER = re.compile(r"[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?\Z")
 DIMENSION = re.compile(r"([+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+))(pt|mm|cm|in|bp|pc|dd|cc|sp|em|ex)\Z")
@@ -140,6 +143,23 @@ class ExampleSpec(Record):
 
 
 @dataclass(frozen=True)
+class ComponentSpec(Record):
+    """Explicit optional source integration; runtime ownership stays in ASSET_SPECS."""
+    id: str
+    title: tuple[tuple[str, str], ...]
+    asset_path: str
+    specimen_id: str
+    supporting_files: tuple[str, ...]
+    allowed_kinds: tuple[str, ...]
+    allowed_layouts: tuple[str, ...]
+    language_profiles: tuple[str, ...]
+    build_defaults: tuple[tuple[str, str], ...]
+    docs: tuple[str, ...]
+    glossary_refs: tuple[str, ...]
+    acceptance: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class StudioCatalog(Record):
     schema_version: int
     sha256: str
@@ -153,6 +173,7 @@ class StudioCatalog(Record):
     layouts: tuple[LayoutSpec, ...]
     themes: tuple[ThemeSpec, ...]
     examples: tuple[ExampleSpec, ...]
+    components: tuple[ComponentSpec, ...]
 
     def as_dict(self) -> dict[str, Any]:
         def record(item: Record) -> dict[str, Any]:
@@ -171,7 +192,8 @@ class StudioCatalog(Record):
                 "base_copy_plan": list(self.base_copy_plan), "required_glossary_terms": list(self.required_glossary_terms),
                 "templates": [record(item) for item in self.templates],
                 "layouts": [record(item) for item in self.layouts],
-                "themes": [record(item) for item in self.themes], "examples": [record(item) for item in self.examples]}
+            "themes": [record(item) for item in self.themes], "examples": [record(item) for item in self.examples],
+            "components": [record(item) for item in self.components]}
 
 
 @dataclass(frozen=True)
@@ -181,6 +203,13 @@ class RecipeRequest(Record):
     main_language: str | None = None
     theme: str | None = None
     layout: str = "standard"
+    components: tuple[str, ...] = ()
+
+    def as_dict(self) -> dict[str, Any]:
+        result = super().as_dict()
+        if not self.components:
+            del result["components"]
+        return result
 
 
 @dataclass(frozen=True)
@@ -210,6 +239,7 @@ class ResolvedRecipe(Record):
     theme: str
     layout: str
     content_profile: str
+    components: tuple[str, ...]
     recipe_revision: int
     layout_revision: int
     catalog_sha256: str
@@ -468,12 +498,17 @@ def _build_defaults(value: Any) -> tuple[tuple[str, str], ...]:
     if any(name not in BUILD_DEFAULT_NAMES for name, _ in result):
         raise CatalogError("unknown build default; build contracts remain with build_contract")
     allowed = {"EXPECTED_PAPER": tuple(build.PAPERS_MM), "PDF_FOLIO_LAYOUT": build.FOLIO_LAYOUTS,
-               "PDF_FOLIO_BAND": build.FOLIO_BANDS, "PDF_CAPTION_LABEL_WEIGHT": build.CAPTION_LABEL_WEIGHTS}
+               "PDF_FOLIO_BAND": build.FOLIO_BANDS, "PDF_CAPTION_LABEL_WEIGHT": build.CAPTION_LABEL_WEIGHTS,
+               "INDEX_PROCESSOR": build.INDEX_PROCESSORS}
     for name, value in result:
         if name in allowed and value not in allowed[name]:
             raise CatalogError(f"invalid build default for {name}")
         if name == "PDF_CAPTION_COLOR":
             build.parse_rgb_hex(value)
+        if name == "INDEX_STYLE":
+            build.validate_index_style(value)
+    if dict(result).get("INDEX_STYLE") and dict(result).get("INDEX_PROCESSOR") != "makeindex":
+        raise CatalogError("index style requires the makeindex processor")
     return result
 
 
@@ -521,7 +556,7 @@ def load_catalog(root: Path = ROOT, *, allow_missing_generated_docs: bool = Fals
     except (UnicodeError, json.JSONDecodeError) as exc:
         raise CatalogError(f"invalid catalog JSON: {exc}") from exc
     keys = {"schema_version", "language_contract", "asset_contract", "build_contract", "default_theme",
-            "base_copy_plan", "required_glossary_terms", "templates", "layouts", "themes", "examples"}
+            "base_copy_plan", "required_glossary_terms", "templates", "layouts", "themes", "examples", "components"}
     raw = _object(raw, keys, "catalog")
     if type(raw["schema_version"]) is not int or raw["schema_version"] != CATALOG_SCHEMA_VERSION:
         raise CatalogError("unsupported catalog schema")
@@ -606,6 +641,27 @@ def load_catalog(root: Path = ROOT, *, allow_missing_generated_docs: bool = Fals
         themes.append(ThemeSpec(id=_id(item["id"], "theme id"), exposure=exposure, mode=mode, asset_path=asset,
             copy_stage=stage, local_filename=item["local_filename"], caption_contract=tuple(caption.items()),
             build_defaults=_build_defaults(item["build_defaults"]), **_metadata(item, root, allow_missing_generated_docs=allow_missing_generated_docs)))
+    components = []
+    for value in raw["components"] if isinstance(raw["components"], list) else [None]:
+        item = _object(value, {field.name for field in fields(ComponentSpec)}, "optional component")
+        asset = _string(item["asset_path"], "component asset path")
+        if asset not in assets or assets[asset].role != "semantic-extension" or assets[asset].legacy:
+            raise CatalogError("optional component must reference an owned semantic extension")
+        supporting = _strings(item["supporting_files"], "supporting files")
+        for path in supporting:
+            safe_owned_path(root, path)
+            if not re.fullmatch(r"assets/[a-z][a-z0-9_-]*\.ist", path):
+                raise CatalogError("component supporting files must be flat owned index style assets")
+        if item["specimen_id"] not in OPTIONAL_SPECIMENS:
+            raise CatalogError("unknown closed optional specimen composer")
+        if not set(OPTIONAL_SPECIMEN_APIS[item["specimen_id"]]) <= set(architecture.effective_public_symbols(assets[asset])):
+            raise CatalogError("optional specimen requires its semantic owner's public API")
+        components.append(ComponentSpec(id=_id(item["id"], "component id"), asset_path=asset, specimen_id=item["specimen_id"],
+            supporting_files=supporting, allowed_kinds=_strings(item["allowed_kinds"], "component kinds"),
+            allowed_layouts=_strings(item["allowed_layouts"], "component layouts"),
+            language_profiles=_strings(item["language_profiles"], "component language profiles"),
+            build_defaults=_build_defaults(item["build_defaults"]),
+            **_metadata(item, root, allow_missing_generated_docs=allow_missing_generated_docs)))
     examples = []
     for value in raw["examples"] if isinstance(raw["examples"], list) else [None]:
         item = _object(value, {field.name for field in fields(ExampleSpec)}, "example")
@@ -622,14 +678,14 @@ def load_catalog(root: Path = ROOT, *, allow_missing_generated_docs: bool = Fals
         _validate_load_plan(example_assets, assets)
         examples.append(ExampleSpec(id=_id(item["id"], "example id"), asset_path=path,
             architecture_assets=example_assets, language_profile=item["language_profile"], **_metadata(item, root, allow_missing_generated_docs=allow_missing_generated_docs)))
-    for name, collection in (("templates", templates), ("layouts", layouts), ("themes", themes), ("examples", examples)):
+    for name, collection in (("templates", templates), ("layouts", layouts), ("themes", themes), ("examples", examples), ("components", components)):
         if not collection or len({item.id for item in collection}) != len(collection):
             raise CatalogError(f"{name}: empty collection or duplicate IDs")
     catalog = StudioCatalog(schema_version=CATALOG_SCHEMA_VERSION, sha256=hashlib.sha256(payload).hexdigest(),
         language_contract=raw["language_contract"], asset_contract=raw["asset_contract"], build_contract=raw["build_contract"],
         default_theme=_id(raw["default_theme"], "catalog default theme"), base_copy_plan=paths(raw["base_copy_plan"], "base copy plan"),
         required_glossary_terms=_strings(raw["required_glossary_terms"], "required glossary terms"),
-        templates=tuple(templates), layouts=tuple(layouts), themes=tuple(themes), examples=tuple(examples))
+        templates=tuple(templates), layouts=tuple(layouts), themes=tuple(themes), examples=tuple(examples), components=tuple(components))
     kinds = {item.id for item in templates}
     layout_ids = {item.id for item in layouts}
     public_themes = {item.id for item in themes if item.exposure == "generator-supported"}
@@ -646,6 +702,18 @@ def load_catalog(root: Path = ROOT, *, allow_missing_generated_docs: bool = Fals
             raise CatalogError(f"{layout.id}: empty or unknown allowed kinds")
         if layout.default_theme is not None and layout.default_theme not in public_themes:
             raise CatalogError(f"{layout.id}: unsupported default theme")
+    for component in components:
+        if not component.allowed_kinds or not set(component.allowed_kinds) <= kinds:
+            raise CatalogError(f"{component.id}: empty or unknown component kinds")
+        if not component.allowed_layouts or not set(component.allowed_layouts) <= layout_ids:
+            raise CatalogError(f"{component.id}: empty or unknown component layouts")
+        if not component.language_profiles or not set(component.language_profiles) <= set(architecture.LANGUAGE_PROFILES):
+            raise CatalogError(f"{component.id}: empty or unknown component language profiles")
+        defaults = dict(component.build_defaults)
+        if component.specimen_id == "index" and (defaults.get("INDEX_PROCESSOR") != "makeindex" or not defaults.get("INDEX_STYLE")):
+            raise CatalogError(f"{component.id}: index specimen requires managed makeindex and an owned style default")
+        if defaults.get("INDEX_STYLE") and "assets/" + defaults["INDEX_STYLE"] not in component.supporting_files:
+            raise CatalogError(f"{component.id}: index style default is missing from supporting files")
     known_starters = {entry.asset_path for template in templates for entry in template.starters}
     known_starters.update(entry.asset_path for layout in layouts for entry in layout.starter_overrides)
     if known_starters != {path.relative_to(root).as_posix() for path in (root / "assets").glob("starter_*.tex")}:
@@ -685,7 +753,7 @@ def _validate_load_plan(plan: tuple[str, ...], assets: dict[str, architecture.As
 
 
 def resolve_recipe(kind: str, *, language: str = "hebrew", main_language: str | None = None,
-                   theme: str | None = None, layout: str = "standard", root: Path = ROOT,
+                   theme: str | None = None, layout: str = "standard", components: tuple[str, ...] | list[str] = (), root: Path = ROOT,
                    catalog: StudioCatalog | None = None) -> ResolvedRecipe:
     root = Path(root)
     catalog = load_catalog(root) if catalog is None else catalog
@@ -710,6 +778,20 @@ def resolve_recipe(kind: str, *, language: str = "hebrew", main_language: str | 
         raise CatalogError(f"unknown theme: {theme!r}")
     theme_spec = themes[resolved_theme]
     base = architecture.resolve_language_profile(language, main_language)
+    if not isinstance(components, (tuple, list)) or any(not isinstance(item, str) for item in components):
+        raise CatalogError("components: expected a sequence of literal component IDs")
+    components = tuple(components)
+    if len(set(components)) != len(components):
+        raise CatalogError("duplicate optional component selection")
+    component_by_id = {item.id: item for item in catalog.components}
+    chosen_components = []
+    for name in components:
+        if name not in component_by_id:
+            raise CatalogError(f"unknown optional component: {name!r}")
+        component = component_by_id[name]
+        if kind not in component.allowed_kinds or layout not in component.allowed_layouts or language not in component.language_profiles:
+            raise CatalogError(f"{name}: optional component does not support this kind, layout or language profile")
+        chosen_components.append(component)
     source_specs = layout_spec.starter_overrides or template.starters
     for spec in source_specs:
         _validate_starter(spec, root)
@@ -719,6 +801,8 @@ def resolve_recipe(kind: str, *, language: str = "hebrew", main_language: str | 
     resolutions = (Resolution("kind", kind, "explicit"), Resolution("layout", layout, "requested-or-cli-default"),
                    Resolution("theme", resolved_theme, provenance), Resolution("language_profile", language, "requested-or-cli-default"),
                    Resolution("main_language", base, "explicit" if main_language is not None else "language-contract"))
+    if components:
+        resolutions += (Resolution("components", ",".join(components), "explicit"),)
     copied = list(catalog.base_copy_plan)
     if theme_spec.copy_stage == "before-layout":
         copied.append(theme_spec.asset_path)
@@ -726,11 +810,16 @@ def resolve_recipe(kind: str, *, language: str = "hebrew", main_language: str | 
     if theme_spec.copy_stage == "after-layout":
         copied.append(theme_spec.asset_path)
     copied.extend(template.copy_extra)
+    for component in chosen_components:
+        copied.extend((component.asset_path, *component.supporting_files))
     if len(copied) != len(set(copied)):
         raise CatalogError("copy plan repeats an architecture asset")
     assets = {spec.path: spec for spec in architecture.ASSET_SPECS}
+    support_files = {path for component in chosen_components for path in component.supporting_files}
     for path in copied:
         safe_owned_path(root, path)
+        if path in support_files:
+            continue
         if path not in assets:
             raise CatalogError(f"unknown copied architecture asset: {path}")
         if not set(assets[path].runtime_requires) <= set(copied):
@@ -740,6 +829,7 @@ def resolve_recipe(kind: str, *, language: str = "hebrew", main_language: str | 
     header = _without_comments((root / selected.asset_path).read_text().partition(r"\begin{document}")[0])
     loaded = ["assets/" + name for name in re.findall(r"\\input\{([^{}]+)\}", header)]
     loaded = [path for path in loaded if path not in assets or assets[path].role != "presentation-theme"]
+    loaded.extend(component.asset_path for component in chosen_components)
     presentation = Path(theme_spec.asset_path).name if theme_spec.asset_path else theme_spec.local_filename
     if presentation:
         loaded.append(theme_spec.asset_path or presentation)
@@ -781,21 +871,23 @@ def resolve_recipe(kind: str, *, language: str = "hebrew", main_language: str | 
     defaults = list(template.build_defaults)
     defaults.extend(layout_spec.build_defaults)
     defaults.extend(theme_spec.build_defaults)
+    for component in chosen_components:
+        defaults.extend(component.build_defaults)
     merged = {}
     for name, value in defaults:
         if name in merged and merged[name] != value:
             raise CatalogError(f"conflicting build defaults: {name}")
         merged[name] = value
-    return ResolvedRecipe(requested=RecipeRequest(kind, language, main_language, theme, layout), kind=kind,
+    return ResolvedRecipe(requested=RecipeRequest(kind, language, main_language, theme, layout, components), kind=kind,
         language_profile=language, main_language=base, theme=resolved_theme, layout=layout,
-        content_profile=template.content_profile, recipe_revision=template.recipe_revision,
+        content_profile=template.content_profile, components=components, recipe_revision=template.recipe_revision,
         layout_revision=layout_spec.recipe_revision, catalog_sha256=catalog.sha256, resolutions=resolutions,
         starter_variants=variants, composer_id=layout_spec.bilingual_composer_id or template.bilingual_composer_id,
         minority_composer_id=layout_spec.minority_composer_id or template.minority_composer_id,
         source_handlers=template.source_handlers, hooks=tuple(resolved_hooks),
         preset_bindings=tuple((item.name, item.value) for item in layout_spec.hook_overrides),
         copy_plan=tuple(copied), load_plan=tuple(loaded),
-        package_scan_plan=tuple(copied) + ((selected.asset_path,) if layout_spec.starter_overrides else ()),
+        package_scan_plan=tuple(path for path in copied if path in assets) + ((selected.asset_path,) if layout_spec.starter_overrides else ()),
         build_defaults=tuple(merged.items()), presentation_input=presentation, caption_contract=theme_spec.caption_contract)
 
 
@@ -844,23 +936,24 @@ def main() -> int:
     parser.add_argument("--main-language")
     parser.add_argument("--theme")
     parser.add_argument("--layout", default="standard")
+    parser.add_argument("--component", action="append", default=[], help="explicit optional component; repeat to combine")
     args = parser.parse_args()
     try:
         catalog = load_catalog(args.root)
         if args.command == "resolve":
             result = resolve_recipe(args.kind, language=args.language, main_language=args.main_language,
-                                    theme=args.theme, layout=args.layout, root=args.root, catalog=catalog).as_dict()
+                                    theme=args.theme, layout=args.layout, components=args.component, root=args.root, catalog=catalog).as_dict()
             print(json.dumps(result, ensure_ascii=False, indent=2))
         elif args.command == "list":
             if args.json:
                 print(json.dumps(catalog.as_dict(), ensure_ascii=False, indent=2))
             else:
-                for name in ("templates", "layouts", "themes", "examples"):
+                for name in ("templates", "layouts", "themes", "examples", "components"):
                     print(name + ": " + ", ".join(item.id for item in getattr(catalog, name)))
         elif args.json:
             print(json.dumps({"status": "valid", "schema_version": catalog.schema_version, "sha256": catalog.sha256,
                               "templates": len(catalog.templates), "layouts": len(catalog.layouts),
-                              "themes": len(catalog.themes), "examples": len(catalog.examples),
+                              "themes": len(catalog.themes), "examples": len(catalog.examples), "components": len(catalog.components),
                               "scope": "declarations and source contracts only; no PDF validation"}, indent=2))
         else:
             print("✓ Studio catalog valid; declarations only, no PDF validation")

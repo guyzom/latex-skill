@@ -361,7 +361,7 @@
       "owner": "skill-documentation",
       "aliases": [],
       "introduced_in": "5.4.0",
-      "updated_in": "5.4.0"
+      "updated_in": "5.4.9"
     },
     {
       "id": "rtl",
@@ -636,7 +636,7 @@
       "owner": "skill-documentation",
       "aliases": [],
       "introduced_in": "5.4.0",
-      "updated_in": "5.4.0"
+      "updated_in": "5.4.9"
     },
     {
       "id": "label",
@@ -681,7 +681,7 @@
       "owner": "skill-documentation",
       "aliases": [],
       "introduced_in": "5.4.0",
-      "updated_in": "5.4.0"
+      "updated_in": "5.4.9"
     },
     {
       "id": "selective-equation-numbering",
@@ -1811,7 +1811,7 @@
       "hebrew": "יישור לשפת הקריאה",
       "english": "Reading-edge / Ragged alignment",
       "definition": "יישור שורות לצד שממנו מתחילים לקרוא, כאשר הצד הנגדי נשאר חופשי. המרווחים בין המילים אינם נמתחים כדי ליישר גם את הצד השני. כיוון היישור נקבע לפי השפה המקומית: שמאל באנגלית וימין בעברית.",
-      "example": "כותרת בתוך `referencecolumns` או `referencewide` מיושרת לשפת הקריאה שלה, גם כאשר מחליפים Theme. סדר הטורים עדיין נקבע לפי השפה הראשית, ומדיניות פסקאות הגוף נשארת נפרדת.",
+      "example": "כותרת בתוך `referencecolumns` או `referencewide` מיושרת לשפת הקריאה שלה, גם כאשר מחליפים Theme. סדר הטורים עדיין נקבע לפי השפה הראשית, ומדיניות פסקאות הגוף נשארת נפרדת. בטבלה, סדר העמודות, כיוון הטקסט בתוך התא והיישור הפיזי נבחרים בנפרד: בתוך סדר עמודות אנגלי מפורש, פרוזה עברית קצרה משתמשת ב־`r` ופרוזה עטופה ב־`raggedleft`; פרוזה אנגלית משתמשת ב־`l` או ב־`raggedright`. `\\h` לבדו אינו בוחר יישור.",
       "audience": "both",
       "status": "general",
       "related_ids": [
@@ -1823,7 +1823,8 @@
       "source_refs": [
         "assets/reference_columns.tex",
         "references/reference-sheets.md",
-        "references/language-design.md"
+        "references/language-design.md",
+        "references/tables-and-captions.md"
       ],
       "section": "typography",
       "owner": "assets/reference_columns.tex",
@@ -1833,7 +1834,7 @@
         "Reading-edge alignment"
       ],
       "introduced_in": "5.4.5",
-      "updated_in": "5.4.5"
+      "updated_in": "5.4.8"
     },
     {
       "id": "word-hyphenation",
@@ -1870,12 +1871,12 @@
       "owner": "skill-documentation",
       "aliases": [],
       "introduced_in": "5.4.6",
-      "updated_in": "5.4.6",
+      "updated_in": "5.4.7",
       "id": "table-structure",
       "hebrew": "מבנה טבלה לפי התוכן",
       "english": "Content-selected table structure",
       "definition": "בחירת מספר העמודות, כותרותיהן, סדרן, רוחבן ויישורן בהתאם לתוכן ולמשימת הקורא. אין מספר קבוע או סכמת חובה; לפעמים רשימה, פסקה או מבנה חלופי מתאימים יותר.",
-      "example": "גלריית הטבלאות פותחת בטבלאות פתוחות קומפקטיות ורחבות בעברית ובאנגלית, עם מספרים, מתמטיקה וטקסט נשבר; מספר העמודות בכל דוגמה הוא בחירה לפי התוכן ולא מגבלת הממשק.",
+      "example": "גלריית הטבלאות פותחת בטבלאות פתוחות קומפקטיות ורחבות בעברית ובאנגלית, עם מספרים, מתמטיקה וטקסט נשבר; מספר העמודות בכל דוגמה הוא בחירה לפי התוכן ולא מגבלת הממשק. תוויות המשך בטבלה ארוכה מקבלות פסקה בטוחה משלהן, בלי להרחיב את עמודות הנתונים הקצרים.",
       "related_ids": [
         "starter",
         "semantic-extension",
@@ -1910,9 +1911,103 @@
         "assets/document_components.tex",
         "assets/preamble.tex"
       ]
+    },
+    {
+      "id": "optional-component",
+      "hebrew": "רכיב אופציונלי",
+      "english": "Optional component",
+      "definition": "בחירה מפורשת של הרחבה סמנטית במחולל; אינה משנה את ברירות המחדל של מתכונים שלא בחרו בה.",
+      "example": "`--component study` טוען זהות תרגילים ופתרונות; `--component index` מוסיף אינדקס עם שלב makeindex מפורש.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "semantic-extension",
+        "recipe"
+      ],
+      "source_refs": [
+        "scripts/template_registry.py",
+        "scripts/new_document.py",
+        "registry/studio-catalog.json"
+      ],
+      "section": "composition",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.9",
+      "updated_in": "5.4.9"
+    },
+    {
+      "id": "exercise-identity",
+      "hebrew": "זהות תרגיל",
+      "english": "Exercise identity",
+      "definition": "מפתח סמנטי, מספר וכותרת מקור שנשמרים בעת הכרזת התרגיל ומשמשים גם בפתרון מסודר מחדש. זהות הפתרון אינה נגזרת מהפרק שבו הוא מודפס.",
+      "example": "`studyexercise` ו־`studysolution` עם אותו מפתח מספקים כותרת מקור וקישורים מציינים יעד; מזהה ידני נשמר במפורש.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "counter",
+        "label",
+        "cross-reference"
+      ],
+      "source_refs": [
+        "assets/study_components.tex",
+        "references/exercises-and-solutions.md"
+      ],
+      "section": "latex-navigation",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.9",
+      "updated_in": "5.4.9"
+    },
+    {
+      "id": "subject-index",
+      "hebrew": "אינדקס נושאים",
+      "english": "Subject index",
+      "definition": "רשימת מונחים מסודרת לפי מפתחות מיון מפורשים, עם הפניות לעמודי ההסבר עצמם. כיווניות הערך, יישורו וסדר מספרי העמודים נבדקים בנפרד.",
+      "example": "`\\lakitindex{hebrew}{...}{...}` מגדיר ערך עברי; makeindex המנוהל בודק מספר רשומות ורינדור מאמת את ההפניה לדף המוסבר.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "local-language",
+        "cross-reference",
+        "build"
+      ],
+      "source_refs": [
+        "assets/index_components.tex",
+        "references/indexes.md",
+        "scripts/build_contract.py"
+      ],
+      "section": "latex-navigation",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.9",
+      "updated_in": "5.4.9"
+    },
+    {
+      "id": "glossary-definition",
+      "hebrew": "שפת הגדרת מונח",
+      "english": "Glossary definition language",
+      "definition": "שפת פסקת ההגדרה קובעת את כיוון הקריאה והקצה הפיזי שלה, בנפרד משפת המונח. ברירת המחדל היא שפת הפרוזה המקומית, ולא השפה הראשית של המסמך.",
+      "example": "`\\glossaryentry[hebrew]{\\en{blob}}{הגדרה בעברית.}` יוצר פסקה עברית מיושרת לימין עם מפריד מקף טבעי; מונח ארוך רשאי להישבר.",
+      "audience": "both",
+      "status": "existing",
+      "related_ids": [
+        "local-language",
+        "direction-island",
+        "rtl",
+        "ltr"
+      ],
+      "source_refs": [
+        "assets/document_components.tex",
+        "references/tables-and-captions.md"
+      ],
+      "section": "language-direction",
+      "owner": "skill-documentation",
+      "aliases": [],
+      "introduced_in": "5.4.9",
+      "updated_in": "5.4.9"
     }
   ],
-  "skill_version": "5.4.6",
+  "skill_version": "5.4.9",
   "paths": {
     "records": "references/glossary/terms.json",
     "markdown": "references/glossary-he-en.md"

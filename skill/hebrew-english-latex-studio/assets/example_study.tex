@@ -1,0 +1,55 @@
+% Synthetic gallery: original identities survive reordered end solutions.
+\def\lakitdocumentclass{report}
+\def\lakitclassoptions{11pt,a4paper}
+\def\lakitgeometryoptions{margin=2.3cm,headheight=14pt}
+\def\lakitlinespread{1.12}
+\def\lakitparagraphstyle{block}
+\def\lakitlanguageprofile{hebrew-with-english}
+\input{preamble.tex}
+\input{study_components.tex}
+\input{reader_theme.tex}
+\hypersetup{pdftitle={תרגילים ופתרונות עם זהות מקורית},pdfauthor={}}
+\lakithead{תרגילים ופתרונות}
+\begin{document}
+\chapter{קבצים וזהויות}
+התרגילים והפתרונות כאן סינתטיים. מפתח יציב מזהה כל זוג; מספר התצוגה
+וכותרת המקור נשמרים כשמכריזים על התרגיל, לפני המעבר לפרק אחר.
+\begin{studyexercise}{relative-path}{שני קבצים בעלי אותו שם}
+נניח שהתיקייה הנוכחית היא \code{examples}, ובתוכה קובץ \code{README.md}.
+קובץ נוסף בעל אותו שם נמצא בתיקיית האב. איזה נתיב יחסי מזהה כל אחד מהם?
+\end{studyexercise}
+\begin{studyexercise}[id={07-1}]{authored-id}{מזהה מפורש עם \en{Git (CLI)} ועם $x_1+2$}
+מזהה זה הגיע ממקור חיצוני. הסבירו מדוע שינוי מקומו בספר אינו סיבה
+להחליף אותו, ומהו הקשר בין מפתח הזוג למספר שמוצג לקורא.
+\end{studyexercise}
+\begin{studyexercise}[solution=false]{reflection}{שאלה פתוחה ללא פתרון מובטח}
+בחרו דרך אישית לתעד את התיקייה הנוכחית לפני פעולה. אין לשאלה הזאת
+פתרון יחיד שהמסמך מבטיח להציג, ולכן לא נוצר עבורה קישור ריק.
+\end{studyexercise}
+\begin{englishprose}
+\chapter{An independent second chapter}
+\begin{studyexercise}{second-chapter}{A second local task with \h{זהות} and $y=2$}
+Explain why the first local exercise in this chapter differs from the first
+local exercise in the previous chapter, even when both have local ordinal1.
+\end{studyexercise}
+\end{englishprose}
+\chapter*{פתרונות לתרגילים}
+הפתרונות מוצגים בסדר שונה מן השאלות. המספר והכותרת נגזרים מן התרגיל
+המקורי, ולא מן הפרק האחרון או מסדר הופעת הפתרונות.
+\begin{studysolution}{second-chapter}
+המספר כולל את פרק המקור; המפתח נשאר ייחודי למסמך. הכותרת באנגלית
+שומרת את שפתה גם בתוך פסקת פתרון בעברית.
+\end{studysolution}
+\begin{studysolution}{relative-path}
+הנתיב \code{README.md} מתחיל בתיקייה הנוכחית; הנתיב
+\code{../README.md} מתחיל באותה תיקייה ועולה לתיקיית האב. זהות הקובץ
+תלויה בהקשר הנתיב, לא בשם לבדו.
+\end{studysolution}
+\begin{englishprose}
+\begin{studysolution}{authored-id}
+The authored ID stays \en{07-1}. The semantic key selects the correct original
+exercise and the return link includes its title and page. Changing solution
+order does not change that identity.
+\end{studysolution}
+\end{englishprose}
+\end{document}

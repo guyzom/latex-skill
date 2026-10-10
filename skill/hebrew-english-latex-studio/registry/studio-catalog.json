@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "language_contract": "architecture_contract.LANGUAGE_PROFILE_SPECS",
   "asset_contract": "architecture_contract.ASSET_SPECS",
   "build_contract": "build_contract",
@@ -551,7 +551,7 @@
     },
     {
       "id": "paper",
-      "recipe_revision": 2,
+      "recipe_revision": 3,
       "title": {
         "he": "מאמר אקדמי",
         "en": "Academic paper"
@@ -561,7 +561,7 @@
         {
           "language": "hebrew",
           "asset_path": "assets/starter_paper.tex",
-          "sha256": "38398f755c206f72db15d35a60480f8c5acaf73e1de9f15f2fbda1de713a89d6",
+          "sha256": "2e0ba8880c93a39a14002a4e6d843e4f2ffa89954dfec269cc31bc7213f251d7",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "11pt,a4paper",
@@ -574,7 +574,7 @@
         {
           "language": "english",
           "asset_path": "assets/starter_paper_english.tex",
-          "sha256": "e7a521305ad92603f99965bd76fda6225d68e58f6bf58b9b1ca1b1fc927cece0",
+          "sha256": "2f26c015d2449585e5a1dd2d3d902fb6a5ec7b8a7be62011ceaf41642f616f6c",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "11pt,a4paper",
@@ -673,7 +673,7 @@
     },
     {
       "id": "reference-compact",
-      "recipe_revision": 2,
+      "recipe_revision": 3,
       "title": {
         "he": "דף עזר צפוף",
         "en": "Compact reference"
@@ -685,7 +685,7 @@
         {
           "language": "hebrew",
           "asset_path": "assets/starter_reference_sheet.tex",
-          "sha256": "3c606225163eaca8d5a016eaec6c39c820f4c5e6a3d4de2a462e6dfff9a8b981",
+          "sha256": "61c1a900448e43eb158f8a4b7381cfe3f70675ce1e86039260ad49f0b7362b78",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "10pt,a4paper",
@@ -707,7 +707,7 @@
         {
           "language": "english",
           "asset_path": "assets/starter_reference_sheet_english.tex",
-          "sha256": "6ef3c9125e7ca591f830dba6120c6614c8c22f2616caba2dc40b5ba09dc78e0f",
+          "sha256": "0686f7da19d4c5b1bfe098b4be3eae9b5679e6324c855f8272e79038f75c8e36",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "10pt,a4paper",
@@ -813,7 +813,7 @@
     },
     {
       "id": "reference-readable",
-      "recipe_revision": 2,
+      "recipe_revision": 3,
       "title": {
         "he": "דף עזר קריא",
         "en": "Readable reference"
@@ -825,7 +825,7 @@
         {
           "language": "hebrew",
           "asset_path": "assets/starter_reference_sheet.tex",
-          "sha256": "3c606225163eaca8d5a016eaec6c39c820f4c5e6a3d4de2a462e6dfff9a8b981",
+          "sha256": "61c1a900448e43eb158f8a4b7381cfe3f70675ce1e86039260ad49f0b7362b78",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "10pt,a4paper",
@@ -847,7 +847,7 @@
         {
           "language": "english",
           "asset_path": "assets/starter_reference_sheet_english.tex",
-          "sha256": "6ef3c9125e7ca591f830dba6120c6614c8c22f2616caba2dc40b5ba09dc78e0f",
+          "sha256": "0686f7da19d4c5b1bfe098b4be3eae9b5679e6324c855f8272e79038f75c8e36",
           "declared_hooks": {
             "lakitdocumentclass": "article",
             "lakitclassoptions": "10pt,a4paper",
@@ -1405,6 +1405,159 @@
       "acceptance": [
         "example:topicrail:runtime"
       ]
+    },
+    {
+      "id": "study",
+      "asset_path": "assets/example_study.tex",
+      "architecture_assets": [
+        "assets/preamble.tex",
+        "assets/study_components.tex",
+        "assets/reader_theme.tex"
+      ],
+      "language_profile": "hebrew-with-english",
+      "docs": [
+        "references/exercises-and-solutions.md",
+        "references/template-catalog.md"
+      ],
+      "glossary_refs": [
+        "starter",
+        "public-api",
+        "language-profile",
+        "exercise-identity"
+      ],
+      "acceptance": [
+        "example:study:runtime"
+      ]
+    },
+    {
+      "id": "index",
+      "asset_path": "assets/example_index.tex",
+      "architecture_assets": [
+        "assets/preamble.tex",
+        "assets/reader_theme.tex",
+        "assets/index_components.tex"
+      ],
+      "language_profile": "hebrew-with-english",
+      "docs": [
+        "references/indexes.md",
+        "references/template-catalog.md"
+      ],
+      "glossary_refs": [
+        "starter",
+        "public-api",
+        "language-profile",
+        "subject-index"
+      ],
+      "acceptance": [
+        "example:index:runtime"
+      ]
+    }
+  ],
+  "components": [
+    {
+      "id": "study",
+      "title": {
+        "he": "תרגילים ופתרונות",
+        "en": "Exercises and solutions"
+      },
+      "asset_path": "assets/study_components.tex",
+      "supporting_files": [],
+      "allowed_kinds": [
+        "note",
+        "general",
+        "letter",
+        "report",
+        "technical",
+        "formula-sheet",
+        "data-report",
+        "annotated-note",
+        "paper"
+      ],
+      "allowed_layouts": [
+        "standard",
+        "reference-compact",
+        "reference-readable"
+      ],
+      "language_profiles": [
+        "hebrew",
+        "english",
+        "hebrew-with-english",
+        "english-with-hebrew",
+        "bilingual"
+      ],
+      "build_defaults": [],
+      "docs": [
+        "references/exercises-and-solutions.md",
+        "references/template-catalog.md"
+      ],
+      "glossary_refs": [
+        "optional-component",
+        "public-api",
+        "ownership",
+        "exercise-identity"
+      ],
+      "acceptance": [
+        "component:study:runtime"
+      ],
+      "specimen_id": "study"
+    },
+    {
+      "id": "index",
+      "title": {
+        "he": "מפתח עניינים",
+        "en": "Subject index"
+      },
+      "asset_path": "assets/index_components.tex",
+      "supporting_files": [
+        "assets/index.ist"
+      ],
+      "allowed_kinds": [
+        "note",
+        "general",
+        "letter",
+        "report",
+        "technical",
+        "formula-sheet",
+        "data-report",
+        "annotated-note",
+        "paper"
+      ],
+      "allowed_layouts": [
+        "standard",
+        "reference-compact",
+        "reference-readable"
+      ],
+      "language_profiles": [
+        "hebrew",
+        "english",
+        "hebrew-with-english",
+        "english-with-hebrew",
+        "bilingual"
+      ],
+      "build_defaults": [
+        [
+          "INDEX_PROCESSOR",
+          "makeindex"
+        ],
+        [
+          "INDEX_STYLE",
+          "index.ist"
+        ]
+      ],
+      "docs": [
+        "references/indexes.md",
+        "references/template-catalog.md"
+      ],
+      "glossary_refs": [
+        "optional-component",
+        "public-api",
+        "ownership",
+        "subject-index"
+      ],
+      "acceptance": [
+        "component:index:runtime"
+      ],
+      "specimen_id": "index"
     }
   ]
 }

@@ -59,7 +59,10 @@ inside a row to control column order.
 
 For genuinely wide prose tables, column fractions should sum to 1.
 For short values, natural `l/r/c` columns are permitted and remain centered
-without stretching. Use `N` when a Hebrew numeric cell needs isolation;
+without stretching. Repeated continuation notices are centered paragraphs within
+the safe local width; they do not set a minimum width for the data columns.
+Their text can be wider than short table rules, just as a caption can be.
+Use `N` when a Hebrew numeric cell needs isolation;
 natural cells can instead explicitly wrap each value in `\en{...}`. `\flowtablewidth` subtracts both outer and intercolumn
 padding; use it instead of multiplying every fraction by `\linewidth`.
 The declared column count must match the specification and every row.

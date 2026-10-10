@@ -13,7 +13,7 @@ support for a document class or component combination the owners do not support.
 
 | Information | Canonical owner | Derived consumers |
 |---|---|---|
-| Templates, native starter variants, layout/theme defaults, closed composer selection, examples and acceptance IDs | [studio-catalog.json](../registry/studio-catalog.json) | Resolver, generator, catalog Markdown, acceptance coverage |
+| Templates, native starter variants, layout/theme defaults, closed composer selection, explicit optional integrations, examples and acceptance IDs | [studio-catalog.json](../registry/studio-catalog.json) | Resolver, generator, catalog Markdown, acceptance coverage |
 | Schema validation and immutable resolution | [template_registry.py](../scripts/template_registry.py) | Read-only CLI, project generator, tests |
 | Component roles, capabilities, public APIs, dependencies, conflicts and hook contracts | [architecture_contract.py](../scripts/architecture_contract.py) and each owning TeX asset | Runtime architecture guards, resolver validation, architecture documentation |
 | Language profiles and resolution | `architecture_contract.LANGUAGE_PROFILE_SPECS` and the shared core | Registry, generator, runtime validation |
@@ -114,6 +114,20 @@ symbols and conflicts in the architecture contract. Update generated guards and
 any compatibility carrier from their owning sources. Test forbidden combinations
 in both load orders where appropriate. A locally authored theme need not become
 a shipped component simply to create one project.
+
+Catalog schema 2 adds closed `components` records for opt-in integration.
+`--component study` and `--component index` select owned semantic assets and
+small original editable specimens; omitted selections copy and load neither.
+Declare the allowed kinds, layouts and language profiles, supporting files,
+documentation and `component:<id>:runtime` acceptance ID. Supporting `.ist`
+files are explicit flat `assets/*.ist` inputs, matching the generator's project-root
+copy destination; they are never architecture owners or executable catalog code.
+The closed specimen must use the selected semantic owner's declared public API.
+The index specimen requires managed makeindex and a non-empty owned style default;
+native makeindex output does not implement its locale and entry wrapper interface.
+Keep existing template/default routes and their acceptance IDs intact.
+For an index, reuse `INDEX_PROCESSOR` and `INDEX_STYLE` from the build owner;
+no schema string can replace actual entry/locator checks or a visual review.
 
 A public hook needs an owner, declaration timing, effective scope, value type,
 unit and default contract. Keep defaults literal when literal, and symbolic when
@@ -330,6 +344,15 @@ release evidence. FAST checks source and
 data contracts rather than approving the runtime matrix. Retain actual logs,
 exit codes and full/fast receipts outside the source. Package creation checks
 static contracts, not those execution receipts; verify them separately.
+
+For caption diagnosis, manually dispatch the repository's test workflow with
+`validation_scope=caption`. This retains synthetic caption PDFs and sources in
+the private `test-results` artifact for actual pixel inspection. The default
+`full` dispatch, pull-request checks and pushes to `main` still run the whole
+routine suite; a focused artifact does not certify that suite. Parenthesis
+geometry must use the embedded glyph identity when the PDF's logical Unicode
+map differs from the drawn shape, and missing or extra delimiters must remain
+hard failures. Keep historical negative controls active.
 
 The final archive's SHA-256 must equal the candidate's. Check final archive
 members, CRC and modes against the candidate, and retain the compatibility and

@@ -222,4 +222,280 @@ class Runtime491Tests(unittest.TestCase):
         self.assertFalse((self.root/'missing.pdf').exists())
 
 
+def bibliography_paragraph_fixture(profile, main):
+    header = (rf'\def\lakitlanguageprofile{{{profile}}}'+'\n'
+              + (rf'\def\lakitmainlanguage{{{main}}}'+'\n' if profile == 'bilingual' else '')
+              + HEADER.replace(r'\input{reader_theme.tex}', ''))
+    english = ('An original synthetic entry preserves complete source details, '
+               'readable continuation lines, ordinary paragraph spacing and native citation identity. ')*40
+    hebrew = ('רשומה סינתטית מקורית שומרת על פרטי המקור ועל קריאות שורות ההמשך. '
+              'הפסקה צריכה להישאר בכיוון המקומי ולשמור על זהות ההפניה. ')*22
+    return header + r'''\begin{document}
+\begin{englishprose}\noindent CITMARK \cite{qa-he,qa-en,qa-style}\par
+{\Large\itshape STYLECONTROL Authored style.\par}\end{englishprose}
+\begin{thebibliography}{99}
+\bibitem{qa-en}\bibentryprose{english}{BIBEN Original source \textit{Title (2026)}.
+Escaped details \& 25\% and MATHMARK $x+2$. \h{מונח קצר}.
+''' + english + r' ENEND.}'+'\n'+r'''\bibitem{qa-he}\bibentryprose{hebrew}{מקור \en{BIBHE} רשומה בעברית עם \en{LLVM (CPU)}.
+''' + hebrew + r' \en{HEEND}.}'+'\n'+r'''\setcounter{enumiv}{11}
+\bibitem{qa-style}{\Large\itshape\bibentryprose{english}{BIBSTYLE Authored style retained.}}
+\end{thebibliography}
+\begin{englishprose}\noindent OUTSIDE English resumes normally.\par\end{englishprose}
+\end{document}
+'''
+
+
+def _bib_marker(doc, marker):
+    matches = [(i, rect) for i, page in enumerate(doc) for rect in page.search_for(marker)]
+    if len(matches) != 1:
+        raise AssertionError(f'{marker}: expected one visible occurrence, got {len(matches)}')
+    return matches[0]
+
+
+def _bib_line_extent(page, marker, exclude=None):
+    rect = page.search_for(marker)[0]
+    chars = []
+    for block in page.get_text('rawdict')['blocks']:
+        for line in block.get('lines', []):
+            for span in line['spans']:
+                for char in span['chars']:
+                    box = fitz.Rect(char['bbox'])
+                    if char['c'].strip() and rect.y0-.5 <= char['origin'][1] <= rect.y1+.5:
+                        if exclude is None or not box.intersects(exclude):
+                            chars.append(box)
+    if not chars:
+        raise AssertionError('no glyph extent for ' + marker)
+    return min(b.x0 for b in chars), max(b.x1 for b in chars)
+
+
+def assert_bibliography_paragraph_geometry(doc):
+    first_en, en_start = _bib_marker(doc, 'BIBEN')
+    last_en, en_end = _bib_marker(doc, 'ENEND')
+    if last_en <= first_en:
+        raise AssertionError('long English entry did not span physical pages')
+    left, _ = _bib_line_extent(doc[last_en], 'ENEND')
+    if abs(left-en_start.x0) > 1:
+        raise AssertionError('English continuation does not start at local left reading edge')
+    he_page, he_start = _bib_marker(doc, 'BIBHE')
+    he_last, he_end = _bib_marker(doc, 'HEEND')
+    labels = doc[he_page].search_for('[2]')
+    if len(labels) != 1:
+        raise AssertionError('missing native Hebrew-entry label [2]')
+    _, right = _bib_line_extent(doc[he_page], 'BIBHE', labels[0])
+    _, end_right = _bib_line_extent(doc[he_last], 'HEEND')
+    if abs(right-end_right) > 1:
+        raise AssertionError('Hebrew continuation does not end at local right reading edge')
+    for number, marker in [(1, 'BIBEN'), (2, 'BIBHE'), (12, 'BIBSTYLE')]:
+        page_num, body = _bib_marker(doc, marker)
+        labels = doc[page_num].search_for(f'[{number}]')
+        if len(labels) != 1 or labels[0].intersects(body):
+            raise AssertionError(f'pending native label [{number}] overlaps entry body or is missing')
+    for marker in ('STYLECONTROL', 'BIBSTYLE'):
+        page_num, rect = _bib_marker(doc, marker)
+        spans = [sp for b in doc[page_num].get_text('dict')['blocks'] for ln in b.get('lines', [])
+                 for sp in ln['spans'] if marker in sp['text']]
+        if len(spans) != 1:
+            raise AssertionError('cannot identify authored style span')
+        if marker == 'STYLECONTROL':
+            control = (spans[0]['size'], spans[0]['font'], spans[0]['flags'], spans[0]['color'])
+        elif control != (spans[0]['size'], spans[0]['font'], spans[0]['flags'], spans[0]['color']):
+            raise AssertionError('entry overrides authored font/size/style/color')
+    text = '\n'.join(p.get_text() for p in doc)
+    if '25%' not in text or '&' not in text or 'OUTSIDE' not in text:
+        raise AssertionError('escaped text or post-bibliography paragraph lost')
+
+
+def assert_bibliography_paragraph_navigation(doc):
+    expected = ['qa-he', 'qa-en', 'qa-style']
+    links = [ln for page in doc for ln in page.get_links()
+             if ln.get('nameddest', '').startswith('cite.')]
+    if [ln['nameddest'] for ln in links] != ['cite.'+key for key in expected]:
+        raise AssertionError('citation links changed semantic key order')
+    names = doc.resolve_names()
+    for key, marker, number in [('qa-en', 'BIBEN', 1), ('qa-he', 'BIBHE', 2), ('qa-style', 'BIBSTYLE', 12)]:
+        target = names['cite.'+key]
+        page_num, body = _bib_marker(doc, marker)
+        if target['page'] != page_num:
+            raise AssertionError('citation target page differs from matching entry')
+        target_y = doc[page_num].rect.height-target['to'][1]
+        if abs(target_y-body.y0) > 25:
+            raise AssertionError('citation target is not adjacent to matching entry')
+    for link, number in zip(links, [2, 1, 12]):
+        digits = re.findall(r'\d+', doc[0].get_textbox(link['from']+(-.2,-.2,.2,.2)))
+        if digits != [str(number)]:
+            raise AssertionError('printed citation number no longer matches key identity')
+
+
+class BibliographyParagraphRuntime(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        retained = os.environ.get('HLLPDF_BIB_TEST_EVIDENCE_DIR')
+        cls.tmp = None if retained else tempfile.TemporaryDirectory(prefix='hll-bibparagraph-')
+        cls.root = Path(retained) if retained else Path(cls.tmp.name)
+        if retained:
+            cls.root.mkdir(parents=True, exist_ok=False)
+        fonts = str(font_dir()); cls.env = os.environ.copy()
+        cls.env.update(OSFONTDIR=fonts, TTFONTS=fonts+'//:', HEBREW_LATEX_FONT_DIR=fonts,
+                       SOURCE_DATE_EPOCH='1700000000', PYTHONDONTWRITEBYTECODE='1')
+        cls.env.pop('HEBREW_LATEX_PROJECT_ROOT', None)
+
+    @classmethod
+    def tearDownClass(cls):
+        if cls.tmp is not None:
+            cls.tmp.cleanup()
+
+    def compile_fixture(self, name, source):
+        directory = self.root/name; directory.mkdir()
+        for asset in ['preamble.tex', 'document_components.tex', 'reader_theme.tex']:
+            shutil.copyfile(ROOT/'assets'/asset, directory/asset)
+        (directory/'main.tex').write_text(source, encoding='utf-8')
+        for number in range(1, 4):
+            result = subprocess.run(['lualatex', '--no-shell-escape', '-halt-on-error',
+                                     '-interaction=nonstopmode', 'main.tex'], cwd=directory,
+                                    env=self.env, capture_output=True, text=True, timeout=120)
+            (directory/f'pass-{number}.txt').write_text(result.stdout+result.stderr)
+            self.assertEqual(result.returncode, 0, result.stdout[-3000:])
+        self.assertNotIn('undefined', (directory/'main.log').read_text())
+        return directory
+
+    def test_local_entry_paragraphs_keep_native_labels_styles_and_navigation(self):
+        profiles = [('hebrew','hebrew'),('english','english'),
+                    ('hebrew-with-english','hebrew'),('english-with-hebrew','english'),
+                    ('bilingual','hebrew'),('bilingual','english')]
+        for profile, main in profiles:
+            with self.subTest(profile=profile, main=main):
+                directory = self.compile_fixture(profile+'-'+main, bibliography_paragraph_fixture(profile, main))
+                with fitz.open(directory/'main.pdf') as doc:
+                    assert_bibliography_paragraph_geometry(doc)
+                    assert_bibliography_paragraph_navigation(doc)
+
+    def test_previous_inline_and_unsafe_prose_have_independent_geometry_failures(self):
+        source = bibliography_paragraph_fixture('hebrew-with-english', 'hebrew')
+        inline = source.replace(r'\bibentryprose{english}{BIBEN', r'\en{BIBEN')
+        directory = self.compile_fixture('negative-inline', inline)
+        with fitz.open(directory/'main.pdf') as doc:
+            assert_bibliography_paragraph_navigation(doc)
+            with self.assertRaisesRegex(AssertionError, 'English continuation'):
+                assert_bibliography_paragraph_geometry(doc)
+        unsafe = source.replace(r'\bibentryprose{english}{BIBEN', r'\begin{englishprose}BIBEN', 1)
+        unsafe = unsafe.replace(' ENEND.}', ' ENEND.\\end{englishprose}', 1)
+        directory = self.compile_fixture('negative-unsafe-environment', unsafe)
+        with fitz.open(directory/'main.pdf') as doc:
+            assert_bibliography_paragraph_navigation(doc)
+            with self.assertRaisesRegex(AssertionError, 'pending native label'):
+                assert_bibliography_paragraph_geometry(doc)
+        good = self.compile_fixture('navigation-control', source)
+        mutation = good/'wrong-valid-citation.pdf'
+        with fitz.open(good/'main.pdf') as doc:
+            link = next(ln for ln in doc[0].get_links() if ln.get('nameddest') == 'cite.qa-en')
+            action = doc.xref_object(link['xref'])
+            self.assertEqual(action.count('(cite.qa-en)'), 1)
+            doc.update_object(link['xref'], action.replace('(cite.qa-en)', '(cite.qa-style)'))
+            doc.save(mutation)
+        with fitz.open(mutation) as doc:
+            assert_bibliography_paragraph_geometry(doc)
+            with self.assertRaisesRegex(AssertionError, 'semantic key order'):
+                assert_bibliography_paragraph_navigation(doc)
+
+
+
+def assert_reference_table_order(doc, language):
+    """Measure complete physical header/data order, keeping numeric pairs intact."""
+    names = doc.resolve_names()
+    target = names['tbl.2.1']
+    page = doc[target['page']]
+    rules = [path['rect'] for path in page.get_drawings()
+             if path['color'] == (0, 0, 0) and path['rect'].height < .1
+             and path['rect'].width > 20]
+    if len(rules) != 3:
+        raise AssertionError(('expected three natural table rules', rules))
+    bounds = fitz.Rect(min(r.x0 for r in rules) - .5, min(r.y0 for r in rules),
+                       max(r.x1 for r in rules) + .5, max(r.y1 for r in rules))
+    rows = {}
+    for block in page.get_text('rawdict')['blocks']:
+        for line in block.get('lines', []):
+            for span in line['spans']:
+                for char in span['chars']:
+                    x, y = char['origin']
+                    if bounds.x0 <= x <= bounds.x1 and bounds.y0 < y < bounds.y1:
+                        rows.setdefault(round(y, 1), []).append((x, char['c']))
+    physical = [''.join(c for x, c in sorted(row)).replace(' ', '')
+                for y, row in sorted(rows.items())]
+    expected = (['f(x)x', '52', '73', '94'] if language == 'hebrew'
+                else ['xf(x)', '25', '37', '49'])
+    if physical != expected:
+        raise AssertionError(('semantic input/key order', language, physical, expected))
+    # A wrong-order table must not be rejected merely because its link broke.
+    if target['page'] != 0 or not any(link.get('nameddest') == 'tbl.2.1'
+                                     for link in page.get_links()):
+        raise AssertionError('reference table navigation was not preserved')
+
+
+class ReferenceTableOrderRuntime(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        retained = os.environ.get('HLLPDF_REFERENCE_TABLE_EVIDENCE_DIR')
+        cls.tmp = None if retained else tempfile.TemporaryDirectory(prefix='hllpdf-reference-table-')
+        cls.root = Path(retained) if retained else Path(cls.tmp.name)
+        if retained:
+            cls.root.mkdir(parents=True, exist_ok=False)
+        for name in ('preamble.tex', 'document_components.tex', 'reader_theme.tex'):
+            shutil.copyfile(ROOT / 'assets' / name, cls.root / name)
+        fonts = str(font_dir())
+        cls.env = dict(os.environ, OSFONTDIR=fonts, TTFONTS=fonts+'//:',
+                       HEBREW_LATEX_FONT_DIR=fonts, SOURCE_DATE_EPOCH='1700000000',
+                       PYTHONDONTWRITEBYTECODE='1')
+        cls.env.pop('HEBREW_LATEX_PROJECT_ROOT', None)
+
+    @classmethod
+    def tearDownClass(cls):
+        if cls.tmp:
+            cls.tmp.cleanup()
+
+    def compile_fixture(self, name, source):
+        (self.root / (name+'.tex')).write_text(source, encoding='utf-8')
+        for step in range(3):
+            result = subprocess.run(['lualatex', '--no-shell-escape', '-halt-on-error',
+                                     '-interaction=nonstopmode', name+'.tex'],
+                                    cwd=self.root, env=self.env, capture_output=True,
+                                    text=True, timeout=120)
+            (self.root / (name+f'-pass{step+1}.log')).write_text(result.stdout+result.stderr)
+            self.assertEqual(result.returncode, 0, result.stdout[-5000:])
+            self.assertNotIn('Overfull ', result.stdout)
+        return self.root / (name+'.pdf')
+
+    def test_retained_reference_input_keys_follow_native_reading_edges(self):
+        hebrew = (ROOT / 'assets/example_references.tex').read_text()
+        self.assertEqual(hebrew.count(r'\begin{center}'), 1)
+        table = hebrew.split(r'\begin{center}', 1)[1].split(r'\end{center}', 1)[0]
+        # The English companion has the same semantic data and an independent
+        # English paragraph/caption shell, with the input first at the left.
+        english_table = table.replace(r'\en{$f(x)$}&\en{$x$}', r'\en{$x$}&\en{$f(x)$}')
+        for value, key in [('5', '2'), ('7', '3'), ('9', '4')]:
+            english_table = english_table.replace(fr'\en{{{value}}}&\en{{{key}}}',
+                                                   fr'\en{{{key}}}&\en{{{value}}}')
+        english_table = english_table.replace('ערכי הדגמה של הפונקציה', 'Function values')
+        english = (r'\def\lakitlanguageprofile{english}'+'\n'+HEADER
+                   +r'\begin{document}\section{Rule}\section{Objects}'
+                   +r'See \autoref{tab:values}.\begin{center}'+english_table
+                   +r'\end{center}\end{document}')
+        # Keep the explicit order context in both mutants. Reversing semantic
+        # columns is wrong independently of historical RTL tabular behavior.
+        bad_hebrew = hebrew.replace(table, english_table.replace('Function values', 'ערכי הדגמה של הפונקציה'), 1)
+        bad_english = english.replace(english_table, table.replace('ערכי הדגמה של הפונקציה', 'Function values'), 1)
+        for language, source, broken in [('hebrew', hebrew, bad_hebrew),
+                                        ('english', english, bad_english)]:
+            with self.subTest(language=language):
+                with fitz.open(self.compile_fixture(language, source)) as doc:
+                    assert_reference_table_order(doc, language)
+                with fitz.open(self.compile_fixture(language+'-wrong-order', broken)) as doc:
+                    # The mutant still has a valid label and clickable target;
+                    # its actual key/header/data positions alone must fail.
+                    self.assertEqual(doc.resolve_names()['tbl.2.1']['page'], 0)
+                    self.assertTrue(any(link.get('nameddest') == 'tbl.2.1'
+                                        for link in doc[0].get_links()))
+                    with self.assertRaisesRegex(AssertionError, 'semantic input/key order'):
+                        assert_reference_table_order(doc, language)
+
+
 if __name__ == '__main__': unittest.main(verbosity=2)
