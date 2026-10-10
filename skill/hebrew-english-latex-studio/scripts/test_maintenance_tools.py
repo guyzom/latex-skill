@@ -27,20 +27,23 @@ ATOMIC = HERE / "atomic_replace.py"
 
 
 def run_doctor_dependency_tests() -> None:
-    """Pin ctablestack as a real transitive runtime dependency."""
-    assert "ctablestack.sty" in doctor.REQUIRED_TEX_FILES
+    """Reject missing Lua runtime, core, reference-starter and index dependencies."""
     completed = subprocess.CompletedProcess([], 0, "", "")
-    with (
-        mock.patch.object(doctor.shutil, "which", return_value="/mock/tool"),
-        mock.patch.object(
-            doctor,
-            "_kpsewhich",
-            side_effect=lambda name: "" if name == "ctablestack.sty" else "/mock/tex-file",
-        ),
-        mock.patch.object(doctor.subprocess, "run", return_value=completed),
+    for missing in (
+        "lualibs.lua", "lua-uni-case.lua", "lua-uni-normalize.lua", "lua-uni-parse.lua",
+        "ctablestack.sty", "caption.sty", "colortbl.sty", "imakeidx.sty",
     ):
-        errors = doctor._check_toolchain()
-    assert errors == ["TeX dependency not found: ctablestack.sty"], errors
+        with (
+            mock.patch.object(doctor.shutil, "which", return_value="/mock/tool"),
+            mock.patch.object(
+                doctor,
+                "_kpsewhich",
+                side_effect=lambda name: "" if name == missing else "/mock/tex-file",
+            ),
+            mock.patch.object(doctor.subprocess, "run", return_value=completed),
+        ):
+            errors = doctor._check_toolchain()
+        assert errors == [f"TeX dependency not found: {missing}"], errors
 
     with (
         mock.patch.object(doctor.shutil, "which", return_value="/mock/tool"),
@@ -49,6 +52,14 @@ def run_doctor_dependency_tests() -> None:
     ):
         errors = doctor._check_toolchain()
     assert errors == [], errors
+
+    # FAST preflight must remain usable without a live TeX installation.
+    with (
+        mock.patch.object(doctor, "_check_qa", return_value=[]),
+        mock.patch.object(doctor, "_check_toolchain", side_effect=AssertionError("TeX probe in QA-only mode")),
+        mock.patch("builtins.print"),
+    ):
+        assert doctor.main(["--qa-only"]) == 0
 
 
 def run_hash_test(root: Path) -> None:
@@ -218,7 +229,7 @@ def main() -> None:
         run_atomic_replace_tests(root)
         run_font_setup_symlink_test(root)
         run_sync_tests(root)
-    print("maintenance tools: doctor transitive-dependency probe + portable SHA-256 + symlink-safe atomic replace/font install + explicit-root/non-vacuous/two-phase/path-safe sync contracts pass")
+    print("maintenance tools: doctor dependency and QA-only probes + portable SHA-256 + symlink-safe atomic replace/font install + explicit-root/non-vacuous/two-phase/path-safe sync contracts pass")
 
 
 if __name__ == "__main__":

@@ -288,18 +288,29 @@ escaped מתחיל comment ומוחק את יתר השורה.
 
 ## בנייה ובדיקות
 
-בנייה רגילה:
+לפרויקט שנוצר במחולל, השתמש במעטפת הפרויקט כדי לשמור את ברירות המחדל
+של המתכון, כולל מעבד האינדקס והסגנון שנבחרו במפורש:
 
 ```bash
-bash scripts/build.sh /absolute/path/to/main.tex
+HEBREW_LATEX_SKILL_ROOT=/path/to/skill bash /absolute/path/to/project/build.sh
 ```
+
+בפרויקט קיים ללא מעטפת, הגדר את חוזה הבנייה במפורש והפעל את הבונה ישירות:
+
+```bash
+bash /path/to/skill/scripts/build.sh /absolute/path/to/project/main.tex
+```
+
+דוגמאות ההגדרות הבאות משתמשות במעטפת המחולל. בפרויקט קיים העבר אותן
+לבונה הישיר; לאינדקס נדרשים גם המעבד והסגנון לפי [אינדקסים](indexes.md).
 
 הגודל הצפוי הוא A4 כברירת מחדל. הבדיקה קוראת את ה־`MediaBox` וה־`CropBox`
 בכל עמוד, אינה מסתפקת בהצהרת `a4paper`, ומקבלת גם A4 לרוחב. רק לבקשה
 מפורשת על נייר אחר יש לציין ערך תואם:
 
 ```bash
-EXPECTED_PAPER=letter bash scripts/build.sh /absolute/path/to/main.tex
+EXPECTED_PAPER=letter HEBREW_LATEX_SKILL_ROOT=/path/to/skill \
+  bash /absolute/path/to/project/build.sh
 ```
 
 הערכים הנתמכים הם `a3`,‏ `a4`,‏ `a5`,‏ `letter` ו־`legal`.
@@ -307,14 +318,16 @@ EXPECTED_PAPER=letter bash scripts/build.sh /absolute/path/to/main.tex
 הוכחת pass נוסף:
 
 ```bash
-REPRO=1 bash scripts/build.sh /absolute/path/to/main.tex
+REPRO=1 HEBREW_LATEX_SKILL_ROOT=/path/to/skill \
+  bash /absolute/path/to/project/build.sh
 ```
 
 לבדיקות העריכה ה־advisory בחר ז׳אנר כאשר הוא ידוע; ללא ערך מופעל
 `generic`, שאינו כופה מכסות של ספר לימוד:
 
 ```bash
-CONTENT_PROFILE=report bash scripts/build.sh /absolute/path/to/main.tex
+CONTENT_PROFILE=report HEBREW_LATEX_SKILL_ROOT=/path/to/skill \
+  bash /absolute/path/to/project/build.sh
 ```
 
 הערכים הנתמכים הם `study-guide`, `report`, `exam`, `formula-sheet`
@@ -334,7 +347,7 @@ CONTENT_PROFILE=report bash scripts/build.sh /absolute/path/to/main.tex
 ```bash
 PDF_REQUIRE_TITLE=1 PDF_MIN_BOOKMARKS="$PROJECT_MIN_BOOKMARKS" \
   PDF_MIN_BOOKMARK_DEPTH="$PROJECT_MIN_BOOKMARK_DEPTH" \
-  bash scripts/build.sh /absolute/path/to/main.tex
+  HEBREW_LATEX_SKILL_ROOT=/path/to/skill bash /absolute/path/to/project/build.sh
 ```
 
 הערכים המספריים נקבעים מן המסמך; הסקיל אינו מספק סף קשיח. ללא חוזה כזה,
@@ -345,7 +358,7 @@ PDF בן 20 עמודים ומעלה ללא outline מפיק אזהרה advisory.
 
 ```bash
 DIRECT_NAVIGATION_DESTINATIONS='landing-*,landing-bookmark-*' \
-  bash scripts/build.sh /absolute/path/to/main.tex
+  HEBREW_LATEX_SKILL_ROOT=/path/to/skill bash /absolute/path/to/project/build.sh
 ```
 
 החוזה הזה בודק כל שם יעד שנבחר בנפרד: חייבת להיות לפחות פעולה ישירה אחת לאותו עמוד,
@@ -371,14 +384,16 @@ DIRECT_NAVIGATION_DESTINATIONS='landing-*,landing-bookmark-*' \
 אחרת דורש גם את שכבות הסגנון, הנכסים והפונטים המוצמדים, וכן גרסה קבועה של
 TeX Live והסקריפטים; אם אלה אינם נמסרים, ציין במפורש את התלות.
 
-לאחר הצלחה:
+לאחר הצלחה, רנדר לתיקיית סקירה חדשה:
 
 ```bash
-mkdir -p render
-pdftoppm -png -r 144 main.pdf render/page
+python3 /path/to/skill/scripts/render_review.py render \
+  /absolute/path/to/project/main.pdf --output /absolute/path/to/new-review
 ```
 
-פתח את כל התמונות ובדוק כל עמוד. `assets/example_math.tex`,
+פתח את כל התמונות ובדוק כל עמוד. רשום סקירה ואמת את הפלט העדכני לפי
+[תהליך הסקירה](everyday-workflow.md#review-actual-rendered-pages), עם הנתיבים
+המלאים ל־PDF ול־`review.json`. `assets/example_math.tex`,
 `assets/example_figures.tex`, `assets/example_tables.tex`,
 `assets/example_boxes.tex`, `assets/example_listings.tex` ו־
 `assets/example_exam.tex` הם מסמכי smoke מלאים; אין לשכפל דוגמה מקוצרת
@@ -387,25 +402,16 @@ pdftoppm -png -r 144 main.pdf render/page
 ## שחרור ואריזה דטרמיניסטית
 
 אל תארוז את הסקיל עם `zip` ידני. `VERSION`, ‏`requirements-qa.txt` והכותרת
-העליונה ב־`CHANGELOG.md` הם חוזה release שנבדק אוטומטית. לפני שחרור:
+העליונה ב־`CHANGELOG.md` הם חוזה release שנבדק אוטומטית. פעל לפי
+[נוהל השחרור הקנוני](catalog-development.md#release-workflow): הקפאת מועמד
+עם `scripts/package_skill.py`, מטריצה מלאה וראיות מחוץ לעץ החבילה, סקירה
+בפועל של כל עמוד ראשי, חתימת הראיות ובדיקות FULL הקשורות לאותו מועמד.
+הארכיון הסופי חייב להתאים ל־SHA-256 של המועמד. שינוי מקור לאחר ההקפאה
+דורש מועמד חדש וחידוש הראיות המושפעות.
 
-הרץ משורש הסקיל ובחר תיקיית ראיות חדשה מחוץ לעץ החבילה:
-
-```bash
-python3 scripts/doctor.py
-FAST=1 bash scripts/test_all.sh
-bash scripts/test_all.sh
-python3 scripts/test_download_fonts.py
-python3 scripts/test_studio_matrix.py --jobs 4 --evidence-dir /tmp/studio-matrix-review
-python3 scripts/check_package_hygiene.py
-STUDIO_VERSION="$(cat VERSION)"
-python3 scripts/package_skill.py \
-  --output "/tmp/release-new/hebrew-english-latex-studio-v${STUDIO_VERSION}.skill"
-```
-
-`FAST` אינו מחליף את בדיקות המנוע המלאות. מטריצת הסטארטרים שומרת PDF ותמונות
-לבדיקה, אך אינה רושמת אישור חזותי. פתח כל עמוד של כל PDF שנמסר, ורשום סקירה
-ואימות רק עבור עמודים שנבדקו בפועל, לפי [תהליך הסקירה](everyday-workflow.md#review-actual-rendered-pages).
+`FAST` או יצירת ארכיון אינם מחליפים בדיקות מנוע וסקירה חזותית. לבדיקת FULL
+שאינה שחרור, השתמש בהצהרת `HEBREW_LATEX_CATALOG_VISUAL=routine` לפי אותו נוהל;
+הרצה כזו אינה ראיית שחרור.
 
 האריזה ממיינת נתיבים, מקבעת timestamps והרשאות, ואינה כוללת directory entries
 או artifacts. אותו עץ תוכן חייב להפיק אותם bytes גם כשה־checkout נקרא בשם אחר.

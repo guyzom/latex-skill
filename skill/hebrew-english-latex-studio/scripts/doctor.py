@@ -26,6 +26,9 @@ EXPECTED_QA = {
 }
 REQUIRED_COMMANDS = ("lualatex", "kpsewhich", "pdfinfo", "pdftoppm")
 REQUIRED_TEX_FILES = (
+    # Luaotfload unconditionally loads these external Lua libraries during
+    # startup; finding its entrypoint alone does not prove they are installed.
+    "lualibs.lua", "lua-uni-case.lua", "lua-uni-normalize.lua", "lua-uni-parse.lua",
     "luaotfload-main.lua", "luatexbase.sty", "babel.sty", "babel-he.ini",
     "babel-en.ini", "lmroman10-regular.otf", "lmroman10-bold.otf",
     "lmroman10-italic.otf", "lmroman10-bolditalic.otf",
@@ -36,7 +39,10 @@ REQUIRED_TEX_FILES = (
     "mdframed.sty", "listings.sty", "tikz.sty", "pgfplots.sty",
     "quantikz.sty", "ctablestack.sty", "booktabs.sty", "array.sty", "float.sty",
     "enumitem.sty", "needspace.sty", "hyperref.sty", "fancyhdr.sty",
-    "graphicx.sty", "longtable.sty", "collcell.sty", "multicol.sty",
+    "graphicx.sty", "caption.sty", "longtable.sty", "collcell.sty", "multicol.sty",
+    # Full studio validation includes the shipped reference starters and index
+    # component. The build checks the optional makeindex command when selected.
+    "colortbl.sty", "imakeidx.sty",
 )
 
 

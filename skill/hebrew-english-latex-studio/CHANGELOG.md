@@ -1,5 +1,23 @@
 # Hebrew English LaTeX Studio — release metadata
 
+## v5.4.10
+
+Generated-project quick starts invoke the project build wrapper so declared
+recipe defaults, including the managed index processor, reach the shared
+builder. Build and review examples keep explicit project and evidence paths.
+Release instructions route to the canonical candidate, visual review, sealing
+and FULL workflow instead of retaining conflicting duplicate command lists.
+
+The repository README describes the supported single-index MakeIndex route.
+Doctor preflight checks required caption, reference-table, index and Lua font
+loader dependencies; independent missing-dependency controls retain the
+QA-only route for static harness runs.
+
+The managed builder rejects a current index writer when its processor is
+disabled, including the paired empty-style bypass. A real-engine negative
+control verifies that the prior indexed PDF survives the failed build and
+success evidence is not published.
+
 ## v5.4.9
 
 The retained bilingual-reference example declares table order locally: the

@@ -55,10 +55,14 @@ An explicit installer destination takes precedence over the environment.
 ```bash
 python3 /path/to/skill/scripts/new_document.py --kind general \
   --language hebrew-with-english --theme reader --directory /path/to/new-document
-bash /path/to/skill/scripts/build.sh /path/to/new-document/main.tex
+HEBREW_LATEX_SKILL_ROOT=/path/to/skill bash /path/to/new-document/build.sh
 python3 /path/to/skill/scripts/render_review.py render \
   /path/to/new-document/main.pdf --output /path/to/new-review
 ```
+
+Use the generated wrapper to retain the recipe's build defaults, including any
+explicitly selected optional components. Existing sources without a wrapper
+require explicitly declared configuration for the managed builder.
 
 For native English, use `--language english`. For substantial sections in both
 languages, use `--language bilingual --main-language english` or `hebrew`.
